@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주간계획서 뷰어</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
+--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+header{padding:16px 20px 8px}
+h1{margin:0;font-size:20px}
+.meta{color:var(--sub);font-size:12px;margin-top:2px}
+.wrap{padding:0 20px 40px;max-width:1500px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.kpi:hover{border-color:var(--accent)}
+.kpi b{display:block;font-size:22px;line-height:1.2}
+.kpi span{font-size:12px;color:var(--sub)}
+.kpi.on{outline:2px solid var(--accent)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 12px;flex-wrap:wrap}
+.tab{padding:8px 14px;border:0;background:none;color:var(--sub);font:inherit;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--accent);border-color:var(--accent);font-weight:700}
+.panel{display:none}.panel.on{display:block}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.bar input[type=search],.bar select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.bar input[type=search]{min-width:220px;flex:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:3px 10px;border-radius:999px;font:inherit;font-size:12px;cursor:pointer}
+.chip.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
+.lbl{font-size:12px;color:var(--sub)}
+.count{margin:6px 2px;color:var(--sub);font-size:12px}
+.tbl-wrap{overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:72vh}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--card);font-size:12px;color:var(--sub);cursor:pointer;white-space:nowrap;z-index:1;border-bottom:2px solid var(--line)}
+tr.r td:first-child{border-left:4px solid var(--c)}
+tr.r:hover td{background:var(--accent-bg)}
+.badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;background:var(--c);white-space:nowrap}
+.sec{font-size:11px;color:var(--sub)}
+.t{font-weight:600}
+td.nw{white-space:nowrap}
+.age{font-size:11px;color:var(--sub);white-space:nowrap}
+.age.old{color:var(--warn);font-weight:700}
+.w{cursor:pointer;color:var(--accent)}
+.w:hover{text-decoration:underline}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.card h3{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.card h3 small{color:var(--sub);font-weight:400}
+.mini{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.item{padding:5px 0;border-top:1px dashed var(--line);font-size:13px}
+.item .n{color:var(--sub);font-size:12px}
+.memo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card ul{margin:4px 0 0;padding-left:18px}
+.card li{margin:2px 0}
+.empty{color:var(--sub);padding:20px;text-align:center}
+.note{font-size:12px;color:var(--sub);margin-top:14px;line-height:1.6}
+@media print{.bar,.tabs,.kpis{display:none}.panel{display:block!important}.tbl-wrap{max-height:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="ttl">주간계획서</h1>
+  <div class="meta" id="meta"></div>
+</header>
+<div class="wrap">
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs"></div>
+
+  <section class="panel" id="p-list">
+    <div class="bar">
+      <input type="search" id="q" placeholder="도서명·저자·작업자·진행내용 검색">
+      <select id="fSec"></select>
+      <select id="fKind"><option value="">신간+개정</option><option>신간</option><option>개정</option></select>
+      <select id="fWorker"></select>
+      <label class="lbl">정체 기준 <select id="thr"><option value="7">7일</option><option value="14" selected>14일</option><option value="30">30일</option></select></label>
+      <label class="lbl"><input type="checkbox" id="hidePrint" checked> 인쇄완료 숨기기</label>
+      <label class="lbl"><input type="checkbox" id="onlyStale"> 정체만</label>
+      <button class="chip" id="reset">초기화</button>
+    </div>
+    <div class="bar" style="padding:6px 10px"><span class="lbl">단계</span><div class="chips" id="stageChips"></div></div>
+    <div class="count" id="count"></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th data-k="sec">구분</th><th data-k="title">도서명</th><th data-k="rev">차수</th><th data-k="author">저자</th>
+        <th data-k="workers">작업자</th><th data-k="stage">단계</th><th data-k="date">최종 갱신</th><th>진행 내용</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel" id="p-worker"><div class="cards" id="wcards"></div></section>
+  <section class="panel" id="p-memo"><div class="memo-grid" id="memo"></div></section>
+  <section class="panel" id="p-incoming"><div class="tbl-wrap"><table>
+      <thead><tr><th>입고(예정)일</th><th>도서명</th><th>저자</th><th>현재 진행</th><th>차수</th></tr></thead><tbody id="inc"></tbody></table></div></section>
+  <section class="panel" id="p-hold"><div class="memo-grid" id="hold"></div></section>
+
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+const D={"base": "2026-11-03", "recs": [{"sec": "진행 도서 · 개정", "title": "철도공학", "author": "성덕룡", "workers": ["유은아", "김지혜"], "date": "2026-10-21", "age": 13, "note": "내부 3교 중 (추가 개정 원고 반영분 1교 중)", "raw": "26.10.21(수)\t내부 3교 중 (추가 개정 원고 반영분 1교 중)", "rev": "(2차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "교통기사 필기", "author": "이석훈", "workers": ["유은아", "김지혜"], "date": "2026-07-28", "age": 98, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.07.28(화)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(8차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "조경기능사 필기", "author": "정용민", "workers": ["유은아", "김지혜"], "date": "2026-08-18", "age": 77, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.08.18(월)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(9차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "위험물산업기사 필기", "author": "허판효", "workers": ["유은아", "김지혜"], "date": "2026-08-10", "age": 85, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.08.10(월)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(19차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "지적기사 필기 과년도 문제해설", "author": "김정민", "workers": ["유은아", "김지혜"], "date": "2026-10-30", "age": 4, "note": "저자 1교 중", "raw": "26.10.30(금)\t저자 1교 중", "rev": "(18차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "지적산업기사 필기 과년도 문제해설", "author": "김정민", "workers": ["유은아", "신보용"], "date": "2026-10-30", "age": 4, "note": "내부 1교 중", "raw": "26.10.30(금)\t내부 1교 중", "rev": "(17차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "도시계획기사 필기", "author": "이석훈", "workers": ["김성은", "신보용"], "date": "2026-10-29", "age": 5, "note": "내부 1교 대기(출제기준 변경으로 모의고사 3회분 소책자 작업)", "raw": "26.10.29(목)\t내부 1교 대기(출제기준 변경으로 모의고사 3회분 소책자 작업)", "rev": "(8차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "21세기 건설안전기술사", "author": "김정태", "workers": ["유은아", "김지혜"], "date": "2026-11-02", "age": 1, "note": "내부 1교 대기", "raw": "26.11.02(월)\t내부 1교 대기", "rev": "(1차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "조경기능사 실기", "author": "정용민", "workers": ["김나윤", "윤소연"], "date": "2026-10-13", "age": 21, "note": "<30번> 4차 수정 완료, <31번> 저자 1교 완료(문제 삽입 여부 미정)", "raw": "26.10.13(화)\t<30번> 4차 수정 완료, <31번> 저자 1교 완료(문제 삽입 여부 미정)", "rev": "(6차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "한권으로 끝내는 건축기사 필기", "author": "이석훈", "workers": ["김나윤", "권윤주"], "date": "2026-09-07", "age": 57, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.09.07(월)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(2차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "승강기기능사 필기＋실기", "author": "김진만", "workers": ["김나윤", "백혜림"], "date": "2026-10-29", "age": 5, "note": "저자 최종교 요청", "raw": "26.10.29(목)\t저자 최종교 요청", "rev": "(3차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "건축기계설비 공조냉동기계기술사(용어해설)", "author": "김회률", "workers": ["김나윤", "권윤주"], "date": "2026-06-30", "age": 126, "note": "저자 1교 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.06.30(화)\t저자 1교 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(6차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "콘크리트기능사 필기+실기", "author": "이관석", "workers": ["이혜숙"], "date": "2026-01-29", "age": 278, "note": "<모의고사> 내부 1교 완료", "raw": "26.01.29(목)\t<모의고사> 내부 1교 완료", "rev": "(7차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "21C 토목시공기술사", "author": "신경수", "workers": ["이혜숙", "백혜림"], "date": "2026-11-02", "age": 1, "note": "<1권> 저자 2교 중 /<2권> 내부 1교 대기 중 /그림 4도 작업 중", "raw": "26.11.02(월)\t<1권> 저자 2교 중 /<2권> 내부 1교 대기 중 /그림 4도 작업 중", "rev": "(10차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "21C 조경기술사 실전문제 풀이", "author": "정상아", "workers": ["이혜숙", "윤소연"], "date": "2026-09-21", "age": 43, "note": "내부 1교 중", "raw": "26.09.21(월)\t내부 1교 중", "rev": "(4차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "공장관리기술사", "author": "김만기", "workers": ["이혜숙", "신보용"], "date": "2026-10-30", "age": 4, "note": "<139회> 내부 1교 대기", "raw": "26.10.30(금)\t<139회> 내부 1교 대기", "rev": "(1차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "식품안전기사 필기", "author": "정진경", "workers": ["이혜숙", "김지혜"], "date": "2026-11-02", "age": 1, "note": "25년 3회, 26년 1~3회 1차 편집 중", "raw": "26.11.02(월)\t25년 3회, 26년 1~3회 1차 편집 중", "rev": "(2차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "품질경영기사산업기사 실기", "author": "배극윤", "workers": ["김우진", "신보용"], "date": "2026-10-30", "age": 4, "note": "26년 1~2회 기사산업기사 완료", "raw": "26.10.30(금)\t26년 1~2회 기사산업기사 완료", "rev": "(18차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "산업안전지도사 1차", "author": "한윌리", "workers": ["김우진", "김지혜"], "date": "2026-10-20", "age": 14, "note": "저자 최종 확인 완료 / 동영상 촬영 예정 (→ 재고 일부 소진 시까지 대기)", "raw": "26.10.20(화)\t저자 최종 확인 완료 / 동영상 촬영 예정 (→ 재고 일부 소진 시까지 대기)", "rev": "(13차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "품질경영기사 필기", "author": "배극윤", "workers": ["김우진", "백혜림"], "date": "2026-11-02", "age": 1, "note": "2차 수정완료. 내부 교정 넘김", "raw": "26.11.02(월)\t2차 수정완료. 내부 교정 넘김", "rev": "(27차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "토목구조기술사 과년도 문제해설", "author": "김경호", "workers": ["김우진", "신보용"], "date": "2026-10-19", "age": 15, "note": "1/2 저자 1교 중, 나머지 1/2 내부 1교 중", "raw": "26.10.19(월)\t1/2 저자 1교 중, 나머지 1/2 내부 1교 중", "rev": "(1차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "측량 및 지형공간정보기사 실기", "author": "김민승", "workers": ["김우진", "윤소연"], "date": "2026-11-02", "age": 1, "note": "26년 1,2회 저자 1교 중. 3회 원고 대기 중", "raw": "26.11.02(월)\t26년 1,2회 저자 1교 중. 3회 원고 대기 중", "rev": "(25차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "나무의사 필기", "author": "김태승", "workers": ["김우진", "윤소연"], "date": "2026-10-30", "age": 4, "note": "1차 수정 완료. 내부 교정 넘김", "raw": "26.10.30(금)\t1차 수정 완료. 내부 교정 넘김", "rev": "(3차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "산림기사산업기사 실기", "author": "이정희", "workers": ["김우진"], "date": "2026-10-29", "age": 5, "note": "1차 편집 완료. 내부 교정 넘김, 기출 x", "raw": "26.10.29(목)\t1차 편집 완료. 내부 교정 넘김, 기출 x", "rev": "(3차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "여성복기능사 필기+실기", "author": "김경애", "workers": ["방지예", "백혜림"], "date": "2026-10-29", "age": 5, "note": "1차 수정 중", "raw": "26.10.29(목)\t1차 수정 중", "rev": "(1차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "테크니컬 의복제작", "author": "김경애", "workers": ["방지예", "백혜림"], "date": "2026-10-26", "age": 8, "note": "1차 편집 중 / 그림 작업 중", "raw": "26.10.26(월)\t1차 편집 중 / 그림 작업 중", "rev": "(1차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "실내건축기사 실기(작업형)", "author": "유희정", "workers": ["방지예", "박온누리", "윤소연"], "date": "2026-11-02", "age": 1, "note": "내지 1차 조판 완료(파트5 기출문제),", "raw": "26.11.02(월)\t내지 1차 조판 완료(파트5 기출문제),", "rev": "(3차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "위험물산업기사 실기", "author": "배극윤", "workers": ["신보용", "김우진"], "date": "2026-07-31", "age": 95, "note": "<본문+기출> 저자 최종 확인 완료(→ 12월 최소 부수 인쇄 예정)", "raw": "26.07.31(금)\t<본문+기출> 저자 최종 확인 완료(→ 12월 최소 부수 인쇄 예정)", "rev": "(신)", "kind": "신간", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "소방안전관리자 2급", "author": "정명진", "workers": ["신보용"], "date": "2026-02-23", "age": 253, "note": "원고 정리 완료 / 기출 7개년 원고 요청", "raw": "26.02.23(월)\t원고 정리 완료 / 기출 7개년 원고 요청", "rev": "(신)", "kind": "신간", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "지적측량 단원별 기출문제", "author": "이영수", "workers": ["신보용", "박영지(외주)", "천경민"], "date": "2026-10-29", "age": 5, "note": "내부 1교 중", "raw": "26.10.29(목)\t내부 1교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "떡제조기능사 필기+실기", "author": "신용호", "workers": ["신보용"], "date": "2026-10-23", "age": 11, "note": "필기, 기출 원고 검토 완료. 실기 검토 중, 내지시안 요청", "raw": "26.10.23(금)\t필기, 기출 원고 검토 완료. 실기 검토 중, 내지시안 요청", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "건축시공기술사 용어 보카 276제", "author": "권유동", "workers": ["김성은"], "date": "2026-11-02", "age": 1, "note": "1차 편집 중/그림 작업 중", "raw": "26.11.02(월)\t1차 편집 중/그림 작업 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "흡수식 냉온수기", "author": "권오수", "workers": ["권윤주", "이혜숙"], "date": "2026-10-30", "age": 4, "note": "<1,2편> 원고 대조 중 / <3편~부록> 저자 1교 중", "raw": "26.10.30(금)\t<1,2편> 원고 대조 중 / <3편~부록> 저자 1교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "공조냉동기계기사 필기", "author": "양경엽", "workers": ["권윤주", "김나윤"], "date": "2026-10-30", "age": 4, "note": "9차 수정확인 완료", "raw": "26.10.30(금)\t9차 수정확인 완료", "rev": "(신)", "kind": "신간", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "종자기사산업기사 필기", "author": "정숙자", "workers": ["권윤주"], "date": "2026-10-01", "age": 33, "note": "이론 원고 검토 완료/기출 검토 중", "raw": "26.10.01(목)\t이론 원고 검토 완료/기출 검토 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "인간공학기사 실기", "author": "문정희", "workers": ["김지혜", "이혜숙"], "date": "2026-11-02", "age": 1, "note": "내부 3교 대기 / 26년 3회 기출 11/2 입고", "raw": "26.11.02(월)\t내부 3교 대기 / 26년 3회 기출 11/2 입고", "rev": "(신)", "kind": "신간", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "만화 기리 산업안전보건법", "author": "최윤길", "workers": ["백혜림", "강현희"], "date": "2026-10-14", "age": 20, "note": "상권 내부 1교 중 / 하권 편집 中", "raw": "26.10.14(수)\t상권 내부 1교 중 / 하권 편집 中", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "지적법 800제", "author": "이영수", "workers": ["백혜림", "김미영(외주)", "이혜숙"], "date": "2026-10-28", "age": 6, "note": "내부 1교 중", "raw": "26.10.28(수)\t내부 1교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "토질 및 기초기술사", "author": "박신영", "workers": ["윤소연", "이혜숙"], "date": "2026-10-19", "age": 15, "note": "저자 4교 중", "raw": "26.10.19(월)\t저자 4교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "콘크리트기사산업기사 필기", "author": "이솔", "workers": ["윤소연", "이혜숙"], "date": "2026-11-02", "age": 1, "note": "<이론>,<기사> 저자 2교 중 / <산업기사> 내부 2교 중", "raw": "26.11.02(월)\t<이론>,<기사> 저자 2교 중 / <산업기사> 내부 2교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "개정표지/상세디자인/홈피배너디자인", "author": "", "workers": ["이연주", "김진혜", "방지예"], "date": "", "age": null, "note": "상시작업 중", "raw": "상시작업 중", "rev": "", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기사 필기", "author": "권오수", "workers": ["김나윤"], "date": "2025-07-31", "age": 460, "note": "인쇄 넘김", "raw": "2025.07.31 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기사 필기 과년도 문제풀이 7개년", "author": "권오수", "workers": ["김나윤"], "date": "2026-08-06", "age": 89, "note": "인쇄 넘김", "raw": "2026.08.06 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스산업기사 필기", "author": "권오수", "workers": ["김우진"], "date": "2026-02-10", "age": 266, "note": "인쇄 넘김", "raw": "2026.02.10 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스산업기사 필기 과년도 문제풀이 7개년", "author": "권오수", "workers": ["유은아"], "date": "2026-01-23", "age": 284, "note": "인쇄 넘김", "raw": "2026.01.23 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기사·산업기사 실기", "author": "권오수", "workers": ["이혜숙"], "date": "2025-12-05", "age": 333, "note": "저자 원고작업 보류", "raw": "2025.12.05 저자 원고작업 보류", "rev": "2차", "kind": "개정", "stage": "보류", "extra": "과년도:21.3회"}, {"sec": "권오수 선생님 모음", "title": "가스기능사 필기", "author": "권오수", "workers": ["유은아"], "date": "2025-05-29", "age": 523, "note": "인쇄 넘김", "raw": "2025.05.29 인쇄 넘김", "rev": "14차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능사 필기 10일 완성", "author": "권오수", "workers": ["유은아"], "date": "2025-09-08", "age": 421, "note": "인쇄 넘김", "raw": "2025.09.08 인쇄 넘김", "rev": "23차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능사 실기", "author": "권오수", "workers": ["이혜숙"], "date": "2026-02-02", "age": 274, "note": "인쇄 넘김(표지갈이)", "raw": "2026.02.02 인쇄 넘김(표지갈이)", "rev": "1차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.4회"}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기사 필기 과년도 10개년", "author": "권오수", "workers": ["유은아"], "date": "2025-11-24", "age": 344, "note": "인쇄 넘김(표지갈이)", "raw": "2025.11.24 인쇄 넘김(표지갈이)", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계산업기사 필기 과년도 10개년", "author": "권오수", "workers": ["유은아"], "date": "2026-04-30", "age": 187, "note": "<부록 핵심용어> 내부 1교 대기", "raw": "2026.04.30 <부록 핵심용어> 내부 1교 대기", "rev": "19차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계산업기사 실기 필답형+작업형", "author": "권오수", "workers": ["이혜숙"], "date": "2026-03-31", "age": 217, "note": "인쇄 넘김(표지갈이)", "raw": "2026.03.31 인쇄 넘김(표지갈이)", "rev": "3차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.3회"}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기능사 필기", "author": "권오수", "workers": ["유은아"], "date": "2025-05-29", "age": 523, "note": "인쇄 넘김", "raw": "2025.05.29 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기능사 필기＋실기 10일 완성", "author": "권오수", "workers": ["유은아"], "date": "2025-07-02", "age": 489, "note": "인쇄 넘김", "raw": "2025.07.02 인쇄 넘김", "rev": "25차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기능사 실기 필답형+작업형", "author": "권오수", "workers": ["김우진"], "date": "2026-08-10", "age": 85, "note": "인쇄 넘김", "raw": "2026.08.10 인쇄 넘김", "rev": "7차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:26.2회"}, {"sec": "권오수 선생님 모음", "title": "에너지관리기사 필기", "author": "권오수", "workers": ["김우진"], "date": "2025-07-17", "age": 474, "note": "인쇄 넘김", "raw": "2025.07.17 인쇄 넘김", "rev": "30차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기사 필기 과년도 10개년", "author": "권오수", "workers": ["김우진"], "date": "2026-10-30", "age": 4, "note": "내부 2교 대기", "raw": "2026.10.30 내부 2교 대기", "rev": "21차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기사 실기", "author": "권오수", "workers": ["유은아"], "date": "2026-03-24", "age": 224, "note": "인쇄 넘김(표지갈이)", "raw": "2026.03.24 인쇄 넘김(표지갈이)", "rev": "23차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.3회"}, {"sec": "권오수 선생님 모음", "title": "에너지관리산업기사 필기", "author": "권오수", "workers": ["김우진"], "date": "2026-05-29", "age": 158, "note": "인쇄 넘김", "raw": "2026.05.29 인쇄 넘김", "rev": "16차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리산업기사 필기 과년도 10개년", "author": "권오수", "workers": ["유은아"], "date": "2026-05-21", "age": 166, "note": "인쇄 넘김", "raw": "2026.05.21 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리산업기사 실기 필답형+작업형", "author": "권오수", "workers": ["이혜숙"], "date": "2026-08-21", "age": 74, "note": "인쇄 넘김", "raw": "2026.08.21 인쇄 넘김", "rev": "22차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:26.2회"}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능사 필기", "author": "권오수", "workers": ["유은아"], "date": "2026-05-14", "age": 173, "note": "인쇄 넘김", "raw": "2026.05.14 인쇄 넘김", "rev": "23차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능사 필기+실기 10일 완성", "author": "권오수", "workers": ["유은아"], "date": "2026-05-21", "age": 166, "note": "인쇄 넘김", "raw": "2026.05.21 인쇄 넘김", "rev": "20차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능장 필기 과년도 기출문제", "author": "권오수", "workers": ["이혜숙"], "date": "2024-11-27", "age": 706, "note": "인쇄 넘김", "raw": "2024.11.27 인쇄 넘김", "rev": "10차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능장 실기", "author": "권오수", "workers": ["임선영"], "date": "2025-12-05", "age": 333, "note": "저자 원고작업 보류", "raw": "2025.12.05 저자 원고작업 보류", "rev": "3차", "kind": "개정", "stage": "보류", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능장 필기", "author": "권오수", "workers": ["김나윤"], "date": "2025-01-03", "age": 669, "note": "인쇄 넘김", "raw": "2025.01.03 인쇄 넘김", "rev": "5차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능장 필기 과년도 문제해설", "author": "권오수", "workers": ["유은아"], "date": "2025-07-10", "age": 481, "note": "인쇄 넘김", "raw": "2025.07.10 인쇄 넘김", "rev": "12차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능장 실기", "author": "권오수", "workers": ["이혜숙"], "date": "2026-06-11", "age": 145, "note": "인쇄 넘김", "raw": "2026.06.11 인쇄 넘김", "rev": "17차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:26.전반"}, {"sec": "권오수 선생님 모음", "title": "배관기능장 필기+실기 기출문제", "author": "권오수", "workers": ["김나윤"], "date": "2026-03-13", "age": 235, "note": "인쇄 넘김", "raw": "2026.03.13 인쇄 넘김", "rev": "21차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.후반"}, {"sec": "권오수 선생님 모음", "title": "용접기능장 필기+실기", "author": "권오수", "workers": ["김나윤"], "date": "2026-10-23", "age": 11, "note": "인쇄 넘김", "raw": "2026.10.23 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "보일러공학", "author": "권오수", "workers": ["이혜숙"], "date": "2026-02-27", "age": 249, "note": "인쇄 넘김", "raw": "2026.02.27 인쇄 넘김", "rev": "신간", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "인천대산전기학원", "title": "전기자기학", "author": "방찬수", "workers": ["김우진", "백혜림"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 1권"}, {"sec": "인천대산전기학원", "title": "전력공학", "author": "김용택", "workers": ["김우진", "백혜림"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 2권"}, {"sec": "인천대산전기학원", "title": "전기기기", "author": "김진수", "workers": ["김우진", "윤소연"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 3권"}, {"sec": "인천대산전기학원", "title": "회로이론", "author": "허순봉", "workers": ["김우진", "윤소연"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 4권"}, {"sec": "인천대산전기학원", "title": "전기설비기술기준", "author": "강준희", "workers": ["김우진", "박온누리"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 5권"}, {"sec": "인천대산전기학원", "title": "제어공학(자동제어)", "author": "송우근", "workers": ["김우진", "박온누리"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 6권"}, {"sec": "인천대산전기학원", "title": "전기기사 3주완성(무료동영상)", "author": "강준희", "workers": ["유은아", "윤소연"], "date": "2026-11-02", "age": 1, "note": "<26년 3회> 2차 수정 대기", "raw": "26.11.02 <26년 3회> 2차 수정 대기", "rev": "6차", "kind": "개정", "stage": "대기", "extra": "전기 필기|26.07.13 <26년 1,2회> 강의용 pdf 전달"}, {"sec": "인천대산전기학원", "title": "전기산업기사 3주완성(무료동영상)", "author": "강준희", "workers": ["유은아", "윤소연"], "date": "2026-11-02", "age": 1, "note": "<26년 3회> 2차 수정 대기", "raw": "26.11.02 <26년 3회> 2차 수정 대기", "rev": "6차", "kind": "개정", "stage": "대기", "extra": "전기 필기|26.07.13 <26년 1,2회> 강의용 pdf 전달"}, {"sec": "인천대산전기학원", "title": "전기기사산업기사 실기", "author": "인천대산", "workers": ["김나윤", "박지아"], "date": "2026-02-12", "age": 264, "note": "인쇄 넘김", "raw": "26.02.12 인쇄 넘김", "rev": "10차", "kind": "개정", "stage": "인쇄완료", "extra": "전기 실기"}, {"sec": "인천대산전기학원", "title": "전기기사 실기 25개년+무료동영상", "author": "강준희", "workers": ["이혜숙", "권윤주"], "date": "2026-10-30", "age": 4, "note": "<26년 3회> 편집 대기", "raw": "26.10.30 <26년 3회> 편집 대기", "rev": "5차", "kind": "개정", "stage": "대기", "extra": "전기 실기"}, {"sec": "인천대산전기학원", "title": "전기산업기사 실기 25개년+무료동영상", "author": "강준희", "workers": ["이혜숙", "권윤주"], "date": "2026-10-30", "age": 4, "note": "<26년 3회> 편집 대기", "raw": "26.10.30 <26년 3회> 편집 대기", "rev": "5차", "kind": "개정", "stage": "대기", "extra": "전기 실기"}, {"sec": "인천대산전기학원", "title": "1권 전기응용 및 공사재료", "author": "인천대산", "workers": ["김우진"], "date": "2022-08-10", "age": 1546, "note": "인쇄 넘김", "raw": "22.08.10 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": "공사 필기"}, {"sec": "인천대산전기학원", "title": "전기공사기사산업기사 실기", "author": "인천대산", "workers": ["김우진"], "date": "2022-07-12", "age": 1575, "note": "인쇄 넘김", "raw": "22.07.12 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": "공사 실기"}, {"sec": "인천대산전기학원", "title": "전기기능사 필기 핵심이론", "author": "강준희", "workers": ["이혜숙", "김지혜"], "date": "2025-11-19", "age": 349, "note": "인쇄 넘김", "raw": "25.11.19 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": "기능사 필기"}, {"sec": "환경", "title": "대기관리기술사", "author": "", "workers": ["김우진", "권윤주"], "date": "2025-09-17", "age": 412, "note": "인쇄 넘김", "raw": "25.09.17 인쇄 넘김", "rev": "5차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "대기환경기사 필기", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-11-02", "age": 1, "note": "1차 수정 대기", "raw": "26.11.02 1차 수정 대기", "rev": "13차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "환경", "title": "대기환경산업기사 필기", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-11-02", "age": 1, "note": "1차 수정 대기", "raw": "26.11.02 1차 수정 대기", "rev": "14차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "환경", "title": "대기환경기사·산업기사 실기", "author": "", "workers": ["김우진", "백혜림"], "date": "2026-01-14", "age": 293, "note": "인쇄 넘김", "raw": "26.01.14 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "대기환경기사 필기 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-09-21", "age": 43, "note": "1차 편집 완료", "raw": "26.09.21 1차 편집 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "대기환경산업기사 필기 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-09-21", "age": 43, "note": "1차 편집 완료", "raw": "26.09.21 1차 편집 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "소음진동기사 필기", "author": "", "workers": ["김우진", "권윤주"], "date": "2026-10-30", "age": 4, "note": "1차 수정확인 완료", "raw": "26.10.30 1차 수정확인 완료", "rev": "14차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "소음진동기사 실기", "author": "", "workers": ["김우진", "박온누리"], "date": "2026-01-14", "age": 293, "note": "인쇄 넘김", "raw": "26.01.14 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "토양환경기사 필기", "author": "", "workers": ["김우진", "신보용"], "date": "2026-10-29", "age": 5, "note": "1차 수정완료", "raw": "26.10.29 1차 수정완료", "rev": "12차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "토양환경기사 실기", "author": "", "workers": ["김우진", "신보용"], "date": "2026-01-14", "age": 293, "note": "인쇄 넘김", "raw": "26.01.14 인쇄 넘김", "rev": "11차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "온실가스관리기사 필기", "author": "", "workers": ["김우진", "백혜림"], "date": "2026-11-02", "age": 1, "note": "1차 수정 중", "raw": "26.11.02 1차 수정 중", "rev": "2차2쇄", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "환경", "title": "온실가스관리기사 실기", "author": "", "workers": ["김우진", "백혜림"], "date": "2026-01-15", "age": 292, "note": "인쇄 넘김", "raw": "26.01.15 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리기사 필기", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "16차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리산업기사 필기", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "15차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리기사·산업기사 실기", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-01-15", "age": 292, "note": "인쇄 넘김", "raw": "26.01.15 인쇄 넘김", "rev": "13차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리기사 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리산업기사 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "수질환경기사·산업기사 필기", "author": "", "workers": ["이혜숙", "김지혜"], "date": "2025-12-11", "age": 327, "note": "인쇄 넘김", "raw": "25.12.11 인쇄 넘김", "rev": "13차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "수질환경기사·산업기사 실기", "author": "", "workers": ["김우진", "신보용"], "date": "2026-03-16", "age": 232, "note": "25년 기출 2차 수정완료", "raw": "26.03.16 25년 기출 2차 수정완료", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "수질환경기사 필기 문제풀이", "author": "", "workers": ["이혜숙", "박지아"], "date": "2026-01-19", "age": 288, "note": "인쇄 넘김", "raw": "26.01.19 인쇄 넘김", "rev": "10차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "수질환경산업기사 필기 문제풀이", "author": "", "workers": ["이혜숙", "박지아"], "date": "2026-01-19", "age": 288, "note": "인쇄 넘김", "raw": "26.01.19 인쇄 넘김", "rev": "11차", "kind": "개정", "stage": "인쇄완료", "extra": ""}], "incoming": [{"date": "24.09.30", "title": "화재감식평가기사산업기사 실기(필답형)", "author": "신현숙", "progress": "24.10.14 입력 완료", "rev": "신"}, {"date": "25.05.15", "title": "토목구조기술사1", "author": "김경호", "progress": "개정사항 입고(재고변동 추이 후 작업진행)", "rev": "3차"}, {"date": "25.12.16", "title": "공조냉동기계기사 실기(필기 완료 후 이론 원고 작업)", "author": "양경엽", "progress": "스캔본 입력 완료/입력분 저자 확인 중", "rev": "신"}, {"date": "26.06.02", "title": "산업안전지도사 2차", "author": "강두헌", "progress": "3차 면접원고 요청/원고 검토 중", "rev": "신"}, {"date": "26.07.02", "title": "건설공사발주자 안전보건실무 완전가이드", "author": "이근규", "progress": "시안 작업 중", "rev": "신"}, {"date": "26.08.03", "title": "정보보안기사 필기(예문에듀 출간)", "author": "이상엽", "progress": "샘플원고 입고, 저자 원고 작성 중", "rev": "신"}, {"date": "26.09.18", "title": "경영지도사 기출풀이 2차 생산관리", "author": "배극윤", "progress": "26년 기출 원고 입고", "rev": "1차"}, {"date": "26.10.12", "title": "화학분석기사 실기", "author": "정나나", "progress": "", "rev": "신"}, {"date": "26.10.12", "title": "위험물산업기사 필기", "author": "정나나", "progress": "원고 입고/기출 입력 중", "rev": "신"}, {"date": "26.10.13", "title": "전기기능사 필기", "author": "김종남", "progress": "개정 원고 입고", "rev": "41차"}, {"date": "26.10.15", "title": "대기관리기술사", "author": "서영민", "progress": "추가 원고 입고 대기", "rev": "6차"}, {"date": "26.10.19", "title": "자연환경관리기술사", "author": "이효준", "progress": "시안작업 대기", "rev": "신"}], "memo": [{"title": "지난주 작업 완료", "items": [{"label": "", "text": "토목기사산업기사 필기(토질및기초)-신보용(10/28)"}, {"label": "", "text": "토목기사산업기사 필기(측량학)-김지혜(10/28)"}, {"label": "", "text": "실내건축산업기사 필기-윤소연(10/29)"}], "sub": ""}, {"title": "이번주 작업 완료 예정", "items": [{"label": "", "text": "건축시공기술사 지침 요약 70제-김지혜(11/2)"}, {"label": "", "text": "토목기사산업기사 필기(응용역학)-윤소연(11/5)"}], "sub": ""}, {"title": "그림 진행 및 대기상황", "items": [{"label": "진행", "text": "건축시공기술사 용어 보카 276제-권유동"}], "sub": "대기"}, {"title": "CBT 등록 및 대기상황", "items": [{"label": "대기", "text": "신)인간공학기사 필기-문정희"}, {"label": "대기", "text": "신)조경기사산업기사 필기-정용민"}], "sub": "대기"}], "hold": [{"title": "진행 보류 중(원고 보류 및 대기 포함)", "items": [{"date": "20.07.21", "text": "(신)기계정비산업기사(박성일)   새원고 작성 중"}, {"date": "20.09.07", "text": "(초판2쇄)21세기 토목시공기술사 2차 면접(신경수)   원고 작성 중"}, {"date": "21.12.01", "text": "(1차)일반기계기사 필기 과년도 문제풀이(박성일)-신인남   1차 편집 중"}, {"date": "22.01.19", "text": "(1차)경영지도사 2차 시험 생산관리분야(배극윤)－김우진   2차 수정 완료"}, {"date": "22.05.16", "text": "(1차)직업상담사 2급 실기(김미영)   20년 기출까지 작업 완료"}, {"date": "23.01.26", "text": "(신)지적기사 필기(라용화)-김우진   1차 수정 완료"}, {"date": "23.05.10", "text": "(신)전기기능사 실기(이상호)   원고정리 재요청"}, {"date": "23.09.21", "text": "(신)토목기사산업기사 실기(서진수)-박온누리   <1~5편>1차 편집 대기 중/<6~12편>원고정리 대기 중"}, {"date": "23.11.29", "text": "(신)건설안전기술사 단기합격 도해집(한윌리)"}, {"date": "26.06.15", "text": "(신)지멘스 PLC프로그래밍(이재형)   저자 3교 중 / 실습편 원고 일정 확인 중"}, {"date": "25.02.27", "text": "기업의 안전보건경영시스템 구축 사례"}, {"date": "25.07.10", "text": "건축기사 실기(노문식) - 일부 원고 입고 / 내지시안 완료"}]}, {"title": "인쇄 대기 중", "items": [{"date": "22.12.28", "text": "(3차)지적법 기출문제 및 합격모의고사(이영수)－김성은"}, {"date": "23.06.22", "text": "(2차)기계3역학(박성일)-구효숙"}]}]};
+const BASE=new Date(D.base+'T00:00:00');
+const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
+const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const st={q:'',sec:'',kind:'',worker:'',thr:14,hidePrint:true,onlyStale:false,stages:new Set(),sort:{k:'stage',dir:1}};
+const recs=D.recs.map((r,i)=>({...r,i,secShort:r.sec.replace('진행 도서 · ','진행·')}));
+const isStale=r=>r.age!=null&&r.age>=st.thr&&['진행중','대기','단계완료'].includes(r.stage);
+const col=s=>`var(${STAGE[s]})`;
+
+function mmdd(iso){return iso?iso.slice(2).replace(/-/g,'.'):'-'}
+function ageTxt(r){ if(r.age==null)return '<span class="age">상시</span>';
+  const cls=isStale(r)?'age old':'age'; return `<span class="${cls}">${mmdd(r.date)} · ${r.age}일 전</span>`}
+
+/* tabs */
+const TABS=[['list','도서 목록'],['worker','작업자별'],['memo','이번주 체크포인트'],['incoming','원고 입고예정 ('+D.incoming.length+')'],['hold','보류·인쇄대기']];
+$('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab" data-t="${k}">${n}</button>`).join('');
+function showTab(k){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===k));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));try{history.replaceState(null,'','#'+k)}catch(e){}}
+$('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(b)showTab(b.dataset.t)};
+
+/* controls */
+const secs=[...new Set(recs.map(r=>r.sec))];
+$('#fSec').innerHTML='<option value="">전체 구분</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join('');
+const wc={};recs.forEach(r=>r.workers.forEach(w=>wc[w]=(wc[w]||0)+1));
+const wnames=Object.keys(wc).sort((a,b)=>wc[b]-wc[a]||a.localeCompare(b,'ko'));
+$('#fWorker').innerHTML='<option value="">전체 작업자</option>'+wnames.map(w=>`<option value="${esc(w)}">${esc(w)} (${wc[w]})</option>`).join('');
+$('#stageChips').innerHTML=ORDER.map(s=>`<button class="chip" data-s="${s}">${s}</button>`).join('');
+$('#stageChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const s=b.dataset.s;st.stages.has(s)?st.stages.delete(s):st.stages.add(s);render()};
+$('#q').oninput=e=>{st.q=e.target.value.trim().toLowerCase();render()};
+$('#fSec').onchange=e=>{st.sec=e.target.value;render()};
+$('#fKind').onchange=e=>{st.kind=e.target.value;render()};
+$('#fWorker').onchange=e=>{st.worker=e.target.value;render()};
+$('#thr').onchange=e=>{st.thr=+e.target.value;render()};
+$('#hidePrint').onchange=e=>{st.hidePrint=e.target.checked;render()};
+$('#onlyStale').onchange=e=>{st.onlyStale=e.target.checked;render()};
+$('#reset').onclick=()=>{Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false});st.stages.clear();
+  $('#q').value='';$('#fSec').value='';$('#fKind').value='';$('#fWorker').value='';$('#hidePrint').checked=true;$('#onlyStale').checked=false;render()};
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;
+  st.sort=st.sort.k===k?{k,dir:-st.sort.dir}:{k,dir:1};render()});
+function setWorker(w){st.worker=w;$('#fWorker').value=w;showTab('list');render()}
+document.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w)setWorker(w.dataset.w)});
+
+function filtered(){
+  let a=recs.filter(r=>{
+    if(st.hidePrint&&r.stage==='인쇄완료'&&!st.stages.has('인쇄완료'))return false;
+    if(st.stages.size&&!st.stages.has(r.stage))return false;
+    if(st.sec&&r.sec!==st.sec)return false;
+    if(st.kind&&r.kind!==st.kind)return false;
+    if(st.worker&&!r.workers.includes(st.worker))return false;
+    if(st.onlyStale&&!isStale(r))return false;
+    if(st.q){const h=(r.title+r.author+r.workers.join(' ')+r.note+r.sec+r.rev+r.extra).toLowerCase();
+      if(!st.q.split(/\s+/).every(t=>h.includes(t)))return false}
+    return true});
+  const {k,dir}=st.sort;
+  const v=r=>k==='workers'?r.workers.join(','):k==='date'?(r.date||'9999'):k==='stage'?ORDER.indexOf(r.stage):(r[k]||'');
+  a.sort((x,y)=>{const A=v(x),B=v(y);const c=(A<B?-1:A>B?1:0)*dir; if(c)return c; const d1=x.date||'9999',d2=y.date||'9999'; return (d1<d2?-1:d1>d2?1:0)||x.i-y.i});
+  return a}
+
+function render(){
+  const a=filtered();
+  $('#count').textContent=`${a.length}건 표시 (전체 ${recs.length}건) · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`;
+  $('#tb').innerHTML=a.length?a.map(r=>`<tr class="r" style="--c:${col(r.stage)}">
+    <td><span class="sec">${esc(r.secShort)}</span>${r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
+    <td class="t">${esc(r.title)}</td><td class="nw">${esc(r.rev)}</td><td class="nw">${esc(r.author)}</td>
+    <td>${r.workers.map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ')}</td>
+    <td><span class="badge" style="--c:${col(r.stage)}">${r.stage}</span></td>
+    <td>${ageTxt(r)}</td><td>${esc(r.note)}${r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td></tr>`).join('')
+    :'<tr><td colspan="8" class="empty">조건에 맞는 도서가 없습니다</td></tr>';
+  document.querySelectorAll('#stageChips .chip').forEach(c=>c.classList.toggle('on',st.stages.has(c.dataset.s)));
+  renderKpis();
+}
+
+function renderKpis(){
+  const act=recs.filter(r=>r.stage!=='인쇄완료');
+  const n=s=>recs.filter(r=>r.stage===s).length;
+  const stale=recs.filter(isStale).length;
+  const K=[['작업 중 도서',act.length,()=>{st.hidePrint=true;st.stages.clear()}],
+    ['진행중',n('진행중'),()=>{st.stages=new Set(['진행중'])}],
+    ['대기',n('대기')+n('재고대기'),()=>{st.stages=new Set(['대기','재고대기'])}],
+    ['정체 의심 ('+st.thr+'일+)',stale,()=>{st.onlyStale=true;st.stages.clear()}],
+    ['신간 진행',recs.filter(r=>r.kind==='신간'&&r.stage!=='인쇄완료').length,()=>{st.kind='신간';st.stages.clear()}],
+    ['입고 예정',D.incoming.length,()=>showTab('incoming')]];
+  $('#kpis').innerHTML=K.map((k,i)=>`<div class="kpi" data-k="${i}"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
+  document.querySelectorAll('.kpi').forEach(el=>el.onclick=()=>{const f=K[+el.dataset.k][2];
+    if(+el.dataset.k!==5){showTab('list');$('#onlyStale').checked=false;st.onlyStale=false;st.kind='';}
+    f();$('#onlyStale').checked=st.onlyStale;$('#fKind').value=st.kind;$('#hidePrint').checked=st.hidePrint;render()})
+}
+
+/* worker cards */
+function renderWorkers(){
+  const html=wnames.map(w=>{
+    const mine=recs.filter(r=>r.workers.includes(w)&&r.stage!=='인쇄완료').sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1);
+    if(!mine.length)return '';
+    const cnt={};mine.forEach(r=>cnt[r.stage]=(cnt[r.stage]||0)+1);
+    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 중 ${mine.length}건</small></h3>
+      <div class="mini">${ORDER.filter(s=>cnt[s]).map(s=>`<span class="badge" style="--c:${col(s)}">${s} ${cnt[s]}</span>`).join('')}</div>
+      ${mine.map(r=>`<div class="item"><span class="badge" style="--c:${col(r.stage)}">${r.stage}</span> <b>${esc(r.title)}</b> ${esc(r.rev)}
+        <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`}).join('');
+  $('#wcards').innerHTML=html||'<div class="empty">없음</div>';
+}
+
+/* memo / incoming / hold */
+function renderMisc(){
+  $('#memo').innerHTML=D.memo.map(g=>{
+    const subs={};g.items.forEach(i=>(subs[i.label||'']=subs[i.label||'']||[]).push(i.text));
+    return `<div class="card"><h3>${esc(g.title)}</h3>${Object.entries(subs).map(([l,xs])=>`${l?`<div class="lbl">[${esc(l)}]</div>`:''}<ul>${xs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`).join('')}
+      ${!g.items.length?'<div class="lbl">(기재 없음)</div>':''}</div>`}).join('');
+  $('#inc').innerHTML=D.incoming.map(r=>`<tr><td>${esc(r.date)}</td><td class="t">${esc(r.title)}</td><td>${esc(r.author)}</td><td>${esc(r.progress)||'<span class="lbl">-</span>'}</td><td>${esc(r.rev)}</td></tr>`).join('');
+  $('#hold').innerHTML=D.hold.map(g=>`<div class="card"><h3>${esc(g.title)}<small>${g.items.length}건</small></h3>${g.items.map(i=>`<div class="item"><span class="age">${esc(i.date)}</span> ${esc(i.text)}</div>`).join('')}</div>`).join('');
+}
+
+$('#ttl').textContent='주간계획서 (2026년 11월 09일)';
+$('#meta').textContent='원본: 주간계획서.hwp · 경과일 기준일 '+D.base+' · 단계/정체 표시는 진행 내용 문구로 자동 분류한 것이므로 원문과 함께 확인하세요';
+$('#note').innerHTML='※ 단계 분류 규칙: "인쇄 넘김"→인쇄완료 / "보류"→보류 / "재고…대기"→재고대기 / "대기"→대기 / "중"→진행중 / "완료"→단계완료. 슬래시(/)로 구분된 작업자는 원문 순서대로 표기했으며 역할(기획·편집 등)은 구분하지 않았습니다.';
+renderWorkers();renderMisc();render();
+showTab((location.hash||'#list').slice(1).replace(/[^a-z]/g,'')||'list');
+if(!document.querySelector('.tab.on'))showTab('list');
+</script>
+</body>
+</html>
