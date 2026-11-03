@@ -2,17 +2,21 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>주간계획서 뷰어</title>
-<style>
+<meta name="robots" content="noindex,nofollow">
+<title>주간계획서 현황</title>
+<style id="pagecss">
+/* layout: 상단 요약 카드 → 탭(도서 목록 / 작업자별 / 체크포인트 / 입고예정 / 보류) → 표. 편집 모드에서 칸을 직접 고치고 모든 접속자에게 실시간 반영 */
 :root{--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
 --c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--ok:#2f855a}
-@media (prefers-color-scheme:dark){:root{--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
-header{padding:16px 20px 8px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+header{padding:16px 0 8px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
 h1{margin:0;font-size:20px}
 .meta{color:var(--sub);font-size:12px;margin-top:2px}
 .tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -20,29 +24,32 @@ h1{margin:0;font-size:20px}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
-.btn.danger{color:var(--warn)}
-.saved{font-size:12px;color:var(--ok);min-width:8em;text-align:right}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status{font-size:12px;color:var(--sub);display:flex;gap:10px;align-items:center}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c-print);margin-right:4px}
+.dot.live{background:var(--ok)}.dot.err{background:var(--warn)}
 .saved.err{color:var(--warn)}
-.wrap{padding:0 20px 40px;max-width:1500px;margin:0 auto}
+.wrap{padding:0 0 40px;max-width:1500px;margin:0 auto}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
 .kpi:hover{border-color:var(--accent)}
-.kpi b{display:block;font-size:22px;line-height:1.2}
+.kpi b{display:block;font-size:22px;line-height:1.2;font-variant-numeric:tabular-nums}
 .kpi span{font-size:12px;color:var(--sub)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 12px;flex-wrap:wrap}
 .tab{padding:8px 14px;border:0;background:none;color:var(--sub);font:inherit;cursor:pointer;border-bottom:2px solid transparent}
 .tab.on{color:var(--accent);border-color:var(--accent);font-weight:700}
 .panel{display:none}.panel.on{display:block}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
-.bar input[type=search],.bar select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
-.bar input[type=search]{min-width:220px;flex:1}
+.bar input[type=search],.bar select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+.bar input[type=search]{min-width:200px;flex:1}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:3px 10px;border-radius:999px;font:inherit;font-size:12px;cursor:pointer}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:3px 10px;border-radius:999px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
 .lbl{font-size:12px;color:var(--sub)}
 .count{margin:6px 2px;color:var(--sub);font-size:12px}
-.editbanner{display:none;margin:0 0 10px;padding:8px 12px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);border-radius:8px;font-size:13px}
-body.edit .editbanner{display:block}
+.banner{display:none;margin:0 0 10px;padding:8px 12px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);border-radius:8px;font-size:13px}
+.banner.show{display:block}
+.banner.warn{border-color:var(--warn);color:var(--warn);background:var(--card)}
 .tbl-wrap{overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:72vh}
 table{border-collapse:collapse;width:100%}
 th,td{padding:7px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
@@ -63,26 +70,27 @@ body.edit [contenteditable]{outline:1px dashed var(--line);border-radius:3px;pad
 body.edit [contenteditable]:focus{outline:2px solid var(--accent);background:var(--accent-bg)}
 body.edit [contenteditable]:empty::before{content:'입력';color:var(--sub)}
 td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);max-width:100%}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
 .card h3{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:6px}
 .card h3 small{color:var(--sub);font-weight:400}
 .mini{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
 .item{padding:5px 0;border-top:1px dashed var(--line);font-size:13px}
 .item .n{color:var(--sub);font-size:12px}
-.memo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.memo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:12px}
 .card ul{margin:4px 0 0;padding-left:18px}
 .card li{margin:2px 0}
-.empty{color:var(--sub);padding:20px;text-align:center}
+.empty{color:var(--sub);padding:24px;text-align:center}
 .note{font-size:12px;color:var(--sub);margin-top:14px;line-height:1.6}
 .printhead{display:none}
-.confirm{display:inline-flex;gap:6px;align-items:center;font-size:12px}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw}
+#toast.show{opacity:1}
 @page{size:A4 landscape;margin:10mm}
 @media print{
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{font-size:10px;background:#fff}
-  header,.kpis,.tabs,.bar,.editbanner,.note,.no-print,.act{display:none!important}
+  body{font-size:10px;background:#fff;padding:0}
+  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{display:none!important}.panel.on{display:block!important}
   .printhead{display:block;margin-bottom:6px}
@@ -99,34 +107,33 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 </style>
 </head>
 <body>
+
+
 <header class="no-print">
   <div>
     <h1 id="ttl">주간계획서</h1>
     <div class="meta" id="meta"></div>
   </div>
   <div class="tools">
-    <span class="saved" id="saved"></span>
-    <button class="btn" id="bEdit">편집 모드</button>
-    <button class="btn primary" id="bPrint">인쇄</button>
+    <div class="status"><span><i class="dot" id="dot"></i><span id="conn">연결 중…</span></span><span class="saved" id="saved"></span></div>
+    <button class="btn" id="bEdit" hidden>편집 모드</button>
+    <button class="btn primary" id="bPrint">인쇄용 파일 저장</button>
     <button class="btn" id="bCsv">CSV 저장</button>
-    <button class="btn" id="bBackup">백업 저장</button>
-    <button class="btn" id="bRestore">백업 불러오기</button>
-    <input type="file" id="fileIn" accept="application/json,.json" hidden>
-    <span id="resetBox"><button class="btn danger" id="bReset">원본으로 되돌리기</button></span>
   </div>
 </header>
 <div class="wrap">
   <div class="printhead"><h1 id="pTtl"></h1><div class="meta" id="pMeta"></div></div>
+  <div class="banner" id="roBanner">보기 전용입니다. 수정하려면 소유자에게 수정 권한(Contributor 이상)을 요청하세요.</div>
+  <div class="banner" id="editBanner">편집 모드입니다. 칸을 눌러 고치면 잠시 뒤 모든 접속자의 화면에 반영됩니다. 작업자는 "이름 / 이름" 형식으로 적습니다.</div>
   <div class="kpis" id="kpis"></div>
   <div class="tabs" id="tabs"></div>
-  <div class="editbanner">편집 모드입니다. 칸을 눌러 바로 고치세요. 변경 내용은 이 브라우저에 자동 저장됩니다. 작업자는 "이름 / 이름" 형식으로 적습니다.</div>
 
   <section class="panel" id="p-list">
     <div class="bar">
-      <input type="search" id="q" placeholder="도서명·저자·작업자·진행내용 검색">
-      <select id="fSec"></select>
-      <select id="fKind"><option value="">신간+개정</option><option>신간</option><option>개정</option></select>
-      <select id="fWorker"></select>
+      <input type="search" id="q" placeholder="도서명·저자·작업자·진행내용 검색" aria-label="검색">
+      <select id="fSec" aria-label="구분"></select>
+      <select id="fKind" aria-label="신간·개정"><option value="">신간+개정</option><option>신간</option><option>개정</option></select>
+      <select id="fWorker" aria-label="작업자"></select>
       <label class="lbl">정체 기준 <select id="thr"><option value="7">7일</option><option value="14" selected>14일</option><option value="30">30일</option></select></label>
       <label class="lbl"><input type="checkbox" id="hidePrint" checked> 인쇄완료 숨기기</label>
       <label class="lbl"><input type="checkbox" id="onlyStale"> 정체만</label>
@@ -154,261 +161,435 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 
   <div class="note" id="note"></div>
 </div>
+<div id="toast" role="status"></div>
+
 
 <script>
-const D0={"base": "2026-11-03", "recs": [{"sec": "진행 도서 · 개정", "title": "철도공학", "author": "성덕룡", "workers": ["유은아", "김지혜"], "date": "2026-10-21", "age": 13, "note": "내부 3교 중 (추가 개정 원고 반영분 1교 중)", "raw": "26.10.21(수)\t내부 3교 중 (추가 개정 원고 반영분 1교 중)", "rev": "(2차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "교통기사 필기", "author": "이석훈", "workers": ["유은아", "김지혜"], "date": "2026-07-28", "age": 98, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.07.28(화)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(8차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "조경기능사 필기", "author": "정용민", "workers": ["유은아", "김지혜"], "date": "2026-08-18", "age": 77, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.08.18(월)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(9차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "위험물산업기사 필기", "author": "허판효", "workers": ["유은아", "김지혜"], "date": "2026-08-10", "age": 85, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.08.10(월)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(19차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "지적기사 필기 과년도 문제해설", "author": "김정민", "workers": ["유은아", "김지혜"], "date": "2026-10-30", "age": 4, "note": "저자 1교 중", "raw": "26.10.30(금)\t저자 1교 중", "rev": "(18차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "지적산업기사 필기 과년도 문제해설", "author": "김정민", "workers": ["유은아", "신보용"], "date": "2026-10-30", "age": 4, "note": "내부 1교 중", "raw": "26.10.30(금)\t내부 1교 중", "rev": "(17차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "도시계획기사 필기", "author": "이석훈", "workers": ["김성은", "신보용"], "date": "2026-10-29", "age": 5, "note": "내부 1교 대기(출제기준 변경으로 모의고사 3회분 소책자 작업)", "raw": "26.10.29(목)\t내부 1교 대기(출제기준 변경으로 모의고사 3회분 소책자 작업)", "rev": "(8차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "21세기 건설안전기술사", "author": "김정태", "workers": ["유은아", "김지혜"], "date": "2026-11-02", "age": 1, "note": "내부 1교 대기", "raw": "26.11.02(월)\t내부 1교 대기", "rev": "(1차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "조경기능사 실기", "author": "정용민", "workers": ["김나윤", "윤소연"], "date": "2026-10-13", "age": 21, "note": "<30번> 4차 수정 완료, <31번> 저자 1교 완료(문제 삽입 여부 미정)", "raw": "26.10.13(화)\t<30번> 4차 수정 완료, <31번> 저자 1교 완료(문제 삽입 여부 미정)", "rev": "(6차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "한권으로 끝내는 건축기사 필기", "author": "이석훈", "workers": ["김나윤", "권윤주"], "date": "2026-09-07", "age": 57, "note": "저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.09.07(월)\t저자 최종 확인 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(2차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "승강기기능사 필기＋실기", "author": "김진만", "workers": ["김나윤", "백혜림"], "date": "2026-10-29", "age": 5, "note": "저자 최종교 요청", "raw": "26.10.29(목)\t저자 최종교 요청", "rev": "(3차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "건축기계설비 공조냉동기계기술사(용어해설)", "author": "김회률", "workers": ["김나윤", "권윤주"], "date": "2026-06-30", "age": 126, "note": "저자 1교 완료 (→ 재고 일부 소진 시까지 대기)", "raw": "26.06.30(화)\t저자 1교 완료 (→ 재고 일부 소진 시까지 대기)", "rev": "(6차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "콘크리트기능사 필기+실기", "author": "이관석", "workers": ["이혜숙"], "date": "2026-01-29", "age": 278, "note": "<모의고사> 내부 1교 완료", "raw": "26.01.29(목)\t<모의고사> 내부 1교 완료", "rev": "(7차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "21C 토목시공기술사", "author": "신경수", "workers": ["이혜숙", "백혜림"], "date": "2026-11-02", "age": 1, "note": "<1권> 저자 2교 중 /<2권> 내부 1교 대기 중 /그림 4도 작업 중", "raw": "26.11.02(월)\t<1권> 저자 2교 중 /<2권> 내부 1교 대기 중 /그림 4도 작업 중", "rev": "(10차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "21C 조경기술사 실전문제 풀이", "author": "정상아", "workers": ["이혜숙", "윤소연"], "date": "2026-09-21", "age": 43, "note": "내부 1교 중", "raw": "26.09.21(월)\t내부 1교 중", "rev": "(4차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "공장관리기술사", "author": "김만기", "workers": ["이혜숙", "신보용"], "date": "2026-10-30", "age": 4, "note": "<139회> 내부 1교 대기", "raw": "26.10.30(금)\t<139회> 내부 1교 대기", "rev": "(1차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "식품안전기사 필기", "author": "정진경", "workers": ["이혜숙", "김지혜"], "date": "2026-11-02", "age": 1, "note": "25년 3회, 26년 1~3회 1차 편집 중", "raw": "26.11.02(월)\t25년 3회, 26년 1~3회 1차 편집 중", "rev": "(2차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "품질경영기사산업기사 실기", "author": "배극윤", "workers": ["김우진", "신보용"], "date": "2026-10-30", "age": 4, "note": "26년 1~2회 기사산업기사 완료", "raw": "26.10.30(금)\t26년 1~2회 기사산업기사 완료", "rev": "(18차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "산업안전지도사 1차", "author": "한윌리", "workers": ["김우진", "김지혜"], "date": "2026-10-20", "age": 14, "note": "저자 최종 확인 완료 / 동영상 촬영 예정 (→ 재고 일부 소진 시까지 대기)", "raw": "26.10.20(화)\t저자 최종 확인 완료 / 동영상 촬영 예정 (→ 재고 일부 소진 시까지 대기)", "rev": "(13차)", "kind": "개정", "stage": "재고대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "품질경영기사 필기", "author": "배극윤", "workers": ["김우진", "백혜림"], "date": "2026-11-02", "age": 1, "note": "2차 수정완료. 내부 교정 넘김", "raw": "26.11.02(월)\t2차 수정완료. 내부 교정 넘김", "rev": "(27차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "토목구조기술사 과년도 문제해설", "author": "김경호", "workers": ["김우진", "신보용"], "date": "2026-10-19", "age": 15, "note": "1/2 저자 1교 중, 나머지 1/2 내부 1교 중", "raw": "26.10.19(월)\t1/2 저자 1교 중, 나머지 1/2 내부 1교 중", "rev": "(1차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "측량 및 지형공간정보기사 실기", "author": "김민승", "workers": ["김우진", "윤소연"], "date": "2026-11-02", "age": 1, "note": "26년 1,2회 저자 1교 중. 3회 원고 대기 중", "raw": "26.11.02(월)\t26년 1,2회 저자 1교 중. 3회 원고 대기 중", "rev": "(25차)", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "나무의사 필기", "author": "김태승", "workers": ["김우진", "윤소연"], "date": "2026-10-30", "age": 4, "note": "1차 수정 완료. 내부 교정 넘김", "raw": "26.10.30(금)\t1차 수정 완료. 내부 교정 넘김", "rev": "(3차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "산림기사산업기사 실기", "author": "이정희", "workers": ["김우진"], "date": "2026-10-29", "age": 5, "note": "1차 편집 완료. 내부 교정 넘김, 기출 x", "raw": "26.10.29(목)\t1차 편집 완료. 내부 교정 넘김, 기출 x", "rev": "(3차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "여성복기능사 필기+실기", "author": "김경애", "workers": ["방지예", "백혜림"], "date": "2026-10-29", "age": 5, "note": "1차 수정 중", "raw": "26.10.29(목)\t1차 수정 중", "rev": "(1차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "테크니컬 의복제작", "author": "김경애", "workers": ["방지예", "백혜림"], "date": "2026-10-26", "age": 8, "note": "1차 편집 중 / 그림 작업 중", "raw": "26.10.26(월)\t1차 편집 중 / 그림 작업 중", "rev": "(1차)", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 개정", "title": "실내건축기사 실기(작업형)", "author": "유희정", "workers": ["방지예", "박온누리", "윤소연"], "date": "2026-11-02", "age": 1, "note": "내지 1차 조판 완료(파트5 기출문제),", "raw": "26.11.02(월)\t내지 1차 조판 완료(파트5 기출문제),", "rev": "(3차)", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "위험물산업기사 실기", "author": "배극윤", "workers": ["신보용", "김우진"], "date": "2026-07-31", "age": 95, "note": "<본문+기출> 저자 최종 확인 완료(→ 12월 최소 부수 인쇄 예정)", "raw": "26.07.31(금)\t<본문+기출> 저자 최종 확인 완료(→ 12월 최소 부수 인쇄 예정)", "rev": "(신)", "kind": "신간", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "소방안전관리자 2급", "author": "정명진", "workers": ["신보용"], "date": "2026-02-23", "age": 253, "note": "원고 정리 완료 / 기출 7개년 원고 요청", "raw": "26.02.23(월)\t원고 정리 완료 / 기출 7개년 원고 요청", "rev": "(신)", "kind": "신간", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "지적측량 단원별 기출문제", "author": "이영수", "workers": ["신보용", "박영지(외주)", "천경민"], "date": "2026-10-29", "age": 5, "note": "내부 1교 중", "raw": "26.10.29(목)\t내부 1교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "떡제조기능사 필기+실기", "author": "신용호", "workers": ["신보용"], "date": "2026-10-23", "age": 11, "note": "필기, 기출 원고 검토 완료. 실기 검토 중, 내지시안 요청", "raw": "26.10.23(금)\t필기, 기출 원고 검토 완료. 실기 검토 중, 내지시안 요청", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "건축시공기술사 용어 보카 276제", "author": "권유동", "workers": ["김성은"], "date": "2026-11-02", "age": 1, "note": "1차 편집 중/그림 작업 중", "raw": "26.11.02(월)\t1차 편집 중/그림 작업 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "흡수식 냉온수기", "author": "권오수", "workers": ["권윤주", "이혜숙"], "date": "2026-10-30", "age": 4, "note": "<1,2편> 원고 대조 중 / <3편~부록> 저자 1교 중", "raw": "26.10.30(금)\t<1,2편> 원고 대조 중 / <3편~부록> 저자 1교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "공조냉동기계기사 필기", "author": "양경엽", "workers": ["권윤주", "김나윤"], "date": "2026-10-30", "age": 4, "note": "9차 수정확인 완료", "raw": "26.10.30(금)\t9차 수정확인 완료", "rev": "(신)", "kind": "신간", "stage": "단계완료", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "종자기사산업기사 필기", "author": "정숙자", "workers": ["권윤주"], "date": "2026-10-01", "age": 33, "note": "이론 원고 검토 완료/기출 검토 중", "raw": "26.10.01(목)\t이론 원고 검토 완료/기출 검토 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "인간공학기사 실기", "author": "문정희", "workers": ["김지혜", "이혜숙"], "date": "2026-11-02", "age": 1, "note": "내부 3교 대기 / 26년 3회 기출 11/2 입고", "raw": "26.11.02(월)\t내부 3교 대기 / 26년 3회 기출 11/2 입고", "rev": "(신)", "kind": "신간", "stage": "대기", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "만화 기리 산업안전보건법", "author": "최윤길", "workers": ["백혜림", "강현희"], "date": "2026-10-14", "age": 20, "note": "상권 내부 1교 중 / 하권 편집 中", "raw": "26.10.14(수)\t상권 내부 1교 중 / 하권 편집 中", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "지적법 800제", "author": "이영수", "workers": ["백혜림", "김미영(외주)", "이혜숙"], "date": "2026-10-28", "age": 6, "note": "내부 1교 중", "raw": "26.10.28(수)\t내부 1교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "토질 및 기초기술사", "author": "박신영", "workers": ["윤소연", "이혜숙"], "date": "2026-10-19", "age": 15, "note": "저자 4교 중", "raw": "26.10.19(월)\t저자 4교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "콘크리트기사산업기사 필기", "author": "이솔", "workers": ["윤소연", "이혜숙"], "date": "2026-11-02", "age": 1, "note": "<이론>,<기사> 저자 2교 중 / <산업기사> 내부 2교 중", "raw": "26.11.02(월)\t<이론>,<기사> 저자 2교 중 / <산업기사> 내부 2교 중", "rev": "(신)", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "진행 도서 · 신간", "title": "개정표지/상세디자인/홈피배너디자인", "author": "", "workers": ["이연주", "김진혜", "방지예"], "date": "", "age": null, "note": "상시작업 중", "raw": "상시작업 중", "rev": "", "kind": "신간", "stage": "진행중", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기사 필기", "author": "권오수", "workers": ["김나윤"], "date": "2025-07-31", "age": 460, "note": "인쇄 넘김", "raw": "2025.07.31 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기사 필기 과년도 문제풀이 7개년", "author": "권오수", "workers": ["김나윤"], "date": "2026-08-06", "age": 89, "note": "인쇄 넘김", "raw": "2026.08.06 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스산업기사 필기", "author": "권오수", "workers": ["김우진"], "date": "2026-02-10", "age": 266, "note": "인쇄 넘김", "raw": "2026.02.10 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스산업기사 필기 과년도 문제풀이 7개년", "author": "권오수", "workers": ["유은아"], "date": "2026-01-23", "age": 284, "note": "인쇄 넘김", "raw": "2026.01.23 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기사·산업기사 실기", "author": "권오수", "workers": ["이혜숙"], "date": "2025-12-05", "age": 333, "note": "저자 원고작업 보류", "raw": "2025.12.05 저자 원고작업 보류", "rev": "2차", "kind": "개정", "stage": "보류", "extra": "과년도:21.3회"}, {"sec": "권오수 선생님 모음", "title": "가스기능사 필기", "author": "권오수", "workers": ["유은아"], "date": "2025-05-29", "age": 523, "note": "인쇄 넘김", "raw": "2025.05.29 인쇄 넘김", "rev": "14차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능사 필기 10일 완성", "author": "권오수", "workers": ["유은아"], "date": "2025-09-08", "age": 421, "note": "인쇄 넘김", "raw": "2025.09.08 인쇄 넘김", "rev": "23차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능사 실기", "author": "권오수", "workers": ["이혜숙"], "date": "2026-02-02", "age": 274, "note": "인쇄 넘김(표지갈이)", "raw": "2026.02.02 인쇄 넘김(표지갈이)", "rev": "1차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.4회"}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기사 필기 과년도 10개년", "author": "권오수", "workers": ["유은아"], "date": "2025-11-24", "age": 344, "note": "인쇄 넘김(표지갈이)", "raw": "2025.11.24 인쇄 넘김(표지갈이)", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계산업기사 필기 과년도 10개년", "author": "권오수", "workers": ["유은아"], "date": "2026-04-30", "age": 187, "note": "<부록 핵심용어> 내부 1교 대기", "raw": "2026.04.30 <부록 핵심용어> 내부 1교 대기", "rev": "19차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계산업기사 실기 필답형+작업형", "author": "권오수", "workers": ["이혜숙"], "date": "2026-03-31", "age": 217, "note": "인쇄 넘김(표지갈이)", "raw": "2026.03.31 인쇄 넘김(표지갈이)", "rev": "3차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.3회"}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기능사 필기", "author": "권오수", "workers": ["유은아"], "date": "2025-05-29", "age": 523, "note": "인쇄 넘김", "raw": "2025.05.29 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기능사 필기＋실기 10일 완성", "author": "권오수", "workers": ["유은아"], "date": "2025-07-02", "age": 489, "note": "인쇄 넘김", "raw": "2025.07.02 인쇄 넘김", "rev": "25차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "공조냉동기계기능사 실기 필답형+작업형", "author": "권오수", "workers": ["김우진"], "date": "2026-08-10", "age": 85, "note": "인쇄 넘김", "raw": "2026.08.10 인쇄 넘김", "rev": "7차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:26.2회"}, {"sec": "권오수 선생님 모음", "title": "에너지관리기사 필기", "author": "권오수", "workers": ["김우진"], "date": "2025-07-17", "age": 474, "note": "인쇄 넘김", "raw": "2025.07.17 인쇄 넘김", "rev": "30차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기사 필기 과년도 10개년", "author": "권오수", "workers": ["김우진"], "date": "2026-10-30", "age": 4, "note": "내부 2교 대기", "raw": "2026.10.30 내부 2교 대기", "rev": "21차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기사 실기", "author": "권오수", "workers": ["유은아"], "date": "2026-03-24", "age": 224, "note": "인쇄 넘김(표지갈이)", "raw": "2026.03.24 인쇄 넘김(표지갈이)", "rev": "23차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.3회"}, {"sec": "권오수 선생님 모음", "title": "에너지관리산업기사 필기", "author": "권오수", "workers": ["김우진"], "date": "2026-05-29", "age": 158, "note": "인쇄 넘김", "raw": "2026.05.29 인쇄 넘김", "rev": "16차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리산업기사 필기 과년도 10개년", "author": "권오수", "workers": ["유은아"], "date": "2026-05-21", "age": 166, "note": "인쇄 넘김", "raw": "2026.05.21 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리산업기사 실기 필답형+작업형", "author": "권오수", "workers": ["이혜숙"], "date": "2026-08-21", "age": 74, "note": "인쇄 넘김", "raw": "2026.08.21 인쇄 넘김", "rev": "22차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:26.2회"}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능사 필기", "author": "권오수", "workers": ["유은아"], "date": "2026-05-14", "age": 173, "note": "인쇄 넘김", "raw": "2026.05.14 인쇄 넘김", "rev": "23차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능사 필기+실기 10일 완성", "author": "권오수", "workers": ["유은아"], "date": "2026-05-21", "age": 166, "note": "인쇄 넘김", "raw": "2026.05.21 인쇄 넘김", "rev": "20차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능장 필기 과년도 기출문제", "author": "권오수", "workers": ["이혜숙"], "date": "2024-11-27", "age": 706, "note": "인쇄 넘김", "raw": "2024.11.27 인쇄 넘김", "rev": "10차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "가스기능장 실기", "author": "권오수", "workers": ["임선영"], "date": "2025-12-05", "age": 333, "note": "저자 원고작업 보류", "raw": "2025.12.05 저자 원고작업 보류", "rev": "3차", "kind": "개정", "stage": "보류", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능장 필기", "author": "권오수", "workers": ["김나윤"], "date": "2025-01-03", "age": 669, "note": "인쇄 넘김", "raw": "2025.01.03 인쇄 넘김", "rev": "5차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능장 필기 과년도 문제해설", "author": "권오수", "workers": ["유은아"], "date": "2025-07-10", "age": 481, "note": "인쇄 넘김", "raw": "2025.07.10 인쇄 넘김", "rev": "12차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "에너지관리기능장 실기", "author": "권오수", "workers": ["이혜숙"], "date": "2026-06-11", "age": 145, "note": "인쇄 넘김", "raw": "2026.06.11 인쇄 넘김", "rev": "17차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:26.전반"}, {"sec": "권오수 선생님 모음", "title": "배관기능장 필기+실기 기출문제", "author": "권오수", "workers": ["김나윤"], "date": "2026-03-13", "age": 235, "note": "인쇄 넘김", "raw": "2026.03.13 인쇄 넘김", "rev": "21차", "kind": "개정", "stage": "인쇄완료", "extra": "과년도:25.후반"}, {"sec": "권오수 선생님 모음", "title": "용접기능장 필기+실기", "author": "권오수", "workers": ["김나윤"], "date": "2026-10-23", "age": 11, "note": "인쇄 넘김", "raw": "2026.10.23 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "권오수 선생님 모음", "title": "보일러공학", "author": "권오수", "workers": ["이혜숙"], "date": "2026-02-27", "age": 249, "note": "인쇄 넘김", "raw": "2026.02.27 인쇄 넘김", "rev": "신간", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "인천대산전기학원", "title": "전기자기학", "author": "방찬수", "workers": ["김우진", "백혜림"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 1권"}, {"sec": "인천대산전기학원", "title": "전력공학", "author": "김용택", "workers": ["김우진", "백혜림"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 2권"}, {"sec": "인천대산전기학원", "title": "전기기기", "author": "김진수", "workers": ["김우진", "윤소연"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 3권"}, {"sec": "인천대산전기학원", "title": "회로이론", "author": "허순봉", "workers": ["김우진", "윤소연"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 4권"}, {"sec": "인천대산전기학원", "title": "전기설비기술기준", "author": "강준희", "workers": ["김우진", "박온누리"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 5권"}, {"sec": "인천대산전기학원", "title": "제어공학(자동제어)", "author": "송우근", "workers": ["김우진", "박온누리"], "date": "2026-07-22", "age": 104, "note": "<26년 1,2회> 변환작업 완료(촬영용)", "raw": "26.07.22 <26년 1,2회> 변환작업 완료(촬영용)", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": "전기 필기 6권"}, {"sec": "인천대산전기학원", "title": "전기기사 3주완성(무료동영상)", "author": "강준희", "workers": ["유은아", "윤소연"], "date": "2026-11-02", "age": 1, "note": "<26년 3회> 2차 수정 대기", "raw": "26.11.02 <26년 3회> 2차 수정 대기", "rev": "6차", "kind": "개정", "stage": "대기", "extra": "전기 필기|26.07.13 <26년 1,2회> 강의용 pdf 전달"}, {"sec": "인천대산전기학원", "title": "전기산업기사 3주완성(무료동영상)", "author": "강준희", "workers": ["유은아", "윤소연"], "date": "2026-11-02", "age": 1, "note": "<26년 3회> 2차 수정 대기", "raw": "26.11.02 <26년 3회> 2차 수정 대기", "rev": "6차", "kind": "개정", "stage": "대기", "extra": "전기 필기|26.07.13 <26년 1,2회> 강의용 pdf 전달"}, {"sec": "인천대산전기학원", "title": "전기기사산업기사 실기", "author": "인천대산", "workers": ["김나윤", "박지아"], "date": "2026-02-12", "age": 264, "note": "인쇄 넘김", "raw": "26.02.12 인쇄 넘김", "rev": "10차", "kind": "개정", "stage": "인쇄완료", "extra": "전기 실기"}, {"sec": "인천대산전기학원", "title": "전기기사 실기 25개년+무료동영상", "author": "강준희", "workers": ["이혜숙", "권윤주"], "date": "2026-10-30", "age": 4, "note": "<26년 3회> 편집 대기", "raw": "26.10.30 <26년 3회> 편집 대기", "rev": "5차", "kind": "개정", "stage": "대기", "extra": "전기 실기"}, {"sec": "인천대산전기학원", "title": "전기산업기사 실기 25개년+무료동영상", "author": "강준희", "workers": ["이혜숙", "권윤주"], "date": "2026-10-30", "age": 4, "note": "<26년 3회> 편집 대기", "raw": "26.10.30 <26년 3회> 편집 대기", "rev": "5차", "kind": "개정", "stage": "대기", "extra": "전기 실기"}, {"sec": "인천대산전기학원", "title": "1권 전기응용 및 공사재료", "author": "인천대산", "workers": ["김우진"], "date": "2022-08-10", "age": 1546, "note": "인쇄 넘김", "raw": "22.08.10 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": "공사 필기"}, {"sec": "인천대산전기학원", "title": "전기공사기사산업기사 실기", "author": "인천대산", "workers": ["김우진"], "date": "2022-07-12", "age": 1575, "note": "인쇄 넘김", "raw": "22.07.12 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": "공사 실기"}, {"sec": "인천대산전기학원", "title": "전기기능사 필기 핵심이론", "author": "강준희", "workers": ["이혜숙", "김지혜"], "date": "2025-11-19", "age": 349, "note": "인쇄 넘김", "raw": "25.11.19 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": "기능사 필기"}, {"sec": "환경", "title": "대기관리기술사", "author": "", "workers": ["김우진", "권윤주"], "date": "2025-09-17", "age": 412, "note": "인쇄 넘김", "raw": "25.09.17 인쇄 넘김", "rev": "5차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "대기환경기사 필기", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-11-02", "age": 1, "note": "1차 수정 대기", "raw": "26.11.02 1차 수정 대기", "rev": "13차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "환경", "title": "대기환경산업기사 필기", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-11-02", "age": 1, "note": "1차 수정 대기", "raw": "26.11.02 1차 수정 대기", "rev": "14차", "kind": "개정", "stage": "대기", "extra": ""}, {"sec": "환경", "title": "대기환경기사·산업기사 실기", "author": "", "workers": ["김우진", "백혜림"], "date": "2026-01-14", "age": 293, "note": "인쇄 넘김", "raw": "26.01.14 인쇄 넘김", "rev": "15차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "대기환경기사 필기 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-09-21", "age": 43, "note": "1차 편집 완료", "raw": "26.09.21 1차 편집 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "대기환경산업기사 필기 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "윤소연"], "date": "2026-09-21", "age": 43, "note": "1차 편집 완료", "raw": "26.09.21 1차 편집 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "소음진동기사 필기", "author": "", "workers": ["김우진", "권윤주"], "date": "2026-10-30", "age": 4, "note": "1차 수정확인 완료", "raw": "26.10.30 1차 수정확인 완료", "rev": "14차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "소음진동기사 실기", "author": "", "workers": ["김우진", "박온누리"], "date": "2026-01-14", "age": 293, "note": "인쇄 넘김", "raw": "26.01.14 인쇄 넘김", "rev": "4차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "토양환경기사 필기", "author": "", "workers": ["김우진", "신보용"], "date": "2026-10-29", "age": 5, "note": "1차 수정완료", "raw": "26.10.29 1차 수정완료", "rev": "12차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "토양환경기사 실기", "author": "", "workers": ["김우진", "신보용"], "date": "2026-01-14", "age": 293, "note": "인쇄 넘김", "raw": "26.01.14 인쇄 넘김", "rev": "11차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "온실가스관리기사 필기", "author": "", "workers": ["김우진", "백혜림"], "date": "2026-11-02", "age": 1, "note": "1차 수정 중", "raw": "26.11.02 1차 수정 중", "rev": "2차2쇄", "kind": "개정", "stage": "진행중", "extra": ""}, {"sec": "환경", "title": "온실가스관리기사 실기", "author": "", "workers": ["김우진", "백혜림"], "date": "2026-01-15", "age": 292, "note": "인쇄 넘김", "raw": "26.01.15 인쇄 넘김", "rev": "2차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리기사 필기", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "16차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리산업기사 필기", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "15차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리기사·산업기사 실기", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-01-15", "age": 292, "note": "인쇄 넘김", "raw": "26.01.15 인쇄 넘김", "rev": "13차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리기사 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "폐기물처리산업기사 핵심요점 과년도 기출문제 해설", "author": "", "workers": ["김우진", "김지혜"], "date": "2026-10-27", "age": 7, "note": "저자 1교 완료", "raw": "26.10.27 저자 1교 완료", "rev": "6차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "수질환경기사·산업기사 필기", "author": "", "workers": ["이혜숙", "김지혜"], "date": "2025-12-11", "age": 327, "note": "인쇄 넘김", "raw": "25.12.11 인쇄 넘김", "rev": "13차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "수질환경기사·산업기사 실기", "author": "", "workers": ["김우진", "신보용"], "date": "2026-03-16", "age": 232, "note": "25년 기출 2차 수정완료", "raw": "26.03.16 25년 기출 2차 수정완료", "rev": "13차", "kind": "개정", "stage": "단계완료", "extra": ""}, {"sec": "환경", "title": "수질환경기사 필기 문제풀이", "author": "", "workers": ["이혜숙", "박지아"], "date": "2026-01-19", "age": 288, "note": "인쇄 넘김", "raw": "26.01.19 인쇄 넘김", "rev": "10차", "kind": "개정", "stage": "인쇄완료", "extra": ""}, {"sec": "환경", "title": "수질환경산업기사 필기 문제풀이", "author": "", "workers": ["이혜숙", "박지아"], "date": "2026-01-19", "age": 288, "note": "인쇄 넘김", "raw": "26.01.19 인쇄 넘김", "rev": "11차", "kind": "개정", "stage": "인쇄완료", "extra": ""}], "incoming": [{"date": "24.09.30", "title": "화재감식평가기사산업기사 실기(필답형)", "author": "신현숙", "progress": "24.10.14 입력 완료", "rev": "신"}, {"date": "25.05.15", "title": "토목구조기술사1", "author": "김경호", "progress": "개정사항 입고(재고변동 추이 후 작업진행)", "rev": "3차"}, {"date": "25.12.16", "title": "공조냉동기계기사 실기(필기 완료 후 이론 원고 작업)", "author": "양경엽", "progress": "스캔본 입력 완료/입력분 저자 확인 중", "rev": "신"}, {"date": "26.06.02", "title": "산업안전지도사 2차", "author": "강두헌", "progress": "3차 면접원고 요청/원고 검토 중", "rev": "신"}, {"date": "26.07.02", "title": "건설공사발주자 안전보건실무 완전가이드", "author": "이근규", "progress": "시안 작업 중", "rev": "신"}, {"date": "26.08.03", "title": "정보보안기사 필기(예문에듀 출간)", "author": "이상엽", "progress": "샘플원고 입고, 저자 원고 작성 중", "rev": "신"}, {"date": "26.09.18", "title": "경영지도사 기출풀이 2차 생산관리", "author": "배극윤", "progress": "26년 기출 원고 입고", "rev": "1차"}, {"date": "26.10.12", "title": "화학분석기사 실기", "author": "정나나", "progress": "", "rev": "신"}, {"date": "26.10.12", "title": "위험물산업기사 필기", "author": "정나나", "progress": "원고 입고/기출 입력 중", "rev": "신"}, {"date": "26.10.13", "title": "전기기능사 필기", "author": "김종남", "progress": "개정 원고 입고", "rev": "41차"}, {"date": "26.10.15", "title": "대기관리기술사", "author": "서영민", "progress": "추가 원고 입고 대기", "rev": "6차"}, {"date": "26.10.19", "title": "자연환경관리기술사", "author": "이효준", "progress": "시안작업 대기", "rev": "신"}], "memo": [{"title": "지난주 작업 완료", "items": [{"label": "", "text": "토목기사산업기사 필기(토질및기초)-신보용(10/28)"}, {"label": "", "text": "토목기사산업기사 필기(측량학)-김지혜(10/28)"}, {"label": "", "text": "실내건축산업기사 필기-윤소연(10/29)"}], "sub": ""}, {"title": "이번주 작업 완료 예정", "items": [{"label": "", "text": "건축시공기술사 지침 요약 70제-김지혜(11/2)"}, {"label": "", "text": "토목기사산업기사 필기(응용역학)-윤소연(11/5)"}], "sub": ""}, {"title": "그림 진행 및 대기상황", "items": [{"label": "진행", "text": "건축시공기술사 용어 보카 276제-권유동"}], "sub": "대기"}, {"title": "CBT 등록 및 대기상황", "items": [{"label": "대기", "text": "신)인간공학기사 필기-문정희"}, {"label": "대기", "text": "신)조경기사산업기사 필기-정용민"}], "sub": "대기"}], "hold": [{"title": "진행 보류 중(원고 보류 및 대기 포함)", "items": [{"date": "20.07.21", "text": "(신)기계정비산업기사(박성일)   새원고 작성 중"}, {"date": "20.09.07", "text": "(초판2쇄)21세기 토목시공기술사 2차 면접(신경수)   원고 작성 중"}, {"date": "21.12.01", "text": "(1차)일반기계기사 필기 과년도 문제풀이(박성일)-신인남   1차 편집 중"}, {"date": "22.01.19", "text": "(1차)경영지도사 2차 시험 생산관리분야(배극윤)－김우진   2차 수정 완료"}, {"date": "22.05.16", "text": "(1차)직업상담사 2급 실기(김미영)   20년 기출까지 작업 완료"}, {"date": "23.01.26", "text": "(신)지적기사 필기(라용화)-김우진   1차 수정 완료"}, {"date": "23.05.10", "text": "(신)전기기능사 실기(이상호)   원고정리 재요청"}, {"date": "23.09.21", "text": "(신)토목기사산업기사 실기(서진수)-박온누리   <1~5편>1차 편집 대기 중/<6~12편>원고정리 대기 중"}, {"date": "23.11.29", "text": "(신)건설안전기술사 단기합격 도해집(한윌리)"}, {"date": "26.06.15", "text": "(신)지멘스 PLC프로그래밍(이재형)   저자 3교 중 / 실습편 원고 일정 확인 중"}, {"date": "25.02.27", "text": "기업의 안전보건경영시스템 구축 사례"}, {"date": "25.07.10", "text": "건축기사 실기(노문식) - 일부 원고 입고 / 내지시안 완료"}]}, {"title": "인쇄 대기 중", "items": [{"date": "22.12.28", "text": "(3차)지적법 기출문제 및 합격모의고사(이영수)－김성은"}, {"date": "23.06.22", "text": "(2차)기계3역학(박성일)-구효숙"}]}]};
-const ORIG=JSON.stringify(D0);
-let SIG=0;for(let i=0;i<ORIG.length;i++){SIG=(SIG*31+ORIG.charCodeAt(i))>>>0}
-const KEY='weekly-plan:'+SIG;
-const D=JSON.parse(ORIG);
-const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
-const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
-const SECS=[...new Set(D0.recs.map(r=>r.sec))];
+/* Supabase 연동 계층: 화면 코드가 쓰는 db/user/downloads 인터페이스를 Supabase RPC + 주기적 갱신으로 구현 */
+(function(){
+const URL_='https://vqnsffkqljnhcxtwqkxx.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxbnNmZmtxbGpuaGN4dHdxa3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NzA2NDIsImV4cCI6MjEwOTE0NjY0Mn0.hZYPvkiD96WZbeoQ-1GNiXtfxTJn0FVdrsaGSo4j78A';
+const POLL=window.JP_POLL_MS||4000;
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+let PW=ls.get('jp-pw')||'',NAME=ls.get('jp-name')||'';
+
+async function rpc(fn,args){
+  let r;
+  try{r=await fetch(URL_+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify(args)})}
+  catch(e){throw {code:'network',message:String(e)}}
+  const t=await r.text();let j=null;try{j=JSON.parse(t)}catch(e){}
+  if(!r.ok){const m=(j&&(j.message||j.error))||t;throw {code:/bad_password/.test(m)?'bad_password':'error',message:m}}
+  return j}
+
+/* ---------- 로그인 ---------- */
+const css=document.createElement('style');
+css.textContent=`#jpLogin{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+#jpLogin form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;width:min(360px,100%);display:flex;flex-direction:column;gap:10px}
+#jpLogin h2{margin:0 0 4px;font-size:18px}#jpLogin p{margin:0;color:var(--sub);font-size:12px}
+#jpLogin input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+#jpLogin .err{color:var(--warn);font-size:12px;min-height:1.2em}`;
+document.head.appendChild(css);
+function askLogin(msg){return new Promise(res=>{
+  const d=document.createElement('div');d.id='jpLogin';
+  d.innerHTML=`<form><h2>주간계획서 현황</h2><p>팀 공유 비밀번호와 본인 이름을 입력하세요. 이름은 "수정한 사람"으로 기록됩니다.</p>
+  <input id="jpName" placeholder="이름 (예: 김지혜)" autocomplete="name" value="${(NAME||'').replace(/"/g,'&quot;')}">
+  <input id="jpPw" type="password" placeholder="공유 비밀번호" autocomplete="current-password">
+  <div class="err" id="jpErr">${msg||''}</div><button class="btn primary" type="submit">들어가기</button></form>`;
+  document.body.appendChild(d);
+  const f=d.querySelector('form');
+  f.onsubmit=async e=>{e.preventDefault();const n=d.querySelector('#jpName').value.trim(),p=d.querySelector('#jpPw').value;
+    if(!n||!p){d.querySelector('#jpErr').textContent='이름과 비밀번호를 모두 입력하세요.';return}
+    d.querySelector('#jpErr').textContent='확인 중…';
+    try{await rpc('jp_check',{pw:p});PW=p;NAME=n;ls.set('jp-pw',p);ls.set('jp-name',n);d.remove();res()}
+    catch(x){d.querySelector('#jpErr').textContent=x.code==='bad_password'?'비밀번호가 맞지 않습니다.':'서버에 연결하지 못했습니다. 잠시 뒤 다시 시도하세요.'}};
+  setTimeout(()=>d.querySelector(NAME?'#jpPw':'#jpName').focus(),50)})}
+async function ensureLogin(){
+  if(PW&&NAME){try{await rpc('jp_check',{pw:PW});return}catch(x){if(x.code!=='bad_password')return;ls.del('jp-pw');PW=''}}
+  await askLogin(PW?'':'')}
+function addAccountButtons(){
+  const t=document.querySelector('.tools');if(!t||document.getElementById('jpAcct'))return;
+  const w=document.createElement('span');w.id='jpAcct';w.style.display='contents';
+  w.innerHTML='<button class="btn" id="jpPwBtn">비밀번호 변경</button><button class="btn" id="jpOut">로그아웃</button>';
+  t.appendChild(w);
+  document.getElementById('jpOut').onclick=()=>{ls.del('jp-pw');location.reload()};
+  document.getElementById('jpPwBtn').onclick=async()=>{
+    const n=prompt('새 공유 비밀번호 (6자 이상). 바꾸면 팀원 모두 새 비밀번호로 다시 들어와야 합니다.');if(!n)return;
+    try{await rpc('jp_set_password',{old_pw:PW,new_pw:n});PW=n;ls.set('jp-pw',n);alert('비밀번호를 바꿨습니다. 팀원에게 새 비밀번호를 알려 주세요.')}
+    catch(x){alert('바꾸지 못했습니다: '+(x.message||''))}}}
+
+/* ---------- 캐시 + 구독 ---------- */
+const C={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:new Map()};
+const subs=[];let ready=false,since='1970-01-01T00:00:00Z',maxTs='';
+const mkDoc=(id,data)=>({id,exists:!!data,data:()=>data,metadata:{fromCache:false,hasPendingWrites:false}});
+function live(c){return [...C[c]].filter(([,v])=>!v.deleted)}
+function emit(c){subs.filter(s=>s.c===c).forEach(s=>{
+  const cur=new Map(live(c).map(([id,v])=>[id,JSON.stringify(v.data)]));const ch=[];
+  for(const [id,j] of cur){if(!s.sent.has(id))ch.push({type:'added',doc:mkDoc(id,JSON.parse(j))});else if(s.sent.get(id)!==j)ch.push({type:'modified',doc:mkDoc(id,JSON.parse(j))})}
+  for(const [id] of s.sent)if(!cur.has(id))ch.push({type:'removed',doc:mkDoc(id,{})});
+  if(!ch.length&&s.first===false)return;
+  s.sent=cur;s.first=false;
+  try{s.next({docChanges:()=>ch,metadata:{fromCache:false,hasPendingWrites:false},docs:[],size:cur.size,empty:!cur.size})}catch(e){console.error(e)}})}
+function applyRows(rows){const touched=new Set();
+  rows.forEach(r=>{C[r.coll]&&(C[r.coll].set(r.id,{data:r.data||{},deleted:!!r.deleted}),touched.add(r.coll));
+    if(r.updated_at&&r.updated_at>maxTs)maxTs=r.updated_at});
+  if(maxTs){const d=new Date(maxTs);d.setSeconds(d.getSeconds()-3);since=d.toISOString()}
+  return touched}
+function setConn(ok){const d=document.getElementById('dot'),c=document.getElementById('conn');if(!d||!c)return;
+  d.className='dot '+(ok?'live':'err');c.textContent=ok?'실시간 연결됨':'연결 재시도 중…'}
+let pollT=null;
+async function poll(){
+  clearTimeout(pollT);
+  try{const rows=await rpc('jp_pull',{pw:PW,since});const t=applyRows(rows||[]);setConn(true);
+    if(!ready){ready=true;Object.keys(C).forEach(emit)}else t.forEach(emit)}
+  catch(e){if(e.code==='bad_password'){ls.del('jp-pw');location.reload();return}setConn(false)}
+  pollT=setTimeout(poll,document.hidden?15000:POLL)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ready){clearTimeout(pollT);poll()}});
+
+function colRef(c){return {onSnapshot(next){const s={c,next,sent:new Map(),first:true};subs.push(s);if(ready)setTimeout(()=>emit(c),0);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}}}}
+function docRef(path){const [c,id]=path.split('/');
+  const write=async patch=>{await rpc('jp_patch',{pw:PW,p_coll:c,p_id:id,p_patch:patch});
+    const cur=C[c].get(id);C[c].set(id,{data:Object.assign({},cur&&!cur.deleted?cur.data:{},JSON.parse(JSON.stringify(patch))),deleted:false});emit(c)};
+  return {update:write,set:write,
+    async delete(){await rpc('jp_delete',{pw:PW,p_coll:c,p_id:id});const cur=C[c].get(id);if(cur){cur.deleted=true}emit(c)},
+    onSnapshot(next){const s={c,sent:new Map(),first:true,next:snap=>{const d=snap.docs.length?null:null;
+        const v=C[c].get(id);next(mkDoc(id,v&&!v.deleted?v.data:undefined))}};
+      s.next=()=>{const v=C[c].get(id);next(mkDoc(id,v&&!v.deleted?v.data:undefined))};
+      const st=JSON.stringify;let last='\u0000';
+      const sub={c,sent:new Map(),first:true,next:()=>{const v=C[c].get(id);const cur=v&&!v.deleted?st(v.data):'';if(cur!==last){last=cur;next(mkDoc(id,v&&!v.deleted?v.data:undefined))}}};
+      subs.push(sub);if(ready)setTimeout(()=>emit(c),0);return()=>{const i=subs.indexOf(sub);if(i>=0)subs.splice(i,1)}}}}
+const db={collection:colRef,doc:docRef};
+const userCap={id:async()=>NAME,can:async()=>true,isOwner:async()=>false,canEdit:async()=>true,
+  profiles:async ids=>Object.fromEntries(ids.map(i=>[i,{id:i,name:i}])),me:async()=>({id:NAME,name:NAME})};
+const dlCap={async save({filename,data}){const b=new Blob([data],{type:/\.csv$/.test(filename)?'text/csv;charset=utf-8':'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);return{status:'saved'}}};
+
+let started=null;
+function start(){if(!started){started=(async()=>{await ensureLogin();addAccountButtons();poll()})()}return started}
+window.claude={use:async n=>{await start();return n==='db'?db:n==='user'?userCap:n==='downloads'?dlCap:null}};
+})();
+
+</script>
+<script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
+const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
+const SECS_DEFAULT=['진행 도서 · 개정','진행 도서 · 신간','권오수 선생님 모음','인천대산전기학원','환경'];
 const col=s=>`var(${STAGE[s]||'--c-prog'})`;
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const hm=ms=>{const d=new Date(ms);return String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 const ageOf=s=>s?Math.round((TODAY-new Date(s+'T00:00:00'))/864e5):null;
 function autoStage(t){t=t||'';if(/인쇄\s?넘김/.test(t))return'인쇄완료';if(t.includes('보류'))return'보류';
   if(t.includes('재고')&&t.includes('대기'))return'재고대기';if(t.includes('대기'))return'대기';
   if(/중|中/.test(t))return'진행중';if(t.includes('완료'))return'단계완료';return'진행중'}
-const kindOf=r=>(r.sec.includes('신간')||r.rev.replace(/[()\s]/g,'')==='신'||r.rev.replace(/[()\s]/g,'')==='신간')?'신간':'개정';
+const kindOf=r=>{const v=(r.rev||'').replace(/[()\s]/g,'');return((r.sec||'').includes('신간')||v==='신'||v==='신간')?'신간':'개정'};
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 
-let recs=D.recs, nextId=Math.max(...D.recs.map(r=>r.i??0),D.recs.length)+1;
-D.recs.forEach((r,i)=>{if(r.i==null)r.i=i});
-nextId=Math.max(...recs.map(r=>r.i))+1;
-let restored=false;
-try{const s=JSON.parse(localStorage.getItem(KEY)||'null');
-  if(s&&Array.isArray(s.recs)){recs=s.recs;D.incoming=s.incoming||D.incoming;D.memo=s.memo||D.memo;D.hold=s.hold||D.hold;nextId=s.nextId||nextId;restored=true}}catch(e){}
-const refreshAges=()=>recs.forEach(r=>r.age=ageOf(r.date));
-refreshAges();
-
-const st={q:'',sec:'',kind:'',worker:'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'stage',dir:1}};
+/* ---------- 상태 ---------- */
+let db=null,userCap=null,dlCap=null,myId=null,canWrite=false;
+const M={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:null};
+const loaded={books:false,incoming:false,memo:false,hold:false,meta:false};
+const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'stage',dir:1}};
+let curTab='list';
+const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
+const recs=()=>list('books');
 const isStale=r=>r.age!=null&&r.age>=st.thr&&['진행중','대기','단계완료'].includes(r.stage);
-const byId=id=>recs.find(r=>r.i===+id);
 const mmdd=s=>s?s.slice(2).replace(/-/g,'.'):'-';
 const ageTxt=r=>{if(r.age==null)return '<span class="age">상시</span>';
   return `<span class="${isStale(r)?'age old':'age'}">${mmdd(r.date)} · ${r.age}일 전</span>`};
-const secShort=s=>s.replace('진행 도서 · ','진행·');
-
-/* ---------- 저장 ---------- */
-let saveT=null;
+const secShort=s=>(s||'').replace('진행 도서 · ','진행·');
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),3500)}
 function setSaved(msg,err){const e=$('#saved');e.textContent=msg;e.classList.toggle('err',!!err)}
-function save(){clearTimeout(saveT);saveT=setTimeout(()=>{
-  try{localStorage.setItem(KEY,JSON.stringify({recs,incoming:D.incoming,memo:D.memo,hold:D.hold,nextId,savedAt:Date.now()}));
-    const n=new Date();setSaved('자동 저장됨 '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'))}
-  catch(e){setSaved('저장 실패: 백업 저장을 사용하세요',true)}},350)}
+const clone=v=>JSON.parse(JSON.stringify(v));
 
-/* ---------- 탭 ---------- */
+/* ---------- 쓰기 (필드 단위 저장, 문서당 한 번에 하나) ---------- */
+function mark(coll,rec,fields){fields.forEach(f=>rec._d.add(f));clearTimeout(rec._t);setSaved('저장 중…');rec._t=setTimeout(()=>flush(coll,rec),600)}
+async function flush(coll,rec){
+  if(!db||!rec._d.size)return;
+  if(rec._busy){rec._again=true;return}
+  rec._busy=true;const f=[...rec._d];rec._d.clear();
+  const patch={};f.forEach(k=>patch[k]=clone(rec[k]===undefined?'':rec[k]));
+  if(myId){patch.by=myId}patch.at=Date.now();
+  let failed=false;
+  try{await db.doc(coll+'/'+rec.id).update(patch);rec.by=patch.by;rec.at=patch.at;
+    const n=new Date();setSaved('저장됨 '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'))}
+  catch(e){failed=true;f.forEach(k=>rec._d.add(k));
+    setSaved('저장 실패',true);
+    toast(e&&e.code==='invalid_argument'?'저장하지 못했습니다. 다른 사람이 삭제했거나 수정 권한이 없습니다.':'저장하지 못했습니다. 잠시 뒤 다시 수정해 주세요.')}
+  finally{rec._busy=false;if(!failed&&(rec._again||rec._d.size)){rec._again=false;mark(coll,rec,[])}}
+}
+async function createDoc(coll,data){
+  const id=(coll[0])+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  const rec={id,...data,_d:new Set()};M[coll].set(id,rec);
+  const body={...data};if(myId)body.by=myId;body.at=Date.now();
+  try{await db.doc(coll+'/'+id).set(body)}catch(e){M[coll].delete(id);toast('추가하지 못했습니다. 수정 권한을 확인해 주세요.');requestRender(true);return null}
+  return rec}
+async function removeDoc(coll,id){
+  const rec=M[coll].get(id);M[coll].delete(id);requestRender(true);
+  try{await db.doc(coll+'/'+id).delete()}catch(e){if(rec)M[coll].set(id,rec);toast('삭제하지 못했습니다.');requestRender(true)}}
+
+/* ---------- 구독 ---------- */
+function ingest(coll,snap){
+  snap.docChanges().forEach(ch=>{const id=ch.doc.id;
+    if(ch.type==='removed'){M[coll].delete(id);return}
+    const data=ch.doc.data()||{};let rec=M[coll].get(id);
+    if(!rec){rec={id,_d:new Set()};M[coll].set(id,rec)}
+    for(const k in data){if(!rec._d.has(k))rec[k]=(typeof data[k]==='object'&&data[k])?clone(data[k]):data[k]}
+  });
+  loaded[coll]=true;
+}
+let connTimer=null,liveOk=false;
+function setConn(kind,txt){$('#dot').className='dot '+(kind||'');$('#conn').textContent=txt}
+function subscribe(){
+  connTimer=setTimeout(()=>{if(!liveOk)setConn('err','서버에 연결하지 못했습니다. 보이는 내용이 최신이 아닐 수 있습니다')},10000);
+  ['books','incoming','memo','hold'].forEach(c=>{
+    db.collection(c).onSnapshot(snap=>{ingest(c,snap);
+      if(!snap.metadata.fromCache){liveOk=true;clearTimeout(connTimer);setConn('live','실시간 연결됨')}
+      requestRender()},
+      err=>{setConn('err',err&&err.code==='revoked'?'접근 권한이 변경되었습니다':'연결 오류');toast('실시간 연결이 끊겼습니다. 페이지를 새로 열어 주세요.')})});
+  db.doc('meta/main').onSnapshot(s=>{if(s.exists){const d=s.data();if(!M.meta)M.meta={id:'main',_d:new Set()};if(!M.meta._t)M.meta.title=d.title;M.meta.source=d.source}loaded.meta=true;requestRender()},()=>{});
+}
+
+/* ---------- 렌더 제어 (입력 중에는 미룸) ---------- */
+let rq=null,pending=false;
+const typing=()=>{const a=document.activeElement;return st.edit&&a&&a.matches&&a.matches('[contenteditable],input,select')};
+function requestRender(force){
+  if(!force&&typing()){pending=true;return}
+  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle()})}
+document.addEventListener('focusout',()=>{if(pending)setTimeout(()=>{if(pending&&!typing())requestRender(true)},250)});
+
+/* ---------- 탭/컨트롤 ---------- */
 const TABS=[['list','도서 목록'],['worker','작업자별'],['memo','이번주 체크포인트'],['incoming','원고 입고예정'],['hold','보류·인쇄대기']];
-function drawTabs(){$('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab" data-t="${k}">${n}${k==='incoming'?' ('+D.incoming.length+')':''}</button>`).join('')}
-let curTab='list';
+function drawTabs(){$('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab${k===curTab?' on':''}" data-t="${k}">${n}${k==='incoming'?' ('+M.incoming.size+')':''}</button>`).join('')}
 function showTab(k){curTab=k;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===k));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));
-  if(k==='worker')renderWorkers();
-  try{history.replaceState(null,'','#'+k)}catch(e){}}
+  if(k==='worker')renderWorkers();try{history.replaceState(null,'','#'+k)}catch(e){}}
 $('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(b)showTab(b.dataset.t)};
-
-/* ---------- 컨트롤 ---------- */
+let wnames=[];
 function drawSelects(){
-  const secs=[...new Set([...SECS,...recs.map(r=>r.sec)])];
-  const cur=$('#fSec').value;
+  const rs=recs();
+  const secs=[...new Set([...SECS_DEFAULT,...rs.map(r=>r.sec).filter(Boolean)])];
   $('#fSec').innerHTML='<option value="">전체 구분</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join('');
-  $('#fSec').value=secs.includes(cur)?cur:'';
-  const wc={};recs.forEach(r=>r.workers.forEach(w=>wc[w]=(wc[w]||0)+1));
-  const wn=Object.keys(wc).sort((a,b)=>wc[b]-wc[a]||a.localeCompare(b,'ko'));
-  const cw=$('#fWorker').value;
-  $('#fWorker').innerHTML='<option value="">전체 작업자</option>'+wn.map(w=>`<option value="${esc(w)}">${esc(w)} (${wc[w]})</option>`).join('');
-  $('#fWorker').value=wn.includes(cw)?cw:'';if(!wn.includes(cw))st.worker='';
-  return wn}
-let wnames=drawSelects();
+  $('#fSec').value=secs.includes(st.sec)?st.sec:'';
+  const wc={};rs.forEach(r=>(r.workers||[]).forEach(w=>wc[w]=(wc[w]||0)+1));
+  wnames=Object.keys(wc).sort((a,b)=>wc[b]-wc[a]||a.localeCompare(b,'ko'));
+  $('#fWorker').innerHTML='<option value="">전체 작업자</option>'+wnames.map(w=>`<option value="${esc(w)}">${esc(w)} (${wc[w]})</option>`).join('');
+  if(st.worker&&!wnames.includes(st.worker)&&rs.length)st.worker='';
+  $('#fWorker').value=st.worker}
 $('#stageChips').innerHTML=ORDER.map(s=>`<button class="chip" data-s="${s}">${s}</button>`).join('');
 $('#stageChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const s=b.dataset.s;st.stages.has(s)?st.stages.delete(s):st.stages.add(s);render()};
 $('#q').oninput=e=>{st.q=e.target.value.trim().toLowerCase();render()};
 $('#fSec').onchange=e=>{st.sec=e.target.value;render()};
 $('#fKind').onchange=e=>{st.kind=e.target.value;render()};
-$('#fWorker').onchange=e=>{st.worker=e.target.value;render()};
+$('#fWorker').onchange=e=>{st.worker=e.target.value;lsSet('jp-worker',st.worker);render()};
 $('#thr').onchange=e=>{st.thr=+e.target.value;render()};
 $('#hidePrint').onchange=e=>{st.hidePrint=e.target.checked;render()};
 $('#onlyStale').onchange=e=>{st.onlyStale=e.target.checked;render()};
-function resetFilters(){Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false});st.stages.clear();
+function resetFilters(){Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false});st.stages.clear();lsSet('jp-worker','');
   $('#q').value='';$('#fSec').value='';$('#fKind').value='';$('#fWorker').value='';$('#hidePrint').checked=true;$('#onlyStale').checked=false}
 $('#reset').onclick=()=>{resetFilters();render()};
-document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;
-  st.sort=st.sort.k===k?{k,dir:-st.sort.dir}:{k,dir:1};render()});
-function setWorker(w){st.worker=w;$('#fWorker').value=w;showTab('list');render()}
-document.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w&&!st.edit)setWorker(w.dataset.w)});
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;st.sort=st.sort.k===k?{k,dir:-st.sort.dir}:{k,dir:1};render()});
+document.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w&&!st.edit){st.worker=w.dataset.w;lsSet('jp-worker',st.worker);$('#fWorker').value=st.worker;showTab('list');render()}});
 
 function filtered(){
-  let a=recs.filter(r=>{
+  let a=recs().filter(r=>{
     if(st.hidePrint&&r.stage==='인쇄완료'&&!st.stages.has('인쇄완료')&&!r._new)return false;
     if(st.stages.size&&!st.stages.has(r.stage))return false;
     if(st.sec&&r.sec!==st.sec)return false;
     if(st.kind&&r.kind!==st.kind)return false;
-    if(st.worker&&!r.workers.includes(st.worker))return false;
+    if(st.worker&&!(r.workers||[]).includes(st.worker))return false;
     if(st.onlyStale&&!isStale(r))return false;
-    if(st.q){const h=(r.title+r.author+r.workers.join(' ')+r.note+r.sec+r.rev+(r.extra||'')).toLowerCase();
+    if(st.q){const h=((r.title||'')+(r.author||'')+(r.workers||[]).join(' ')+(r.note||'')+(r.sec||'')+(r.rev||'')+(r.extra||'')).toLowerCase();
       if(!st.q.split(/\s+/).every(t=>h.includes(t)))return false}
     return true});
   const {k,dir}=st.sort;
-  const v=r=>k==='workers'?r.workers.join(','):k==='date'?(r.date||'9999'):k==='stage'?ORDER.indexOf(r.stage):(r[k]||'');
+  const v=r=>k==='workers'?(r.workers||[]).join(','):k==='date'?(r.date||'9999'):k==='stage'?ORDER.indexOf(r.stage):(r[k]||'');
   a.sort((x,y)=>{const A=v(x),B=v(y);const c=(A<B?-1:A>B?1:0)*dir;if(c)return c;
-    const d1=x.date||'9999',d2=y.date||'9999';return (d1<d2?-1:d1>d2?1:0)||x.i-y.i});
+    const d1=x.date||'9999',d2=y.date||'9999';return (d1<d2?-1:d1>d2?1:0)||((x.order??0)-(y.order??0))});
   return a}
 
 /* ---------- 도서 목록 ---------- */
-const ed=(f,id,v,cls)=>`<span ${st.edit?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${id}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
-function rowHtml(r){
-  const id=r.i, c=col(r.stage);
-  const secCell=st.edit
-    ?`<select data-sel="sec" data-id="${id}">${[...new Set([...SECS,r.sec])].map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`
-    :`<span class="sec">${esc(secShort(r.sec))}</span>`;
-  const wk=st.edit?ed('workers',id,r.workers.join(' / '))
-    :r.workers.map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
-  const stg=st.edit
-    ?`<select data-sel="stage" data-id="${id}">${ORDER.map(s=>`<option${s===r.stage?' selected':''}>${s}</option>`).join('')}</select>`
-    :`<span class="badge" style="--c:${c}">${r.stage}</span>`;
-  const dt=st.edit
-    ?`<input type="date" data-date="1" data-id="${id}" value="${esc(r.date)}"> <span class="age-box">${ageTxt(r)}</span>`
-    :ageTxt(r);
-  return `<tr class="r" data-id="${id}" style="--c:${c}">
+const ed=(f,id,v,cls)=>`<span ${st.edit?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${esc(id)}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
+function rowHtml(r,plain){
+  const id=r.id,c=col(r.stage);
+  const secs=[...new Set([...SECS_DEFAULT,r.sec])];
+  const secCell=st.edit?`<select data-sel="sec" data-id="${esc(id)}" aria-label="구분">${secs.map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`:`<span class="sec">${esc(secShort(r.sec))}</span>`;
+  const wk=st.edit?ed('workers',id,(r.workers||[]).join(' / ')):(r.workers||[]).map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
+  const stg=st.edit?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(s=>`<option${s===r.stage?' selected':''}>${s}</option>`).join('')}</select>`:`<span class="badge" style="--c:${c}">${esc(r.stage)}</span>`;
+  const dt=st.edit?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(r.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(r)}</span>`:ageTxt(r);
+  const by=(!plain&&r.by&&r.at)?`<div class="sec" data-by="${esc(r.by)}" data-at="${r.at}"></div>`:'';
+  return `<tr class="r" data-id="${esc(id)}" style="--c:${c}">
     <td>${secCell}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
-    <td class="t">${ed('title',id,r.title)}</td>
-    <td class="nw">${ed('rev',id,r.rev)}</td>
-    <td class="nw">${ed('author',id,r.author)}</td>
-    <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}</td>
+    <td class="t">${ed('title',id,r.title)}</td><td class="nw">${ed('rev',id,r.rev)}</td><td class="nw">${ed('author',id,r.author)}</td>
+    <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
     <td>${ed('note',id,r.note)}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
-    <td class="act"><button class="chip" data-del="${id}">삭제</button></td></tr>`}
+    <td class="act"><button class="chip" data-del="${esc(id)}">삭제</button></td></tr>`}
 function render(){
+  recs().forEach(r=>r.age=ageOf(r.date));
   const a=filtered();
-  $('#count').textContent=`${a.length}건 표시 (전체 ${recs.length}건) · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`;
-  $('#tb').innerHTML=a.length?a.map(rowHtml).join(''):`<tr><td colspan="9" class="empty">조건에 맞는 도서가 없습니다</td></tr>`;
+  const all=recs().length;
+  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건) · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
+  $('#tb').innerHTML=!loaded.books?'<tr><td colspan="9" class="empty">불러오는 중…</td></tr>'
+    :a.length?a.map(r=>rowHtml(r)).join('')
+    :`<tr><td colspan="9" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
   document.querySelectorAll('#stageChips .chip').forEach(c=>c.classList.toggle('on',st.stages.has(c.dataset.s)));
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
   if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
   $('#pMeta').textContent='인쇄일 '+iso(new Date())+' · 표시 '+a.length+'건'+(f.length?' · 조건: '+f.join(', '):'');
-  renderKpis();
+  renderKpis();drawTabs();fillBy();
 }
 function renderKpis(){
-  const act=recs.filter(r=>r.stage!=='인쇄완료');
-  const n=s=>recs.filter(r=>r.stage===s).length;
+  const rs=recs(),act=rs.filter(r=>r.stage!=='인쇄완료');
+  const n=s=>rs.filter(r=>r.stage===s).length;
   const K=[['작업 중 도서',act.length,()=>{st.hidePrint=true;st.stages.clear()}],
     ['진행중',n('진행중'),()=>{st.stages=new Set(['진행중'])}],
     ['대기',n('대기')+n('재고대기'),()=>{st.stages=new Set(['대기','재고대기'])}],
-    ['정체 의심 ('+st.thr+'일+)',recs.filter(isStale).length,()=>{st.onlyStale=true;st.stages.clear()}],
-    ['신간 진행',recs.filter(r=>r.kind==='신간'&&r.stage!=='인쇄완료').length,()=>{st.kind='신간';st.stages.clear()}],
-    ['입고 예정',D.incoming.length,()=>showTab('incoming')]];
-  $('#kpis').innerHTML=K.map((k,i)=>`<div class="kpi" data-k="${i}"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
-  document.querySelectorAll('.kpi').forEach(el=>el.onclick=()=>{const i=+el.dataset.k;
+    ['정체 의심 ('+st.thr+'일+)',rs.filter(isStale).length,()=>{st.onlyStale=true;st.stages.clear()}],
+    ['신간 진행',rs.filter(r=>r.kind==='신간'&&r.stage!=='인쇄완료').length,()=>{st.kind='신간';st.stages.clear()}],
+    ['입고 예정',M.incoming.size,()=>showTab('incoming')]];
+  $('#kpis').innerHTML=K.map((k,i)=>`<div class="kpi" data-k="${i}" tabindex="0" role="button"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
+  document.querySelectorAll('.kpi').forEach(el=>{const go=()=>{const i=+el.dataset.k;
     if(i!==5){showTab('list');st.onlyStale=false;st.kind=''}
-    K[i][2]();$('#onlyStale').checked=st.onlyStale;$('#fKind').value=st.kind;$('#hidePrint').checked=st.hidePrint;
-    if(i!==5)render()})}
+    K[i][2]();$('#onlyStale').checked=st.onlyStale;$('#fKind').value=st.kind;$('#hidePrint').checked=st.hidePrint;if(i!==5)render()};
+    el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}})}
+async function fillBy(){
+  const els=[...document.querySelectorAll('[data-by]')];if(!els.length||!userCap)return;
+  const ids=[...new Set(els.map(e=>e.dataset.by))];
+  try{const ps=await userCap.profiles(ids);
+    els.forEach(e=>{const p=ps[e.dataset.by];const nm=e.dataset.by===myId?'나':(p&&p.name)||'다른 사용자';e.textContent='수정 '+nm+' · '+hm(+e.dataset.at)})}catch(e){}}
 
-/* ---------- 인라인 편집 (목록) ---------- */
-function touchRow(tr,r){
-  tr.style.setProperty('--c',col(r.stage));
-  const sel=tr.querySelector('select[data-sel=stage]');if(sel)sel.value=r.stage;
-  const ab=tr.querySelector('.age-box');if(ab)ab.innerHTML=ageTxt(r);
-}
+/* ---------- 도서 목록 편집 ---------- */
 const tb=$('#tb');
+function touchRow(tr,r){tr.style.setProperty('--c',col(r.stage));
+  const sel=tr.querySelector('select[data-sel=stage]');if(sel)sel.value=r.stage;
+  const ab=tr.querySelector('.age-box');if(ab)ab.innerHTML=ageTxt(r)}
 tb.addEventListener('input',e=>{
   const el=e.target.closest('[data-f]');if(!el)return;
-  const r=byId(el.dataset.id);if(!r)return;const f=el.dataset.f,v=el.textContent;
+  const r=M.books.get(el.dataset.id);if(!r)return;const f=el.dataset.f,v=el.textContent;const fields=[f];
   if(f==='workers')r.workers=v.split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
   else r[f]=v.trim();
-  if(f==='note'&&!r.stageManual)r.stage=autoStage(r.note);
-  if(f==='rev')r.kind=kindOf(r);
-  touchRow(el.closest('tr'),r);renderKpis();save()});
+  if(f==='note'&&!r.stageManual){r.stage=autoStage(r.note);fields.push('stage')}
+  if(f==='rev'){r.kind=kindOf(r);fields.push('kind')}
+  touchRow(el.closest('tr'),r);renderKpis();mark('books',r,fields)});
 tb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[contenteditable]')){e.preventDefault();e.target.blur()}});
 tb.addEventListener('change',e=>{
-  const t=e.target,id=t.dataset.id;if(!id)return;const r=byId(id);if(!r)return;
-  if(t.dataset.sel==='stage'){r.stage=t.value;r.stageManual=true}
-  else if(t.dataset.sel==='sec'){r.sec=t.value;r.kind=kindOf(r)}
-  else if(t.dataset.date){r.date=t.value;r.age=ageOf(r.date)}
-  touchRow(t.closest('tr'),r);renderKpis();save();drawSelects();});
+  const t=e.target,id=t.dataset.id;if(!id)return;const r=M.books.get(id);if(!r)return;let fields=[];
+  if(t.dataset.sel==='stage'){r.stage=t.value;r.stageManual=true;fields=['stage','stageManual']}
+  else if(t.dataset.sel==='sec'){r.sec=t.value;r.kind=kindOf(r);fields=['sec','kind']}
+  else if(t.dataset.date){r.date=t.value;r.age=ageOf(r.date);fields=['date']}
+  touchRow(t.closest('tr'),r);renderKpis();mark('books',r,fields)});
 tb.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;
-  if(b.dataset.arm){recs=recs.filter(r=>r.i!==+b.dataset.del);save();wnames=drawSelects();render();return}
-  b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
-$('#bAdd').onclick=()=>{
+  if(b.dataset.arm){removeDoc('books',b.dataset.del);return}
+  b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');
+  setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
+$('#bAdd').onclick=async()=>{
   resetFilters();
-  const r={i:nextId++,sec:st.sec||'진행 도서 · 개정',title:'새 도서',author:'',workers:[],date:iso(TODAY),age:0,note:'',raw:'',rev:'',kind:'개정',stage:'진행중',extra:'',_new:1};
-  recs.push(r);save();render();
-  const el=tb.querySelector(`[data-f=title][data-id="${r.i}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}};
+  const mx=Math.max(0,...recs().map(r=>r.order||0));
+  const rec=await createDoc('books',{sec:'진행 도서 · 개정',title:'새 도서',rev:'',author:'',workers:[],date:iso(TODAY),note:'',kind:'개정',stage:'진행중',extra:'',order:mx+1});
+  if(!rec)return;rec._new=1;render();
+  const el=tb.querySelector(`[data-f=title][data-id="${rec.id}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}};
 
-/* ---------- 작업자별 ---------- */
-function renderWorkers(){
-  wnames=drawSelects();
+/* ---------- 작업자별 / 체크포인트 / 입고예정 / 보류 ---------- */
+function htmlWorkers(){
+  const rs=recs();
   const html=wnames.map(w=>{
-    const mine=recs.filter(r=>r.workers.includes(w)&&r.stage!=='인쇄완료').sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1);
+    const mine=rs.filter(r=>(r.workers||[]).includes(w)&&r.stage!=='인쇄완료').sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1);
     if(!mine.length)return '';
     const cnt={};mine.forEach(r=>cnt[r.stage]=(cnt[r.stage]||0)+1);
     return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 중 ${mine.length}건</small></h3>
       <div class="mini">${ORDER.filter(s=>cnt[s]).map(s=>`<span class="badge" style="--c:${col(s)}">${s} ${cnt[s]}</span>`).join('')}</div>
-      ${mine.map(r=>`<div class="item"><span class="badge" style="--c:${col(r.stage)}">${r.stage}</span> <b>${esc(r.title)}</b> ${esc(r.rev)}
+      ${mine.map(r=>`<div class="item"><span class="badge" style="--c:${col(r.stage)}">${esc(r.stage)}</span> <b>${esc(r.title)}</b> ${esc(r.rev)}
         <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`}).join('');
-  $('#wcards').innerHTML=html||'<div class="empty">없음</div>';
-}
-
-/* ---------- 체크포인트 / 입고예정 / 보류 ---------- */
+  return html||'<div class="empty">표시할 작업이 없습니다</div>'}
+function renderWorkers(){$('#wcards').innerHTML=htmlWorkers()}
 const E=()=>st.edit?' contenteditable="plaintext-only"':'';
-function renderMisc(){
-  $('#memo').innerHTML=D.memo.map((g,gi)=>{
-    const subs={};g.items.forEach((it,ji)=>(subs[it.label||'']=subs[it.label||'']||[]).push([ji,it.text]));
-    return `<div class="card"><h3>${esc(g.title)}</h3>${Object.entries(subs).map(([l,xs])=>`${l?`<div class="lbl">[${esc(l)}]</div>`:''}<ul>${xs.map(([ji,x])=>`<li><span${E()} data-m="memo" data-g="${gi}" data-j="${ji}">${esc(x)}</span></li>`).join('')}</ul>`).join('')}
-      ${!g.items.length?'<div class="lbl">(기재 없음)</div>':''}</div>`}).join('');
-  $('#inc').innerHTML=D.incoming.map((r,i)=>`<tr>${['date','title','author','progress','rev'].map(f=>`<td${f==='title'?' class="t"':''}><span${E()} data-m="inc" data-i="${i}" data-f="${f}">${esc(r[f])}</span></td>`).join('')}<td class="act"><button class="chip" data-incdel="${i}">삭제</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">입고 예정이 없습니다</td></tr>';
-  $('#hold').innerHTML=D.hold.map((g,gi)=>`<div class="card"><h3>${esc(g.title)}<small>${g.items.length}건</small></h3>${g.items.map((i,ji)=>`<div class="item"><span${E()} class="age" data-m="hold" data-g="${gi}" data-j="${ji}" data-f="date">${esc(i.date)}</span> <span${E()} data-m="hold" data-g="${gi}" data-j="${ji}" data-f="text">${esc(i.text)}</span></div>`).join('')}</div>`).join('');
-  drawTabs();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===curTab));
-}
-document.addEventListener('input',e=>{const el=e.target.closest('[data-m]');if(!el)return;const v=el.textContent.trim();
-  if(el.dataset.m==='memo')D.memo[+el.dataset.g].items[+el.dataset.j].text=v;
-  else if(el.dataset.m==='inc')D.incoming[+el.dataset.i][el.dataset.f]=v;
-  else if(el.dataset.m==='hold')D.hold[+el.dataset.g].items[+el.dataset.j][el.dataset.f]=v;
-  save()});
+function htmlMemo(){return list('memo').map(g=>{
+    const subs={};(g.items||[]).forEach((it,ji)=>(subs[it.label||'']=subs[it.label||'']||[]).push([ji,it.text]));
+    return `<div class="card"><h3>${esc(g.title)}</h3>${Object.entries(subs).map(([l,xs])=>`${l?`<div class="lbl">[${esc(l)}]</div>`:''}<ul>${xs.map(([ji,x])=>`<li><span${E()} data-m="memo" data-g="${esc(g.id)}" data-j="${ji}">${esc(x)}</span></li>`).join('')}</ul>`).join('')}
+      ${!(g.items||[]).length?'<div class="lbl">(기재 없음)</div>':''}</div>`}).join('')||'<div class="empty">내용이 없습니다</div>'}
+function htmlInc(){return list('incoming').map(r=>`<tr>${['date','title','author','progress','rev'].map(f=>`<td${f==='title'?' class="t"':''}><span${E()} data-m="inc" data-id="${esc(r.id)}" data-f="${f}">${esc(r[f])}</span></td>`).join('')}<td class="act"><button class="chip" data-incdel="${esc(r.id)}">삭제</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">입고 예정이 없습니다</td></tr>'}
+function htmlHold(){return list('hold').map(g=>`<div class="card"><h3>${esc(g.title)}<small>${(g.items||[]).length}건</small></h3>${(g.items||[]).map((i,ji)=>`<div class="item"><span${E()} class="age" data-m="hold" data-g="${esc(g.id)}" data-j="${ji}" data-f="date">${esc(i.date)}</span> <span${E()} data-m="hold" data-g="${esc(g.id)}" data-j="${ji}" data-f="text">${esc(i.text)}</span></div>`).join('')}</div>`).join('')||'<div class="empty">내용이 없습니다</div>'}
+function renderMisc(){$('#memo').innerHTML=htmlMemo();$('#inc').innerHTML=htmlInc();$('#hold').innerHTML=htmlHold()}
+document.addEventListener('input',e=>{const el=e.target.closest('[data-m]');if(!el)return;const v=el.textContent.trim();const k=el.dataset.m;
+  if(k==='memo'){const g=M.memo.get(el.dataset.g);if(!g)return;g.items[+el.dataset.j].text=v;mark('memo',g,['items'])}
+  else if(k==='inc'){const r=M.incoming.get(el.dataset.id);if(!r)return;r[el.dataset.f]=v;mark('incoming',r,[el.dataset.f])}
+  else if(k==='hold'){const g=M.hold.get(el.dataset.g);if(!g)return;g.items[+el.dataset.j][el.dataset.f]=v;mark('hold',g,['items'])}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[data-m]')){e.preventDefault();e.target.blur()}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-incdel]');if(!b)return;
-  if(b.dataset.arm){D.incoming.splice(+b.dataset.incdel,1);save();renderMisc();renderKpis();return}
-  b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
-$('#bIncAdd').onclick=()=>{D.incoming.push({date:'',title:'새 도서',author:'',progress:'',rev:''});save();renderMisc();renderKpis()};
+  if(b.dataset.arm){removeDoc('incoming',b.dataset.incdel);return}
+  b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');
+  setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
+$('#bIncAdd').onclick=async()=>{const mx=Math.max(0,...list('incoming').map(r=>r.order||0));
+  await createDoc('incoming',{date:'',title:'새 도서',author:'',progress:'',rev:'',order:mx+1});renderMisc();renderKpis()};
 
-/* ---------- 편집 모드 / 인쇄 ---------- */
-function setEdit(on){st.edit=on;document.body.classList.toggle('edit',on);
-  $('#bEdit').classList.toggle('on',on);$('#bEdit').textContent=on?'편집 모드 끄기':'편집 모드';
-  $('#bAdd').hidden=!on;$('#incBar').hidden=!on;render();renderMisc();if(curTab==='worker')renderWorkers()}
+/* ---------- 제목 ---------- */
+function drawTitle(){
+  const t=(M.meta&&M.meta.title)||'주간계획서';
+  const h=$('#ttl');if(document.activeElement!==h)h.textContent=t;$('#pTtl').textContent=t;
+  h.toggleAttribute('contenteditable',st.edit);if(st.edit)h.setAttribute('contenteditable','plaintext-only');
+}
+$('#ttl').addEventListener('input',e=>{
+  if(!M.meta)M.meta={id:'main',_d:new Set(),title:''};M.meta.title=e.target.textContent.trim();$('#pTtl').textContent=M.meta.title;
+  clearTimeout(M.meta._t);setSaved('저장 중…');
+  M.meta._t=setTimeout(async()=>{try{await db.doc('meta/main').set({title:M.meta.title,source:M.meta.source||'주간계획서.hwp',by:myId,at:Date.now()});setSaved('저장됨')}catch(x){setSaved('저장 실패',true)}},700)});
+
+/* ---------- 편집 모드 / 저장 파일 ---------- */
+function setEdit(on){st.edit=on&&canWrite;document.body.classList.toggle('edit',st.edit);
+  $('#bEdit').classList.toggle('on',st.edit);$('#bEdit').textContent=st.edit?'편집 모드 끄기':'편집 모드';
+  $('#bAdd').hidden=!st.edit;$('#incBar').hidden=!st.edit;$('#editBanner').classList.toggle('show',st.edit);
+  requestRender(true)}
 $('#bEdit').onclick=()=>setEdit(!st.edit);
-let wasEdit=false;
-window.addEventListener('beforeprint',()=>{if(st.edit){wasEdit=true;setEdit(false)}});
-window.addEventListener('afterprint',()=>{if(wasEdit){wasEdit=false;setEdit(true)}});
-$('#bPrint').onclick=()=>{refreshAges();render();window.print()};
-
-/* ---------- 저장/불러오기/CSV/되돌리기 ---------- */
-function download(name,text,type){const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
-  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
-const stamp=()=>iso(new Date()).replace(/-/g,'');
-$('#bBackup').onclick=()=>download('주간계획서_백업_'+stamp()+'.json',JSON.stringify({sig:SIG,recs,incoming:D.incoming,memo:D.memo,hold:D.hold,nextId},null,1),'application/json');
-$('#bRestore').onclick=()=>$('#fileIn').click();
-$('#fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{const s=JSON.parse(rd.result);if(!Array.isArray(s.recs))throw 0;
-    recs=s.recs;D.incoming=s.incoming||[];D.memo=s.memo||[];D.hold=s.hold||[];nextId=s.nextId||Math.max(...recs.map(r=>r.i||0))+1;
-    recs.forEach((r,i)=>{if(r.i==null)r.i=i});refreshAges();save();wnames=drawSelects();render();renderMisc();setSaved('백업을 불러왔습니다')}
-    catch(x){setSaved('백업 파일을 읽을 수 없습니다',true)}};
-  rd.readAsText(f);e.target.value=''};
-$('#bCsv').onclick=()=>{const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+function dlFail(e){if(e&&e.code==='declined')return;toast('파일을 저장하지 못했습니다.')}
+$('#bCsv').onclick=async()=>{if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
+  const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
   const rows=[['구분','도서명','차수','저자','작업자','단계','최종갱신','진행내용']];
-  filtered().forEach(r=>rows.push([r.sec,r.title,r.rev,r.author,r.workers.join(' / '),r.stage,r.date,r.note]));
-  download('주간계획서_'+stamp()+'.csv','﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8')};
-$('#bReset').onclick=()=>{$('#resetBox').innerHTML='<span class="confirm">수정한 내용이 모두 사라집니다. <button class="btn danger" id="rYes">되돌리기</button><button class="btn" id="rNo">취소</button></span>';
-  $('#rYes').onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}location.reload()};
-  $('#rNo').onclick=()=>location.reload()};
+  filtered().forEach(r=>rows.push([r.sec,r.title,r.rev,r.author,(r.workers||[]).join(' / '),r.stage,r.date,r.note]));
+  try{await dlCap.save({filename:'주간계획서_'+iso(new Date()).replace(/-/g,'')+'.csv',data:'﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')})}catch(e){dlFail(e)}};
+$('#bPrint').onclick=async()=>{
+  if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
+  const was=st.edit;st.edit=false;
+  let body='';const title=(M.meta&&M.meta.title)||'주간계획서';
+  recs().forEach(r=>r.age=ageOf(r.date));
+  if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>작업자</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
+    $('#pMeta').textContent=$('#pMeta').textContent}
+  else if(curTab==='worker')body=`<div class="cards">${htmlWorkers()}</div>`;
+  else if(curTab==='memo')body=`<div class="memo-grid">${htmlMemo()}</div>`;
+  else if(curTab==='incoming')body=`<div class="tbl-wrap"><table><thead><tr><th>입고(예정)일</th><th>도서명</th><th>저자</th><th>현재 진행</th><th>차수</th></tr></thead><tbody>${htmlInc().replace(/<td class="act">.*?<\/td>/g,'')}</tbody></table></div>`;
+  else body=`<div class="memo-grid">${htmlHold()}</div>`;
+  st.edit=was;
+  const css=$('#pagecss').textContent.replace('.panel{display:none}.panel.on{display:block}','');
+  const doc=`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><style>${css}
+body{padding:12px 16px}.printhead{display:block}.wrap{padding:0}.tbl-wrap{max-height:none}th{position:static}
+@media print{body{padding:0}}</style></head><body><div class="wrap"><div class="printhead"><h1>${esc(title)}</h1><div class="meta">${esc($('#pMeta').textContent)}</div></div>${body}</div>
+<script>addEventListener('load',function(){setTimeout(function(){print()},400)})<\/script></body></html>`;
+  try{await dlCap.save({filename:'주간계획서_인쇄용_'+iso(new Date()).replace(/-/g,'')+'.html',data:doc})}catch(e){dlFail(e)}};
 
 /* ---------- 시작 ---------- */
-$('#ttl').textContent='주간계획서 (2026년 11월 09일)';$('#pTtl').textContent=$('#ttl').textContent;
-$('#meta').textContent='원본: 주간계획서.hwp · 경과일은 오늘('+iso(TODAY)+') 기준 · 단계·정체 표시는 진행 내용 문구로 자동 분류됩니다 (단계는 직접 바꿀 수 있습니다)';
-$('#note').innerHTML='※ 수정 내용은 이 컴퓨터의 이 브라우저에만 저장됩니다. 다른 사람과 공유되지 않으니, 보관·전달이 필요하면 "백업 저장"을 사용하세요. 단계 분류 규칙: "인쇄 넘김"→인쇄완료 / "보류"→보류 / "재고…대기"→재고대기 / "대기"→대기 / "중"→진행중 / "완료"→단계완료. 슬래시(/)로 구분된 작업자는 원문 순서대로 표기했으며 역할은 구분하지 않았습니다.';
-if(restored)setSaved('이전 수정 내용을 불러왔습니다');
-drawTabs();renderMisc();render();
-const h=(location.hash||'#list').slice(1).replace(/[^a-z]/g,'');showTab(TABS.some(t=>t[0]===h)?h:'list');
+$('#meta').textContent='경과일은 오늘('+iso(TODAY)+') 기준 · 단계·정체 표시는 진행 내용 문구로 자동 분류됩니다 (단계는 직접 바꿀 수 있습니다)';
+$('#note').innerHTML='※ 수정한 내용은 모든 접속자에게 실시간으로 반영됩니다. 같은 칸을 동시에 고치면 나중에 저장한 값이 남습니다. 단계 분류 규칙: "인쇄 넘김"→인쇄완료 / "보류"→보류 / "재고…대기"→재고대기 / "대기"→대기 / "중"→진행중 / "완료"→단계완료. 슬래시(/)로 구분된 작업자는 원문 순서대로 표기했으며 역할은 구분하지 않았습니다. 인쇄 버튼은 지금 보고 있는 탭을 A4 가로로 인쇄합니다.';
+drawTabs();render();renderMisc();drawTitle();
+const h0=(location.hash||'#list').slice(1).replace(/[^a-z]/g,'');showTab(TABS.some(t=>t[0]===h0)?h0:'list');
+
+(async()=>{
+  const cl=window.claude;
+  if(!cl||!cl.use){setConn('err','claude.ai에서 열어야 실시간 기능을 쓸 수 있습니다');return}
+  try{db=await cl.use('db')}catch(e){db=null}
+  try{userCap=await cl.use('user')}catch(e){userCap=null}
+  try{dlCap=await cl.use('downloads')}catch(e){dlCap=null}
+  if(!db){setConn('err','로그인 후 사용할 수 있습니다 (데이터를 불러올 수 없음)');loaded.books=true;render();return}
+  if(userCap){try{myId=await userCap.id()}catch(e){}
+    let cw=null;try{cw=await userCap.can('data.write')}catch(e){}
+    canWrite=cw!==false}
+  else canWrite=false;
+  $('#bEdit').hidden=!canWrite;$('#roBanner').classList.toggle('show',!canWrite);
+  subscribe();
+})();
+</script>
+
+<script>
+(function(){var b=document.getElementById('bPrint');b.textContent='인쇄';b.onclick=function(){if(st.edit)setEdit(false);render();window.print()}})();
 </script>
 </body>
 </html>
