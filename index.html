@@ -33,6 +33,13 @@ h1{margin:0;font-size:20px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
 .kpi:hover{border-color:var(--accent)}
+.recent{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0 0 12px;display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.recent>b{font-size:12px;color:var(--sub);align-self:center;white-space:nowrap}
+.recent .ri{flex:1 1 220px;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;background:var(--bg);text-align:left;font:inherit;color:var(--ink)}
+.recent .ri:hover{border-color:var(--accent)}
+.recent .ri strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent .ri span{font-size:11px;color:var(--sub)}
+.recent .none{font-size:12px;color:var(--sub);align-self:center}
 .kpi b{display:block;font-size:22px;line-height:1.2;font-variant-numeric:tabular-nums}
 .kpi span{font-size:12px;color:var(--sub)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 12px;flex-wrap:wrap}
@@ -148,6 +155,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   <div class="banner" id="roBanner">보기 전용입니다. 수정하려면 소유자에게 수정 권한(Contributor 이상)을 요청하세요.</div>
   <div class="banner" id="editBanner">편집 모드입니다. 칸을 눌러 고치면 잠시 뒤 모든 접속자의 화면에 반영됩니다. 작업자는 "이름 / 이름" 형식으로 적습니다.</div>
   <div class="kpis" id="kpis"></div>
+  <div class="recent no-print" id="recent"></div>
   <div class="tabs" id="tabs"></div>
 
   <section class="panel" id="p-list">
@@ -342,7 +350,7 @@ async function flush(coll,rec){
   const patch={};f.forEach(k=>patch[k]=clone(rec[k]===undefined?'':rec[k]));
   if(myId){patch.by=myId}patch.at=Date.now();
   let failed=false;
-  try{await db.doc(coll+'/'+rec.id).update(patch);rec.by=patch.by;rec.at=patch.at;
+  try{await db.doc(coll+'/'+rec.id).update(patch);rec.by=patch.by;rec.at=patch.at;renderRecent();
     const n=new Date();setSaved('저장됨 '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'))}
   catch(e){failed=true;f.forEach(k=>rec._d.add(k));
     setSaved('저장 실패',true);
@@ -471,8 +479,25 @@ function render(){
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
   if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
   $('#pMeta').textContent='인쇄일 '+iso(new Date())+' · 표시 '+a.length+'건'+(f.length?' · 조건: '+f.join(', '):'');
-  renderKpis();drawTabs();fillBy();
+  renderKpis();renderRecent();drawTabs();fillBy();
 }
+
+/* ---------- 최근 수정 3건 ---------- */
+const COLL_NM={books:'도서',incoming:'입고예정',memo:'체크포인트',hold:'보류·인쇄대기'};
+function renderRecent(){
+  const el=$('#recent');if(!el)return;
+  const all=[];
+  ['books','incoming','memo','hold'].forEach(c=>M[c].forEach(r=>{if(r.at)all.push([c,r])}));
+  all.sort((a,b)=>b[1].at-a[1].at);
+  const top=all.slice(0,3);
+  el.innerHTML='<b>최근 수정</b>'+(top.length?top.map(([c,r],i)=>{
+    const t=(c==='books'?(r.title||'(제목 없음)')+(r.rev?' '+r.rev:''):(r.title||'(제목 없음)'));
+    const nm=r.by?(r.by===myId?'나':r.by):'';
+    return `<button class="ri" data-ri="${i}"><strong>${esc(t)}</strong><span>${COLL_NM[c]} · ${nm?esc(nm)+' · ':''}${hm(r.at)}</span></button>`}).join('')
+    :'<span class="none">아직 수정 기록이 없습니다. 내용을 고치면 여기에 표시됩니다.</span>');
+  el.querySelectorAll('.ri').forEach(b=>b.onclick=()=>{const [c,r]=top[+b.dataset.ri];
+    if(c==='books'){resetFilters();$('#q').value=r.title||'';st.q=(r.title||'').toLowerCase();showTab('list');render()}
+    else showTab(c==='incoming'?'incoming':c==='memo'?'memo':'hold')})}
 function renderKpis(){
   const rs=recs(),act=rs.filter(r=>r.stage!=='인쇄완료');
   const n=s=>rs.filter(r=>r.stage===s).length;
