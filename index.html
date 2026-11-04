@@ -8,11 +8,11 @@
 <style id="pagecss">
 /* layout: 상단 요약 카드 → 탭(도서 목록 / 작업자별 / 체크포인트 / 입고예정 / 보류) → 표. 편집 모드에서 칸을 직접 고치고 모든 접속자에게 실시간 반영 */
 :root{--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
---c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--ok:#2f855a}
+--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--ok:#2f855a;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--gx:#5b6472}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;color-scheme:dark}}
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--gx:#a3acba;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;color-scheme:dark}
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--gx:#a3acba;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
@@ -88,7 +88,10 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 #toast.show{opacity:1}
 
 .wgroup{margin-bottom:22px}
-.wgroup h2{font-size:15px;margin:6px 0 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.g1{--g:var(--g1)}.g2{--g:var(--g2)}.g3{--g:var(--g3)}.g4{--g:var(--g4)}.gx{--g:var(--gx)}
+.wgroup h2{font-size:16px;margin:20px 0 12px;padding:8px 12px;border-left:6px solid var(--g);background:color-mix(in srgb,var(--g) 13%,var(--card));border-radius:6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.wgroup .card{border-top:3px solid var(--g)}
+.wgroup .card.idle{border-top:3px dashed var(--g)}
 .wgroup h2 small{color:var(--sub);font-weight:400;font-size:12px}
 .stbtn{font:inherit;font-size:11px;font-weight:700;cursor:pointer;color:var(--c);background:transparent;border:0;box-shadow:inset 0 0 0 1.5px var(--c);padding:1px 9px;border-radius:999px;display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
 .stbtn::before{content:'▸';font-size:10px}
@@ -101,7 +104,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .card.idle .lbl{padding:2px 0}
 @page{size:A4 landscape;margin:10mm}
 @media print{
-  :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b}
+  :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
   header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast{display:none!important}
@@ -293,9 +296,10 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
 const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
 const ORG=[
- ['출판1부',['차인태','신보용','권윤주','김지혜','김진영','박온누리','윤소연','백혜림','정지연','임한나','김예민']],
- ['출판1부 한글편집팀',['유은아','김우진','이혜숙']],
- ['디자인부',['이연주','김진혜','강현희','박지은','정은진','방지예']]];
+ ['출판1부',['차인태','신보용','권윤주','김지혜','김진영','박온누리','윤소연','백혜림','정지연','임한나','김예민'],'g1'],
+ ['출판1부 한글편집팀',['유은아','김우진','이혜숙'],'g2'],
+ ['출판2부',['이미향','김희현'],'g3'],
+ ['디자인부',['이연주','김진혜','강현희','박지은','정은진','방지예'],'g4']];
 const ORG_KNOWN=new Set(ORG.flatMap(g=>g[1]));
 const SECS_DEFAULT=['진행 도서 · 개정','진행 도서 · 신간','권오수 선생님 모음','인천대산전기학원','환경'];
 const col=s=>`var(${STAGE[s]||'--c-prog'})`;
@@ -525,7 +529,7 @@ function htmlWorkers(all){
   const byW={};
   recs().forEach(r=>{if(r.stage==='인쇄완료')return;(r.workers||[]).forEach(w=>(byW[w]=byW[w]||[]).push(r))});
   const others=Object.keys(byW).filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>byW[b].length-byW[a].length||a.localeCompare(b,'ko'));
-  const groups=[...ORG,['기타 (외주·미분류)',others]];
+  const groups=[...ORG,['기타 (외주·미분류)',others,'gx']];
   const card=w=>{
     const mine=(byW[w]||[]);
     if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 0건</small></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
@@ -536,10 +540,10 @@ function htmlWorkers(all){
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
       ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1).map(r=>`<div class="item"><b>${esc(r.title)}</b> ${esc(r.rev)}
         <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`).join('')}</div>`};
-  const html=groups.map(([n,members])=>{
+  const html=groups.map(([n,members,gc])=>{
     if(!members.length)return '';
     const tot=members.reduce((t,w)=>t+(byW[w]||[]).length,0);
-    return `<section class="wgroup"><h2>${esc(n)} <small>${members.length}명 · 작업 ${tot}건</small></h2><div class="cards">${members.map(card).join('')}</div></section>`}).join('');
+    return `<section class="wgroup ${gc}"><h2>${esc(n)} <small>${members.length}명 · 작업 ${tot}건</small></h2><div class="cards">${members.map(card).join('')}</div></section>`}).join('');
   return html||'<div class="empty">표시할 작업이 없습니다</div>'}
 function renderWorkers(){$('#wcards').innerHTML=htmlWorkers()}
 document.addEventListener('click',e=>{
