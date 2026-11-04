@@ -70,7 +70,7 @@ body.edit [contenteditable]{outline:1px dashed var(--line);border-radius:3px;pad
 body.edit [contenteditable]:focus{outline:2px solid var(--accent);background:var(--accent-bg)}
 body.edit [contenteditable]:empty::before{content:'입력';color:var(--sub)}
 td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);max-width:100%}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr));gap:12px}
+.cards{align-items:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr));gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
 .card h3{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:6px}
 .card h3 small{color:var(--sub);font-weight:400}
@@ -85,6 +85,19 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .printhead{display:none}
 #toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw}
 #toast.show{opacity:1}
+
+.wgroup{margin-bottom:22px}
+.wgroup h2{font-size:15px;margin:6px 0 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.wgroup h2 small{color:var(--sub);font-weight:400;font-size:12px}
+.stbtn{font:inherit;font-size:11px;font-weight:700;cursor:pointer;color:var(--c);background:transparent;border:0;box-shadow:inset 0 0 0 1.5px var(--c);padding:1px 9px;border-radius:999px;display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
+.stbtn::before{content:'▸';font-size:10px}
+.stbtn[aria-expanded="true"]{background:var(--c);color:#fff}
+.stbtn[aria-expanded="true"]::before{content:'▾'}
+.stbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wstage{display:none;margin-top:2px}.wstage.open{display:block}
+.wstage .shead{font-size:11px;color:var(--sub);margin:6px 0 0}
+.card.idle{background:transparent;border-style:dashed}
+.card.idle .lbl{padding:2px 0}
 @page{size:A4 landscape;margin:10mm}
 @media print{
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b}
@@ -103,6 +116,10 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   .cards,.memo-grid{display:block;column-count:2;column-gap:10px}
   .card{break-inside:avoid;margin-bottom:8px}
   .w{color:inherit}
+  .wstage{display:block!important}
+  .stbtn{box-shadow:none;background:var(--c);color:#fff}
+  .stbtn::before{content:''}
+  .wgroup{break-inside:auto}
 }
 </style>
 </head>
@@ -150,7 +167,9 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
     </table></div>
   </section>
 
-  <section class="panel" id="p-worker"><div class="cards" id="wcards"></div></section>
+  <section class="panel" id="p-worker">
+    <div class="bar no-print"><span class="lbl">단계 버튼을 누르면 해당 작업이 펼쳐지고, 다시 누르면 접힙니다.</span><button class="chip" id="wOpen">모두 펼치기</button><button class="chip" id="wClose">모두 접기</button></div>
+    <div id="wcards"></div></section>
   <section class="panel" id="p-memo"><div class="memo-grid" id="memo"></div></section>
   <section class="panel" id="p-incoming">
     <div class="bar no-print" id="incBar" hidden><button class="btn primary" id="bIncAdd">+ 입고예정 추가</button></div>
@@ -272,6 +291,11 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
 const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
+const ORG=[
+ ['출판1부',['차인태','신보용','권윤주','김지혜','김진영','박온누리','윤소연','백혜림','정지연','임한나','김예민']],
+ ['출판1부 한글편집팀',['유은아','김우진','이혜숙']],
+ ['디자인부',['이연주','김진혜','강현희','박지은','정은진','방지예']]];
+const ORG_KNOWN=new Set(ORG.flatMap(g=>g[1]));
 const SECS_DEFAULT=['진행 도서 · 개정','진행 도서 · 신간','권오수 선생님 모음','인천대산전기학원','환경'];
 const col=s=>`var(${STAGE[s]||'--c-prog'})`;
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
@@ -373,7 +397,11 @@ function drawSelects(){
   $('#fSec').value=secs.includes(st.sec)?st.sec:'';
   const wc={};rs.forEach(r=>(r.workers||[]).forEach(w=>wc[w]=(wc[w]||0)+1));
   wnames=Object.keys(wc).sort((a,b)=>wc[b]-wc[a]||a.localeCompare(b,'ko'));
-  $('#fWorker').innerHTML='<option value="">전체 작업자</option>'+wnames.map(w=>`<option value="${esc(w)}">${esc(w)} (${wc[w]})</option>`).join('');
+  {const opt=w=>`<option value="${esc(w)}">${esc(w)} (${wc[w]})</option>`;
+   let h='<option value="">전체 작업자</option>';
+   ORG.forEach(([n,m])=>{const ms=m.filter(w=>wc[w]);if(ms.length)h+=`<optgroup label="${esc(n)}">${ms.map(opt).join('')}</optgroup>`});
+   const oth=wnames.filter(w=>!ORG_KNOWN.has(w));if(oth.length)h+=`<optgroup label="기타">${oth.map(opt).join('')}</optgroup>`;
+   $('#fWorker').innerHTML=h}
   if(st.worker&&!wnames.includes(st.worker)&&rs.length)st.worker='';
   $('#fWorker').value=st.worker}
 $('#stageChips').innerHTML=ORDER.map(s=>`<button class="chip" data-s="${s}">${s}</button>`).join('');
@@ -490,18 +518,35 @@ $('#bAdd').onclick=async()=>{
   const el=tb.querySelector(`[data-f=title][data-id="${rec.id}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}};
 
 /* ---------- 작업자별 / 체크포인트 / 입고예정 / 보류 ---------- */
-function htmlWorkers(){
-  const rs=recs();
-  const html=wnames.map(w=>{
-    const mine=rs.filter(r=>(r.workers||[]).includes(w)&&r.stage!=='인쇄완료').sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1);
-    if(!mine.length)return '';
-    const cnt={};mine.forEach(r=>cnt[r.stage]=(cnt[r.stage]||0)+1);
-    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 중 ${mine.length}건</small></h3>
-      <div class="mini">${ORDER.filter(s=>cnt[s]).map(s=>`<span class="badge" style="--c:${col(s)}">${s} ${cnt[s]}</span>`).join('')}</div>
-      ${mine.map(r=>`<div class="item"><span class="badge" style="--c:${col(r.stage)}">${esc(r.stage)}</span> <b>${esc(r.title)}</b> ${esc(r.rev)}
-        <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`}).join('');
+const WSTAGES=['진행중','대기','단계완료','재고대기','보류'];
+const openSet=new Set();
+function htmlWorkers(all){
+  const byW={};
+  recs().forEach(r=>{if(r.stage==='인쇄완료')return;(r.workers||[]).forEach(w=>(byW[w]=byW[w]||[]).push(r))});
+  const others=Object.keys(byW).filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>byW[b].length-byW[a].length||a.localeCompare(b,'ko'));
+  const groups=[...ORG,['기타 (외주·미분류)',others]];
+  const card=w=>{
+    const mine=(byW[w]||[]);
+    if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 0건</small></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
+    const by={};mine.forEach(r=>(by[r.stage]=by[r.stage]||[]).push(r));
+    const stages=WSTAGES.filter(x=>by[x]);
+    const open=x=>all||openSet.has(w+'|'+x);
+    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 ${mine.length}건</small></h3>
+      <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
+      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1).map(r=>`<div class="item"><b>${esc(r.title)}</b> ${esc(r.rev)}
+        <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`).join('')}</div>`};
+  const html=groups.map(([n,members])=>{
+    if(!members.length)return '';
+    const tot=members.reduce((t,w)=>t+(byW[w]||[]).length,0);
+    return `<section class="wgroup"><h2>${esc(n)} <small>${members.length}명 · 작업 ${tot}건</small></h2><div class="cards">${members.map(card).join('')}</div></section>`}).join('');
   return html||'<div class="empty">표시할 작업이 없습니다</div>'}
 function renderWorkers(){$('#wcards').innerHTML=htmlWorkers()}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-tog]');
+  if(b){const k=b.dataset.tog,card=b.closest('.card');const on=!openSet.has(k);on?openSet.add(k):openSet.delete(k);
+    b.setAttribute('aria-expanded',on);const p=[...card.querySelectorAll('.wstage')].find(x=>x.dataset.k===k);if(p)p.classList.toggle('open',on);return}
+  if(e.target.id==='wOpen'){document.querySelectorAll('#wcards .stbtn').forEach(x=>openSet.add(x.dataset.tog));renderWorkers();return}
+  if(e.target.id==='wClose'){openSet.clear();renderWorkers()}});
 const E=()=>st.edit?' contenteditable="plaintext-only"':'';
 function htmlMemo(){return list('memo').map(g=>{
     const subs={};(g.items||[]).forEach((it,ji)=>(subs[it.label||'']=subs[it.label||'']||[]).push([ji,it.text]));
@@ -545,7 +590,7 @@ $('#bPrint').onclick=async()=>{
   recs().forEach(r=>r.age=ageOf(r.date));
   if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>작업자</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
     $('#pMeta').textContent=$('#pMeta').textContent}
-  else if(curTab==='worker')body=`<div class="cards">${htmlWorkers()}</div>`;
+  else if(curTab==='worker')body=htmlWorkers(true);
   else if(curTab==='memo')body=`<div class="memo-grid">${htmlMemo()}</div>`;
   else if(curTab==='incoming')body=`<div class="tbl-wrap"><table><thead><tr><th>입고(예정)일</th><th>도서명</th><th>저자</th><th>현재 진행</th><th>차수</th></tr></thead><tbody>${htmlInc().replace(/<td class="act">.*?<\/td>/g,'')}</tbody></table></div>`;
   else body=`<div class="memo-grid">${htmlHold()}</div>`;
