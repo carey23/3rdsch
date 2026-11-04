@@ -93,6 +93,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .wgroup .card{border-top:3px solid var(--g)}
 .wgroup .card.idle{border-top:3px dashed var(--g)}
 .wgroup h2 small{color:var(--sub);font-weight:400;font-size:12px}
+.card h3 .hr{display:flex;gap:8px;align-items:center}
 .stbtn{font:inherit;font-size:11px;font-weight:700;cursor:pointer;color:var(--c);background:transparent;border:0;box-shadow:inset 0 0 0 1.5px var(--c);padding:1px 9px;border-radius:999px;display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
 .stbtn::before{content:'▸';font-size:10px}
 .stbtn[aria-expanded="true"]{background:var(--c);color:#fff}
@@ -136,6 +137,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   </div>
   <div class="tools">
     <div class="status"><span><i class="dot" id="dot"></i><span id="conn">연결 중…</span></span><span class="saved" id="saved"></span></div>
+    <button class="btn primary" id="bAddTop" hidden>+ 도서 추가</button>
     <button class="btn" id="bEdit" hidden>편집 모드</button>
     <button class="btn primary" id="bPrint">인쇄용 파일 저장</button>
     <button class="btn" id="bCsv">CSV 저장</button>
@@ -515,12 +517,19 @@ tb.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)ret
   if(b.dataset.arm){removeDoc('books',b.dataset.del);return}
   b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');
   setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
-$('#bAdd').onclick=async()=>{
+async function addBook(workers){
+  if(!canWrite){toast('수정 권한이 없습니다');return}
   resetFilters();
+  if(!st.edit)setEdit(true);
+  showTab('list');
   const mx=Math.max(0,...recs().map(r=>r.order||0));
-  const rec=await createDoc('books',{sec:'진행 도서 · 개정',title:'새 도서',rev:'',author:'',workers:[],date:iso(TODAY),note:'',kind:'개정',stage:'진행중',extra:'',order:mx+1});
-  if(!rec)return;rec._new=1;render();
-  const el=tb.querySelector(`[data-f=title][data-id="${rec.id}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}};
+  const rec=await createDoc('books',{sec:'진행 도서 · 개정',title:'새 도서',rev:'',author:'',workers:workers||[],date:iso(TODAY),note:'',kind:'개정',stage:'진행중',extra:'',order:mx+1});
+  if(!rec)return;rec._new=1;
+  await new Promise(r=>setTimeout(r,160));render();
+  const el=tb.querySelector(`[data-f=title][data-id="${rec.id}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}}
+$('#bAdd').onclick=()=>addBook([]);
+$('#bAddTop').onclick=()=>addBook([]);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-addfor]');if(b)addBook([b.dataset.addfor])});
 
 /* ---------- 작업자별 / 체크포인트 / 입고예정 / 보류 ---------- */
 const WSTAGES=['진행중','대기','단계완료','재고대기','보류'];
@@ -532,11 +541,11 @@ function htmlWorkers(all){
   const groups=[...ORG,['기타 (외주·미분류)',others,'gx']];
   const card=w=>{
     const mine=(byW[w]||[]);
-    if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 0건</small></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
+    if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 0건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
     const by={};mine.forEach(r=>(by[r.stage]=by[r.stage]||[]).push(r));
     const stages=WSTAGES.filter(x=>by[x]);
     const open=x=>all||openSet.has(w+'|'+x);
-    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><small>작업 ${mine.length}건</small></h3>
+    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 ${mine.length}건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3>
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
       ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1).map(r=>`<div class="item"><b>${esc(r.title)}</b> ${esc(r.rev)}
         <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`).join('')}</div>`};
@@ -579,7 +588,7 @@ function drawTitle(){const t=todayTitle();$('#ttl').textContent=t;$('#pTtl').tex
 /* ---------- 편집 모드 / 저장 파일 ---------- */
 function setEdit(on){st.edit=on&&canWrite;document.body.classList.toggle('edit',st.edit);
   $('#bEdit').classList.toggle('on',st.edit);$('#bEdit').textContent=st.edit?'편집 모드 끄기':'편집 모드';
-  $('#bAdd').hidden=!st.edit;$('#incBar').hidden=!st.edit;$('#editBanner').classList.toggle('show',st.edit);
+  $('#incBar').hidden=!st.edit;$('#editBanner').classList.toggle('show',st.edit);
   requestRender(true)}
 $('#bEdit').onclick=()=>setEdit(!st.edit);
 function dlFail(e){if(e&&e.code==='declined')return;toast('파일을 저장하지 못했습니다.')}
@@ -622,7 +631,7 @@ const h0=(location.hash||'#list').slice(1).replace(/[^a-z]/g,'');showTab(TABS.so
     let cw=null;try{cw=await userCap.can('data.write')}catch(e){}
     canWrite=cw!==false}
   else canWrite=false;
-  $('#bEdit').hidden=!canWrite;$('#roBanner').classList.toggle('show',!canWrite);
+  $('#bEdit').hidden=!canWrite;$('#bAdd').hidden=!canWrite;$('#bAddTop').hidden=!canWrite;$('#roBanner').classList.toggle('show',!canWrite);
   subscribe();
 })();
 </script>
