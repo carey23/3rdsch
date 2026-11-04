@@ -33,6 +33,8 @@ h1{margin:0;font-size:20px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
 .kpi:hover{border-color:var(--accent)}
+.sin{color:#d62828;font-weight:700}
+.ed-sin{color:#d62828;font-weight:700}
 .recent{background:color-mix(in srgb,var(--accent) 9%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-left:4px solid var(--accent);border-radius:10px;padding:8px 12px;margin:0 0 12px;display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
 .recent>b{font-size:12px;color:var(--accent);align-self:center;white-space:nowrap}
 .recent .ri{flex:1 1 220px;min-width:0;border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line));border-radius:8px;padding:6px 10px;cursor:pointer;background:color-mix(in srgb,var(--accent) 4%,var(--card));text-align:left;font:inherit;color:var(--ink)}
@@ -320,7 +322,11 @@ const ageOf=s=>s?Math.round((TODAY-new Date(s+'T00:00:00'))/864e5):null;
 function autoStage(t){t=t||'';if(/인쇄\s?넘김/.test(t))return'인쇄완료';if(t.includes('보류'))return'보류';
   if(t.includes('재고')&&t.includes('대기'))return'재고대기';if(t.includes('대기'))return'대기';
   if(/중|中/.test(t))return'진행중';if(t.includes('완료'))return'단계완료';return'진행중'}
-const kindOf=r=>{const v=(r.rev||'').replace(/[()\s]/g,'');return((r.sec||'').includes('신간')||v==='신'||v==='신간')?'신간':'개정'};
+const kindOf=r=>{const v=(r.rev||'').replace(/[()\s]/g,'');return((r.sec||'').includes('신간')||v==='신'||v==='新'||v==='신간')?'신간':'개정'};
+
+const SIN=/\((?:신|新)\)/g;
+const revH=v=>esc(v).replace(SIN,'(<span class="sin">新</span>)');
+const revT=v=>String(v??'').replace(SIN,'(新)');
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 
@@ -463,7 +469,7 @@ function rowHtml(r,plain){
   const by=(!plain&&r.by&&r.at)?`<div class="sec" data-by="${esc(r.by)}" data-at="${r.at}"></div>`:'';
   return `<tr class="r" data-id="${esc(id)}" style="--c:${c}">
     <td>${secCell}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
-    <td class="t">${ed('title',id,r.title)}</td><td class="nw">${ed('rev',id,r.rev)}</td><td class="nw">${ed('author',id,r.author)}</td>
+    <td class="t">${ed('title',id,r.title)}</td><td class="nw">${st.edit?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author)}</td>
     <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
     <td>${ed('note',id,r.note)}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
     <td class="act"><button class="chip" data-del="${esc(id)}">삭제</button></td></tr>`}
@@ -491,7 +497,7 @@ function renderRecent(){
   all.sort((a,b)=>b[1].at-a[1].at);
   const top=all.slice(0,3);
   el.innerHTML='<b>최근 수정</b>'+(top.length?top.map(([c,r],i)=>{
-    const t=(c==='books'?(r.title||'(제목 없음)')+(r.rev?' '+r.rev:''):(r.title||'(제목 없음)'));
+    const t=(c==='books'?(r.title||'(제목 없음)')+(r.rev?' '+revT(r.rev):''):(r.title||'(제목 없음)'));
     const nm=r.by?(r.by===myId?'나':r.by):'';
     return `<button class="ri" data-ri="${i}"><strong>${esc(t)}</strong><span>${COLL_NM[c]} · ${nm?esc(nm)+' · ':''}${hm(r.at)}</span></button>`}).join('')
     :'<span class="none">아직 수정 기록이 없습니다. 내용을 고치면 여기에 표시됩니다.</span>');
@@ -572,7 +578,7 @@ function htmlWorkers(all){
     const open=x=>all||openSet.has(w+'|'+x);
     return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 ${mine.length}건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3>
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
-      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1).map(r=>`<div class="item"><b>${esc(r.title)}</b> ${esc(r.rev)}
+      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1).map(r=>`<div class="item"><b>${esc(r.title)}</b> ${revH(r.rev)}
         <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`).join('')}</div>`};
   const html=groups.map(([n,members,gc])=>{
     if(!members.length)return '';
@@ -620,7 +626,7 @@ function dlFail(e){if(e&&e.code==='declined')return;toast('파일을 저장하�
 $('#bCsv').onclick=async()=>{if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
   const rows=[['구분','도서명','차수','저자','작업자','단계','최종갱신','진행내용']];
-  filtered().forEach(r=>rows.push([r.sec,r.title,r.rev,r.author,(r.workers||[]).join(' / '),r.stage,r.date,r.note]));
+  filtered().forEach(r=>rows.push([r.sec,r.title,revT(r.rev),r.author,(r.workers||[]).join(' / '),r.stage,r.date,r.note]));
   try{await dlCap.save({filename:'주간계획서_'+iso(new Date()).replace(/-/g,'')+'.csv',data:'﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')})}catch(e){dlFail(e)}};
 $('#bPrint').onclick=async()=>{
   if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
