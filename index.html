@@ -477,7 +477,7 @@ function render(){
   recs().forEach(r=>r.age=ageOf(r.date));
   const a=filtered();
   const all=recs().length;
-  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건) · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
+  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${st.worker?' · '+st.worker+' 담당만 보는 중':''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
   $('#tb').innerHTML=!loaded.books?'<tr><td colspan="9" class="empty">불러오는 중…</td></tr>'
     :a.length?a.map(r=>rowHtml(r)).join('')
     :`<tr><td colspan="9" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
@@ -550,13 +550,15 @@ tb.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)ret
   setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
 async function addBook(workers){
   if(!canWrite){toast('수정 권한이 없습니다');return}
+  const me=(workers&&workers[0])||st.worker||'';
   resetFilters();
+  if(me){workers=[me];st.worker=me;lsSet('jp-worker',me)}
   if(!st.edit)setEdit(true);
   showTab('list');
   const mx=Math.max(0,...recs().map(r=>r.order||0));
   const rec=await createDoc('books',{sec:'진행 도서 · 개정',title:'새 도서',rev:'',author:'',workers:workers||[],date:iso(TODAY),note:'',kind:'개정',stage:'진행중',extra:'',order:mx+1});
   if(!rec)return;rec._new=1;
-  await new Promise(r=>setTimeout(r,160));render();
+  await new Promise(r=>setTimeout(r,160));drawSelects();$('#fWorker').value=st.worker;render();
   const el=tb.querySelector(`[data-f=title][data-id="${rec.id}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}}
 $('#bAdd').onclick=()=>addBook([]);
 $('#bAddTop').onclick=()=>addBook([]);
