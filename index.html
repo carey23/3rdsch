@@ -34,6 +34,24 @@ h1{margin:0;font-size:20px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
 .kpi:hover{border-color:var(--accent)}
 .sin{color:#d62828;font-weight:700}
+tr.r.locked td{background:color-mix(in srgb,var(--sub) 6%,transparent)}
+.hist-link{cursor:pointer;text-decoration:underline dotted}
+.hist-link:hover{color:var(--accent)}
+#histBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
+#histBack.on{display:flex}
+#hist{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#hist .hh{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+#hist .hh h2{margin:0;font-size:16px;margin-right:auto}
+#hist .hh input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:200px}
+#hist .hb{overflow:auto;padding:4px 14px 12px}
+#hist table{width:100%;border-collapse:collapse;font-size:13px}
+#hist th{position:sticky;top:0;background:var(--card);text-align:left;font-size:11px;color:var(--sub);padding:8px 6px;border-bottom:1px solid var(--line)}
+#hist td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+#hist .vo{color:var(--sub);text-decoration:line-through}
+#hist .vn{font-weight:600}
+#hist .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--accent-bg);color:var(--accent)}
+#hist .tag.del{background:color-mix(in srgb,var(--warn) 15%,var(--card));color:var(--warn)}
+#hist .msg{padding:24px 6px;color:var(--sub);font-size:13px}
 .pw{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .pw+.pw{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .pwn{color:var(--sub);font-size:11px;min-width:3.4em;font-weight:600}
@@ -125,7 +143,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
-  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast{display:none!important}
+  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{display:none!important}.panel.on{display:block!important}
   .printhead{display:block;margin-bottom:6px}
@@ -157,6 +175,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
     <button class="btn primary" id="bAddTop" hidden>+ 도서 추가</button>
     <button class="btn" id="bEdit" hidden>편집 모드</button>
     <button class="btn primary" id="bPrint">인쇄용 파일 저장</button>
+    <button class="btn" id="bHist">변경 이력</button>
     <button class="btn" id="bCsv">CSV 저장</button>
   </div>
 </header>
@@ -203,6 +222,9 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 
 </div>
 <div id="toast" role="status"></div>
+<div id="histBack" class="no-print"><div id="hist" role="dialog" aria-label="변경 이력">
+  <div class="hh"><h2>변경 이력</h2><input type="search" id="histQ" placeholder="도서명·수정한 사람·칸 검색"><button class="btn" id="histReload">새로고침</button><button class="btn" id="histClose">닫기</button></div>
+  <div class="hb" id="histBody"></div></div></div>
 
 
 <script>
@@ -291,7 +313,10 @@ function docRef(path){const [c,id]=path.split('/');
   const write=async patch=>{await rpc('jp_patch',{pw:PW,p_coll:c,p_id:id,p_patch:patch});
     const cur=C[c].get(id);C[c].set(id,{data:Object.assign({},cur&&!cur.deleted?cur.data:{},JSON.parse(JSON.stringify(patch))),deleted:false});emit(c)};
   return {update:write,set:write,
-    async delete(){await rpc('jp_delete',{pw:PW,p_coll:c,p_id:id});const cur=C[c].get(id);if(cur){cur.deleted=true}emit(c)},
+    async delete(){
+      try{await rpc('jp_delete',{pw:PW,p_coll:c,p_id:id,p_by:NAME})}
+      catch(x){if(/Could not find the function/i.test(x&&x.message||'')){await rpc('jp_delete',{pw:PW,p_coll:c,p_id:id})}else throw x}
+      const cur=C[c].get(id);if(cur){cur.deleted=true}emit(c)},
     onSnapshot(next){const s={c,sent:new Map(),first:true,next:snap=>{const d=snap.docs.length?null:null;
         const v=C[c].get(id);next(mkDoc(id,v&&!v.deleted?v.data:undefined))}};
       s.next=()=>{const v=C[c].get(id);next(mkDoc(id,v&&!v.deleted?v.data:undefined))};
@@ -306,6 +331,8 @@ const dlCap={async save({filename,data}){const b=new Blob([data],{type:/\.csv$/.
 
 let started=null;
 function start(){if(!started){started=(async()=>{await ensureLogin();addAccountButtons();poll()})()}return started}
+window.JPX={hist:(limit,before)=>rpc('jp_hist',{pw:PW,p_limit:limit||200,p_before:before||null}),
+  noHist:x=>/Could not find the function/i.test(x&&x.message||'')};
 window.claude={use:async n=>{await start();return n==='db'?db:n==='user'?userCap:n==='downloads'?dlCap:null}};
 })();
 
@@ -321,6 +348,8 @@ const ORG=[
  ['출판2부',['이미향','김희현'],'g3'],
  ['디자인부',['이연주','김진혜','강현희','박지은','정은진','방지예'],'g4']];
 const ORG_KNOWN=new Set(ORG.flatMap(g=>g[1]));
+/* 수정 권한: 관리자는 전부, 그 외는 작업자에 본인 이름이 있는 도서만 (작업자가 비어 있는 도서는 누구나) */
+const ADMINS=['차인태'];
 const SECS_DEFAULT=['진행 도서 · 개정','진행 도서 · 신간','권오수 선생님 모음','인천대산전기학원','환경'];
 const col=s=>`var(${STAGE[s]||'--c-prog'})`;
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
@@ -348,6 +377,9 @@ const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
 const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','단계완료'].includes(v.stage);
 /* 담당자별 진행 상황: 진행내용(pn_)·단계(ps_)·갱신일(pd_)·단계수동(pm_) 을 이름별로 따로 저장. 없으면 도서 공통값(note/stage/date)을 씀 */
+const isAdmin=()=>ADMINS.includes(myId);
+const mayBook=r=>canWrite&&(isAdmin()||!(r.workers||[]).length||(r.workers||[]).includes(myId));
+const mayWorker=(r,w)=>canWrite&&(isAdmin()||(w?w===myId:mayBook(r)));
 const pk=(w,f)=>'p'+f+'_'+w;
 function eff(r,w){const g=(f,b)=>(w&&r[pk(w,f)]!==undefined)?r[pk(w,f)]:b;
   const date=g('d',r.date);return {note:g('n',r.note),stage:g('s',r.stage),date,manual:g('m',r.stageManual),age:ageOf(date)}}
@@ -487,33 +519,33 @@ function sortRecs(a){
   if(personalOn()){const w='wo_'+st.worker;a.sort((x,y)=>(x[w]??1e9)-(y[w]??1e9))}
   return a}
 const personalOn=()=>!!st.worker&&!st.sortTouched;
-const canDrag=()=>canWrite&&personalOn();
+const canDrag=()=>canWrite&&personalOn()&&(isAdmin()||st.worker===myId);
 const mineAll=w=>sortRecs(recs().filter(r=>(r.workers||[]).includes(w)));
 
 /* ---------- 도서 목록 ---------- */
-const ed=(f,id,v,cls)=>`<span ${st.edit?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${esc(id)}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
+const ed=(f,id,v,cls,ok=true)=>`<span ${st.edit&&ok?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${esc(id)}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
 function rowHtml(r,plain){
-  const id=r.id,vw=V(r),c=col(vw.stage);
+  const id=r.id,vw=V(r),c=col(vw.stage),mb=mayBook(r),eb=st.edit&&mb;
   const secs=[...new Set([...SECS_DEFAULT,r.sec])];
-  const secCell=st.edit?`<select data-sel="sec" data-id="${esc(id)}" aria-label="구분">${secs.map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`:`<span class="sec">${esc(secShort(r.sec))}</span>`;
-  const wk=st.edit?ed('workers',id,(r.workers||[]).join(' / ')):(r.workers||[]).map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
+  const secCell=eb?`<select data-sel="sec" data-id="${esc(id)}" aria-label="구분">${secs.map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`:`<span class="sec">${esc(secShort(r.sec))}</span>`;
+  const wk=eb?ed('workers',id,(r.workers||[]).join(' / ')):(r.workers||[]).map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
   const ws=wsOf(r),multi=ws.length>1;
   const blk=(w,inner)=>`<div class="pw" data-pw="${esc(w)}">${multi?`<small class="pwn">${esc(w)}</small>`:''}${inner}</div>`;
-  const stg=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(x=>`<option${x===v.stage?' selected':''}>${x}</option>`).join('')}</select>`:`<span class="badge" style="--c:${col(v.stage)}">${esc(v.stage)}</span>`)}).join('');
-  const dt=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(v.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(v)}</span>`:ageTxt(v))}).join('');
-  const nt=ws.map(w=>blk(w,ed('note',id,eff(r,w).note))).join('');
-  const by=(!plain&&r.by&&r.at)?`<div class="sec" data-by="${esc(r.by)}" data-at="${r.at}"></div>`:'';
+  const stg=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit&&mayWorker(r,w)?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(x=>`<option${x===v.stage?' selected':''}>${x}</option>`).join('')}</select>`:`<span class="badge" style="--c:${col(v.stage)}">${esc(v.stage)}</span>`)}).join('');
+  const dt=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit&&mayWorker(r,w)?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(v.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(v)}</span>`:ageTxt(v))}).join('');
+  const nt=ws.map(w=>blk(w,ed('note',id,eff(r,w).note,'',mayWorker(r,w)))).join('');
+  const by=(!plain&&r.by&&r.at)?`<div class="sec hist-link" data-by="${esc(r.by)}" data-at="${r.at}" data-hist="${esc(r.title||'')}" title="이 도서의 변경 이력 보기"></div>`:'';
   const grip=(!plain&&canDrag())?`<span class="grip" draggable="true" data-grip="${esc(id)}" title="끌어서 내 순서 바꾸기">⋮⋮</span>`:'';
-  return `<tr class="r" data-id="${esc(id)}" style="--c:${c}">
-    <td>${grip}${secCell}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
-    <td class="t">${ed('title',id,r.title)}</td><td class="nw">${st.edit?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author)}</td>
+  return `<tr class="r${st.edit&&!mb?' locked':''}" data-id="${esc(id)}" style="--c:${c}"${st.edit&&!mb?' title="담당자가 아니어서 수정할 수 없습니다"':''}>
+    <td>${grip}${secCell}${st.edit&&!mb&&!plain?'<div class="sec">보기 전용 (담당 아님)</div>':''}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
+    <td class="t">${ed('title',id,r.title,'',mb)}</td><td class="nw">${eb?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author,'',mb)}</td>
     <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
     <td>${nt}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
-    <td class="act"><button class="chip" data-del="${esc(id)}">삭제</button></td></tr>`}
+    <td class="act">${mb?`<button class="chip" data-del="${esc(id)}">삭제</button>`:''}</td></tr>`}
 function render(){
   const a=filtered();
   const all=recs().length;
-  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${st.worker?' · '+st.worker+' 담당만 보는 중'+(canDrag()?' · ⋮⋮를 끌어 내 순서 변경':''):''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
+  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${canWrite&&!isAdmin()&&loaded.books&&!recs().some(r=>(r.workers||[]).includes(myId))?' · 로그인 이름('+myId+')이 작업자에 없어 보기만 가능합니다':''}${st.worker?' · '+st.worker+' 담당만 보는 중'+(canDrag()?' · ⋮⋮를 끌어 내 순서 변경':''):''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
   $('#tb').innerHTML=!loaded.books?'<tr><td colspan="9" class="empty">불러오는 중…</td></tr>'
     :a.length?a.map(r=>rowHtml(r)).join('')
     :`<tr><td colspan="9" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
@@ -572,6 +604,7 @@ const pwOf=el=>{const b=el.closest('[data-pw]');return b?b.dataset.pw:''};
 tb.addEventListener('input',e=>{
   const el=e.target.closest('[data-f]');if(!el)return;
   const r=M.books.get(el.dataset.id);if(!r)return;const f=el.dataset.f,v=el.textContent;let fields=[f];
+  if(f==='note'?!mayWorker(r,pwOf(el)):!mayBook(r)){toast('담당자가 아니어서 수정할 수 없습니다');requestRender(true);return}
   if(f==='note'){const w=pwOf(el),cur=eff(r,w),vals={note:v.trim()};if(!cur.manual)vals.stage=autoStage(vals.note);fields=setF(r,w,vals)}
   else if(f==='workers')r.workers=v.split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
   else r[f]=v.trim();
@@ -580,11 +613,13 @@ tb.addEventListener('input',e=>{
 tb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[contenteditable]')){e.preventDefault();e.target.blur()}});
 tb.addEventListener('change',e=>{
   const t=e.target,id=t.dataset.id;if(!id)return;const r=M.books.get(id);if(!r)return;let fields=[];
+  if(t.dataset.sel==='sec'?!mayBook(r):!mayWorker(r,pwOf(t))){toast('담당자가 아니어서 수정할 수 없습니다');requestRender(true);return}
   if(t.dataset.sel==='stage'){fields=setF(r,pwOf(t),{stage:t.value,manual:true})}
   else if(t.dataset.sel==='sec'){r.sec=t.value;r.kind=kindOf(r);fields=['sec','kind']}
   else if(t.dataset.date){fields=setF(r,pwOf(t),{date:t.value})}
   touchRow(t.closest('tr'),r);renderKpis();mark('books',r,fields)});
 tb.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;
+  {const r=M.books.get(b.dataset.del);if(r&&!mayBook(r)){toast('담당자가 아니어서 삭제할 수 없습니다');return}}
   if(b.dataset.arm){removeDoc('books',b.dataset.del);return}
   b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');
   setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
@@ -612,9 +647,82 @@ function moveMine(id,tid,after){
   const k='wo_'+w;let n=0;
   rest.forEach((r,j)=>{if(r[k]!==j){r[k]=j;mark('books',r,[k]);n++}});
   requestRender(true);if(n)toast(w+' 담당 도서 순서를 바꿨습니다')}
+
+/* ---------- 변경 이력 (누가·언제·어떤 칸을·무엇에서 무엇으로) ---------- */
+const HF={title:'도서명',rev:'차수',author:'저자',workers:'작업자',sec:'구분',note:'진행 내용',stage:'단계',date:'갱신일',progress:'현재 진행',items:'내용'};
+function fieldLabel(f){
+  if(f==='__create')return '추가';if(f==='__delete')return '삭제';if(f==='__restore')return '복원';
+  const m=/^p([nsd])_(.+)$/.exec(f);if(m)return {n:'진행 내용',s:'단계',d:'갱신일'}[m[1]]+' ('+m[2]+')';
+  return HF[f]||f}
+const itemText=it=>it==null?'':typeof it==='string'?it:[it.label&&'['+it.label+']',it.date,it.text].filter(Boolean).join(' ');
+function fmtVal(v){if(v===null||v===undefined||v==='')return '(비어 있음)';
+  if(Array.isArray(v))return v.map(x=>typeof x==='object'?itemText(x):x).join(' / ');
+  if(typeof v==='object')return JSON.stringify(v);return String(v)}
+function diffVals(o,n){
+  if(Array.isArray(o)&&Array.isArray(n)&&((o.length&&typeof o[0]==='object')||(n.length&&typeof n[0]==='object'))){
+    const L=Math.max(o.length,n.length);
+    for(let i=0;i<L;i++)if(JSON.stringify(o[i])!==JSON.stringify(n[i]))return [itemText(o[i])||'(비어 있음)',itemText(n[i])||'(비어 있음)'];
+    return ['','']}
+  return [fmtVal(o),fmtVal(n)]}
+const H={rows:[],more:true,busy:false,err:''};
+function canRestore(h){
+  if(!canWrite||!window.JPX||h.field==='__create'||h.field==='__restore')return false;
+  if(h.field==='__delete')return isAdmin()||((h.old_val&&h.old_val.workers)||[]).includes(myId)||!((h.old_val&&h.old_val.workers)||[]).length;
+  if(h.old_val===null||h.old_val===undefined)return false;
+  if(h.coll!=='books')return true;
+  const r=M.books.get(h.doc_id);if(!r)return false;
+  const m=/^p[nsd]_(.+)$/.exec(h.field);return m?mayWorker(r,m[1]):mayBook(r)}
+function drawHist(){
+  const q=($('#histQ').value||'').trim().toLowerCase();
+  const rows=H.rows.filter(h=>{if(!q)return true;
+    const [o,n]=diffVals(h.old_val,h.new_val);
+    return [h.doc_title,h.by_name,fieldLabel(h.field),COLL_NM[h.coll],o,n].join(' ').toLowerCase().includes(q)});
+  let html='';
+  if(H.err)html=`<div class="msg">${esc(H.err)}</div>`;
+  else if(!rows.length&&!H.busy)html=`<div class="msg">${H.rows.length?'조건에 맞는 이력이 없습니다.':'아직 기록된 변경이 없습니다.'}</div>`;
+  else html=`<table><thead><tr><th>시각</th><th>수정한 사람</th><th>대상</th><th>칸</th><th>변경 내용</th><th></th></tr></thead><tbody>${rows.map(h=>{
+      const [o,n]=diffVals(h.old_val,h.new_val);const k=h.field;
+      const chg=k==='__create'?`<span class="vn">${esc(h.doc_title||'')}</span>`:k==='__delete'?`<span class="vo">${esc(h.doc_title||'')}</span>`:k==='__restore'?`<span class="vn">${esc(h.doc_title||'')}</span>`
+        :`<span class="vo">${esc(o)}</span> → <span class="vn">${esc(n)}</span>`;
+      return `<tr><td class="nw">${hm(Date.parse(h.at))}</td><td class="nw">${esc(h.by_name||'')}</td><td>${h.coll!=='books'?`<small>${esc(COLL_NM[h.coll]||h.coll)}</small> `:''}${esc(h.doc_title||'')}</td>
+        <td class="nw"><span class="tag${k==='__delete'?' del':''}">${esc(fieldLabel(k))}</span></td><td>${chg}</td>
+        <td class="nw">${canRestore(h)?`<button class="chip" data-restore="${h.id}">되돌리기</button>`:''}</td></tr>`}).join('')}</tbody></table>`;
+  if(!H.err&&H.more&&H.rows.length)html+=`<div style="text-align:center;padding:10px"><button class="btn" id="histMore">${H.busy?'불러오는 중…':'이전 이력 더 보기'}</button></div>`;
+  if(H.busy&&!H.rows.length)html='<div class="msg">불러오는 중…</div>';
+  $('#histBody').innerHTML=html}
+async function loadHist(reset){
+  if(H.busy||!window.JPX)return;H.busy=true;if(reset){H.rows=[];H.more=true;H.err=''}
+  drawHist();
+  const before=H.rows.length?H.rows[H.rows.length-1].id:null;
+  try{const r=await window.JPX.hist(200,before);H.rows.push(...r);H.more=r.length>=200;H.err=''}
+  catch(e){H.err=window.JPX.noHist(e)?'이력 기능이 아직 켜지지 않았습니다. Supabase의 SQL Editor에서 "supabase_이력_추가.sql"을 한 번 실행해 주세요.':'이력을 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요.'}
+  H.busy=false;drawHist()}
+function openHist(q){$('#histQ').value=q||'';$('#histBack').classList.add('on');
+  if(!window.JPX){H.err='이 화면에서는 변경 이력을 쓸 수 없습니다.';drawHist();return}
+  loadHist(true)}
+function closeHist(){$('#histBack').classList.remove('on')}
+$('#bHist').onclick=()=>openHist('');
+$('#histClose').onclick=closeHist;$('#histReload').onclick=()=>loadHist(true);
+$('#histBack').addEventListener('click',e=>{if(e.target.id==='histBack')closeHist()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHist()});
+$('#histQ').oninput=drawHist;
+document.addEventListener('click',e=>{const h=e.target.closest('[data-hist]');if(h){openHist(h.dataset.hist)}});
+$('#histBody').addEventListener('click',async e=>{
+  if(e.target.id==='histMore'){loadHist(false);return}
+  const b=e.target.closest('[data-restore]');if(!b)return;
+  const h=H.rows.find(x=>String(x.id)===b.dataset.restore);if(!h||!canRestore(h))return;
+  const what=h.field==='__delete'?'삭제된 "'+(h.doc_title||'')+'" 을(를) 복원':'"'+(h.doc_title||'')+'"의 '+fieldLabel(h.field)+' 을(를) 이전 값으로 되돌리';
+  if(!confirm(what+'할까요? 현재 값은 이력에 남습니다.'))return;
+  b.disabled=true;
+  try{const d=db.doc(h.coll+'/'+h.doc_id);
+    if(h.field==='__delete')await d.set({...h.old_val,by:myId,at:Date.now()});
+    else await d.update({[h.field]:h.old_val,by:myId,at:Date.now()});
+    toast('되돌렸습니다');loadHist(true)}
+  catch(x){toast('되돌리지 못했습니다');b.disabled=false}});
 async function addBook(workers){
   if(!canWrite){toast('수정 권한이 없습니다');return}
-  const me=(workers&&workers[0])||st.worker||'';
+  let me=(workers&&workers[0])||st.worker||'';
+  if(!isAdmin()&&myId){if(me&&me!==myId){toast('본인 이름의 카드에서만 도서를 추가할 수 있습니다');return}me=myId}
   resetFilters();
   if(me){workers=[me];st.worker=me;lsSet('jp-worker',me)}
   if(!st.edit)setEdit(true);
@@ -638,11 +746,11 @@ function htmlWorkers(all){
   const groups=[...ORG,['기타 (외주·미분류)',others,'gx']];
   const card=w=>{
     const mine=(byW[w]||[]);
-    if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 0건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
+    if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 0건</small> ${(!all&&canWrite&&(isAdmin()||w===myId))?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
     const by={};mine.forEach(r=>{const g=eff(r,w).stage;(by[g]=by[g]||[]).push(r)});
     const stages=WSTAGES.filter(x=>by[x]);
     const open=x=>all||openSet.has(w+'|'+x);
-    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 ${mine.length}건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3>
+    return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 ${mine.length}건</small> ${(!all&&canWrite&&(isAdmin()||w===myId))?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3>
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
       ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(eff(a,w).date||'9999')<(eff(b,w).date||'9999')?-1:1).map(r=>{const v=eff(r,w);return `<div class="item"><b>${esc(r.title)}</b> ${revH(r.rev)}
         <div class="n">${esc(v.note)} · ${ageTxt(v)}</div></div>`}).join('')}</div>`).join('')}</div>`};
