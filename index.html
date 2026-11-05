@@ -34,6 +34,11 @@ h1{margin:0;font-size:20px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
 .kpi:hover{border-color:var(--accent)}
 .sin{color:#d62828;font-weight:700}
+.grip{cursor:grab;color:var(--sub);user-select:none;margin-right:6px;font-size:13px;letter-spacing:-2px}
+.grip:active{cursor:grabbing}
+tr.r.dragging{opacity:.4}
+tr.r.dropb td{box-shadow:inset 0 3px 0 var(--accent)}
+tr.r.dropa td{box-shadow:inset 0 -3px 0 var(--accent)}
 .ed-sin{color:#d62828;font-weight:700}
 .recent{background:color-mix(in srgb,var(--accent) 9%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-left:4px solid var(--accent);border-radius:10px;padding:8px 12px;margin:0 0 12px;display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
 .recent>b{font-size:12px;color:var(--accent);align-self:center;white-space:nowrap}
@@ -173,7 +178,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
       <button class="btn primary" id="bAdd" hidden>+ 도서 추가</button>
     </div>
     <div class="bar" style="padding:6px 10px"><span class="lbl">단계</span><div class="chips" id="stageChips"></div></div>
-    <div class="count" id="count"></div>
+    <div class="count"><span id="count"></span> <button type="button" class="chip no-print" id="bMyOrder" hidden>내 순서로 보기</button></div>
     <div class="tbl-wrap"><table>
       <thead><tr>
         <th data-k="sec">구분</th><th data-k="title">도서명</th><th data-k="rev">차수</th><th data-k="author">저자</th>
@@ -334,7 +339,7 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let db=null,userCap=null,dlCap=null,myId=null,canWrite=false;
 const M={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:null};
 const loaded={books:false,incoming:false,memo:false,hold:false,meta:false};
-const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'stage',dir:1}};
+const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'stage',dir:1},sortTouched:false};
 let curTab='list';
 const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
@@ -354,9 +359,10 @@ async function flush(coll,rec){
   if(rec._busy){rec._again=true;return}
   rec._busy=true;const f=[...rec._d];rec._d.clear();
   const patch={};f.forEach(k=>patch[k]=clone(rec[k]===undefined?'':rec[k]));
-  if(myId){patch.by=myId}patch.at=Date.now();
+  const onlyOrd=f.every(k=>k.startsWith('wo_'));
+  if(!onlyOrd){if(myId){patch.by=myId}patch.at=Date.now()}
   let failed=false;
-  try{await db.doc(coll+'/'+rec.id).update(patch);rec.by=patch.by;rec.at=patch.at;renderRecent();
+  try{await db.doc(coll+'/'+rec.id).update(patch);if(!onlyOrd){rec.by=patch.by;rec.at=patch.at;renderRecent()}
     const n=new Date();setSaved('저장됨 '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'))}
   catch(e){failed=true;f.forEach(k=>rec._d.add(k));
     setSaved('저장 실패',true);
@@ -397,7 +403,8 @@ function subscribe(){
 
 /* ---------- 렌더 제어 (입력 중에는 미룸) ---------- */
 let rq=null,pending=false;
-const typing=()=>{const a=document.activeElement;return st.edit&&a&&a.matches&&a.matches('[contenteditable],input,select')};
+let dragId=null;
+const typing=()=>{if(dragId)return true;const a=document.activeElement;return st.edit&&a&&a.matches&&a.matches('[contenteditable],input,select')};
 function requestRender(force){
   if(!force&&typing()){pending=true;return}
   cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle()})}
@@ -434,10 +441,10 @@ $('#fWorker').onchange=e=>{st.worker=e.target.value;lsSet('jp-worker',st.worker)
 $('#thr').onchange=e=>{st.thr=+e.target.value;render()};
 $('#hidePrint').onchange=e=>{st.hidePrint=e.target.checked;render()};
 $('#onlyStale').onchange=e=>{st.onlyStale=e.target.checked;render()};
-function resetFilters(){Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false});st.stages.clear();lsSet('jp-worker','');
+function resetFilters(){Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false,sortTouched:false});st.stages.clear();lsSet('jp-worker','');
   $('#q').value='';$('#fSec').value='';$('#fKind').value='';$('#fWorker').value='';$('#hidePrint').checked=true;$('#onlyStale').checked=false}
 $('#reset').onclick=()=>{resetFilters();render()};
-document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;st.sort=st.sort.k===k?{k,dir:-st.sort.dir}:{k,dir:1};render()});
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;st.sort=st.sort.k===k?{k,dir:-st.sort.dir}:{k,dir:1};st.sortTouched=true;render()});
 document.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w&&!st.edit){st.worker=w.dataset.w;lsSet('jp-worker',st.worker);$('#fWorker').value=st.worker;showTab('list');render()}});
 
 function filtered(){
@@ -451,11 +458,17 @@ function filtered(){
     if(st.q){const h=((r.title||'')+(r.author||'')+(r.workers||[]).join(' ')+(r.note||'')+(r.sec||'')+(r.rev||'')+(r.extra||'')).toLowerCase();
       if(!st.q.split(/\s+/).every(t=>h.includes(t)))return false}
     return true});
+  return sortRecs(a)}
+function sortRecs(a){
   const {k,dir}=st.sort;
   const v=r=>k==='workers'?(r.workers||[]).join(','):k==='date'?(r.date||'9999'):k==='stage'?ORDER.indexOf(r.stage):(r[k]||'');
   a.sort((x,y)=>{const A=v(x),B=v(y);const c=(A<B?-1:A>B?1:0)*dir;if(c)return c;
     const d1=x.date||'9999',d2=y.date||'9999';return (d1<d2?-1:d1>d2?1:0)||((x.order??0)-(y.order??0))});
+  if(personalOn()){const w='wo_'+st.worker;a.sort((x,y)=>(x[w]??1e9)-(y[w]??1e9))}
   return a}
+const personalOn=()=>!!st.worker&&!st.sortTouched;
+const canDrag=()=>canWrite&&personalOn();
+const mineAll=w=>sortRecs(recs().filter(r=>(r.workers||[]).includes(w)));
 
 /* ---------- 도서 목록 ---------- */
 const ed=(f,id,v,cls)=>`<span ${st.edit?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${esc(id)}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
@@ -467,8 +480,9 @@ function rowHtml(r,plain){
   const stg=st.edit?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(s=>`<option${s===r.stage?' selected':''}>${s}</option>`).join('')}</select>`:`<span class="badge" style="--c:${c}">${esc(r.stage)}</span>`;
   const dt=st.edit?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(r.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(r)}</span>`:ageTxt(r);
   const by=(!plain&&r.by&&r.at)?`<div class="sec" data-by="${esc(r.by)}" data-at="${r.at}"></div>`:'';
+  const grip=(!plain&&canDrag())?`<span class="grip" draggable="true" data-grip="${esc(id)}" title="끌어서 내 순서 바꾸기">⋮⋮</span>`:'';
   return `<tr class="r" data-id="${esc(id)}" style="--c:${c}">
-    <td>${secCell}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
+    <td>${grip}${secCell}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
     <td class="t">${ed('title',id,r.title)}</td><td class="nw">${st.edit?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author)}</td>
     <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
     <td>${ed('note',id,r.note)}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
@@ -477,10 +491,11 @@ function render(){
   recs().forEach(r=>r.age=ageOf(r.date));
   const a=filtered();
   const all=recs().length;
-  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${st.worker?' · '+st.worker+' 담당만 보는 중':''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
+  $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${st.worker?' · '+st.worker+' 담당만 보는 중'+(canDrag()?' · ⋮⋮를 끌어 내 순서 변경':''):''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
   $('#tb').innerHTML=!loaded.books?'<tr><td colspan="9" class="empty">불러오는 중…</td></tr>'
     :a.length?a.map(r=>rowHtml(r)).join('')
     :`<tr><td colspan="9" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
+  $('#bMyOrder').hidden=!(st.worker&&st.sortTouched);
   document.querySelectorAll('#stageChips .chip').forEach(c=>c.classList.toggle('on',st.stages.has(c.dataset.s)));
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
   if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
@@ -548,6 +563,30 @@ tb.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)ret
   if(b.dataset.arm){removeDoc('books',b.dataset.del);return}
   b.dataset.arm='1';b.textContent='정말 삭제';b.classList.add('on');
   setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='삭제';b.classList.remove('on')}},3000)});
+
+/* ---------- 내 담당 도서 순서 바꾸기 (끌어서 놓기) ---------- */
+$('#bMyOrder').onclick=()=>{st.sortTouched=false;render()};
+function clearDrop(){tb.querySelectorAll('.dropb,.dropa,.dragging').forEach(e=>e.classList.remove('dropb','dropa','dragging'))}
+tb.addEventListener('dragstart',e=>{const g=e.target.closest('[data-grip]');if(!g||!canDrag()){return}
+  dragId=g.dataset.grip;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragId)}catch(x){}
+  const tr=g.closest('tr');if(tr){tr.classList.add('dragging');try{e.dataTransfer.setDragImage(tr,20,10)}catch(x){}}});
+tb.addEventListener('dragover',e=>{if(!dragId)return;const tr=e.target.closest('tr.r');if(!tr)return;e.preventDefault();e.dataTransfer.dropEffect='move';
+  tb.querySelectorAll('.dropb,.dropa').forEach(x=>x.classList.remove('dropb','dropa'));
+  if(tr.dataset.id===dragId)return;const r=tr.getBoundingClientRect();tr.classList.add(e.clientY<r.top+r.height/2?'dropb':'dropa')});
+tb.addEventListener('dragend',()=>{dragId=null;clearDrop();if(pending)requestRender(true)});
+tb.addEventListener('drop',e=>{if(!dragId)return;e.preventDefault();
+  const tr=e.target.closest('tr.r');const id=dragId;dragId=null;
+  if(!tr||tr.dataset.id===id){clearDrop();return}
+  const r0=tr.getBoundingClientRect(),after=e.clientY>=r0.top+r0.height/2,tid=tr.dataset.id;clearDrop();
+  moveMine(id,tid,after)});
+function moveMine(id,tid,after){
+  const w=st.worker;if(!w)return;
+  const P=mineAll(w),mv=P.find(r=>r.id===id);if(!mv)return;
+  const rest=P.filter(r=>r.id!==id);let i=rest.findIndex(r=>r.id===tid);if(i<0)return;if(after)i++;
+  rest.splice(i,0,mv);
+  const k='wo_'+w;let n=0;
+  rest.forEach((r,j)=>{if(r[k]!==j){r[k]=j;mark('books',r,[k]);n++}});
+  requestRender(true);if(n)toast(w+' 담당 도서 순서를 바꿨습니다')}
 async function addBook(workers){
   if(!canWrite){toast('수정 권한이 없습니다');return}
   const me=(workers&&workers[0])||st.worker||'';
