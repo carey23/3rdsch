@@ -34,6 +34,9 @@ h1{margin:0;font-size:20px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
 .kpi:hover{border-color:var(--accent)}
 .sin{color:#d62828;font-weight:700}
+.pw{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pw+.pw{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.pwn{color:var(--sub);font-size:11px;min-width:3.4em;font-weight:600}
 .grip{cursor:grab;color:var(--sub);user-select:none;margin-right:6px;font-size:13px;letter-spacing:-2px}
 .grip:active{cursor:grabbing}
 tr.r.dragging{opacity:.4}
@@ -343,10 +346,27 @@ const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:tru
 let curTab='list';
 const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
-const isStale=r=>r.age!=null&&r.age>=st.thr&&['진행중','대기','단계완료'].includes(r.stage);
+const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','단계완료'].includes(v.stage);
+/* 담당자별 진행 상황: 진행내용(pn_)·단계(ps_)·갱신일(pd_)·단계수동(pm_) 을 이름별로 따로 저장. 없으면 도서 공통값(note/stage/date)을 씀 */
+const pk=(w,f)=>'p'+f+'_'+w;
+function eff(r,w){const g=(f,b)=>(w&&r[pk(w,f)]!==undefined)?r[pk(w,f)]:b;
+  const date=g('d',r.date);return {note:g('n',r.note),stage:g('s',r.stage),date,manual:g('m',r.stageManual),age:ageOf(date)}}
+function aggr(r){const ws=r.workers||[];if(ws.length<2)return eff(r,ws[0]||'');
+  const es=ws.map(w=>eff(r,w));
+  const stage=es.map(e=>e.stage).sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b))[0];
+  const date=es.map(e=>e.date||'').sort().pop()||r.date;
+  const same=es.every(e=>e.note===es[0].note);
+  return {note:same?es[0].note:es.map((e,i)=>ws[i]+': '+(e.note||'-')).join(' / '),stage,date,age:ageOf(date),manual:false}}
+const AG=r=>aggr(r);
+const V=r=>st.worker&&(r.workers||[]).includes(st.worker)?eff(r,st.worker):aggr(r);
+const wsOf=r=>st.worker?[st.worker]:((r.workers||[]).length?r.workers:['']);
+function setF(r,w,vals){const personal=w&&((r.workers||[]).length>1||['n','s','d','m'].some(f=>r[pk(w,f)]!==undefined));
+  const map={note:['n','note'],stage:['s','stage'],date:['d','date'],manual:['m','stageManual']};const fields=[];
+  for(const k in vals){const key=personal?pk(w,map[k][0]):map[k][1];r[key]=vals[k];fields.push(key)}return fields}
+const noteAll=r=>[r.note,...(r.workers||[]).map(w=>r[pk(w,'n')])].filter(Boolean).join(' ');
 const mmdd=s=>s?s.slice(2).replace(/-/g,'.'):'-';
-const ageTxt=r=>{if(r.age==null)return '<span class="age">상시</span>';
-  return `<span class="${isStale(r)?'age old':'age'}">${mmdd(r.date)} · ${r.age}일 전</span>`};
+const ageTxt=v=>{if(v.age==null)return '<span class="age">상시</span>';
+  return `<span class="${isStale(v)?'age old':'age'}">${mmdd(v.date)} · ${v.age}일 전</span>`};
 const secShort=s=>(s||'').replace('진행 도서 · ','진행·');
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),3500)}
 function setSaved(msg,err){const e=$('#saved');e.textContent=msg;e.classList.toggle('err',!!err)}
@@ -448,22 +468,22 @@ document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.d
 document.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w&&!st.edit){st.worker=w.dataset.w;lsSet('jp-worker',st.worker);$('#fWorker').value=st.worker;showTab('list');render()}});
 
 function filtered(){
-  let a=recs().filter(r=>{
-    if(st.hidePrint&&r.stage==='인쇄완료'&&!st.stages.has('인쇄완료')&&!r._new)return false;
-    if(st.stages.size&&!st.stages.has(r.stage))return false;
+  let a=recs().filter(r=>{const vw=V(r);
+    if(st.hidePrint&&vw.stage==='인쇄완료'&&!st.stages.has('인쇄완료')&&!r._new)return false;
+    if(st.stages.size&&!st.stages.has(vw.stage))return false;
     if(st.sec&&r.sec!==st.sec)return false;
     if(st.kind&&r.kind!==st.kind)return false;
     if(st.worker&&!(r.workers||[]).includes(st.worker))return false;
-    if(st.onlyStale&&!isStale(r))return false;
-    if(st.q){const h=((r.title||'')+(r.author||'')+(r.workers||[]).join(' ')+(r.note||'')+(r.sec||'')+(r.rev||'')+(r.extra||'')).toLowerCase();
+    if(st.onlyStale&&!isStale(vw))return false;
+    if(st.q){const h=((r.title||'')+(r.author||'')+(r.workers||[]).join(' ')+noteAll(r)+(r.sec||'')+(r.rev||'')+(r.extra||'')).toLowerCase();
       if(!st.q.split(/\s+/).every(t=>h.includes(t)))return false}
     return true});
   return sortRecs(a)}
 function sortRecs(a){
   const {k,dir}=st.sort;
-  const v=r=>k==='workers'?(r.workers||[]).join(','):k==='date'?(r.date||'9999'):k==='stage'?ORDER.indexOf(r.stage):(r[k]||'');
+  const v=r=>k==='workers'?(r.workers||[]).join(','):k==='date'?(V(r).date||'9999'):k==='stage'?ORDER.indexOf(V(r).stage):(r[k]||'');
   a.sort((x,y)=>{const A=v(x),B=v(y);const c=(A<B?-1:A>B?1:0)*dir;if(c)return c;
-    const d1=x.date||'9999',d2=y.date||'9999';return (d1<d2?-1:d1>d2?1:0)||((x.order??0)-(y.order??0))});
+    const d1=V(x).date||'9999',d2=V(y).date||'9999';return (d1<d2?-1:d1>d2?1:0)||((x.order??0)-(y.order??0))});
   if(personalOn()){const w='wo_'+st.worker;a.sort((x,y)=>(x[w]??1e9)-(y[w]??1e9))}
   return a}
 const personalOn=()=>!!st.worker&&!st.sortTouched;
@@ -473,22 +493,24 @@ const mineAll=w=>sortRecs(recs().filter(r=>(r.workers||[]).includes(w)));
 /* ---------- 도서 목록 ---------- */
 const ed=(f,id,v,cls)=>`<span ${st.edit?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${esc(id)}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
 function rowHtml(r,plain){
-  const id=r.id,c=col(r.stage);
+  const id=r.id,vw=V(r),c=col(vw.stage);
   const secs=[...new Set([...SECS_DEFAULT,r.sec])];
   const secCell=st.edit?`<select data-sel="sec" data-id="${esc(id)}" aria-label="구분">${secs.map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`:`<span class="sec">${esc(secShort(r.sec))}</span>`;
   const wk=st.edit?ed('workers',id,(r.workers||[]).join(' / ')):(r.workers||[]).map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
-  const stg=st.edit?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(s=>`<option${s===r.stage?' selected':''}>${s}</option>`).join('')}</select>`:`<span class="badge" style="--c:${c}">${esc(r.stage)}</span>`;
-  const dt=st.edit?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(r.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(r)}</span>`:ageTxt(r);
+  const ws=wsOf(r),multi=ws.length>1;
+  const blk=(w,inner)=>`<div class="pw" data-pw="${esc(w)}">${multi?`<small class="pwn">${esc(w)}</small>`:''}${inner}</div>`;
+  const stg=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(x=>`<option${x===v.stage?' selected':''}>${x}</option>`).join('')}</select>`:`<span class="badge" style="--c:${col(v.stage)}">${esc(v.stage)}</span>`)}).join('');
+  const dt=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(v.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(v)}</span>`:ageTxt(v))}).join('');
+  const nt=ws.map(w=>blk(w,ed('note',id,eff(r,w).note))).join('');
   const by=(!plain&&r.by&&r.at)?`<div class="sec" data-by="${esc(r.by)}" data-at="${r.at}"></div>`:'';
   const grip=(!plain&&canDrag())?`<span class="grip" draggable="true" data-grip="${esc(id)}" title="끌어서 내 순서 바꾸기">⋮⋮</span>`:'';
   return `<tr class="r" data-id="${esc(id)}" style="--c:${c}">
     <td>${grip}${secCell}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
     <td class="t">${ed('title',id,r.title)}</td><td class="nw">${st.edit?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author)}</td>
     <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
-    <td>${ed('note',id,r.note)}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
+    <td>${nt}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
     <td class="act"><button class="chip" data-del="${esc(id)}">삭제</button></td></tr>`}
 function render(){
-  recs().forEach(r=>r.age=ageOf(r.date));
   const a=filtered();
   const all=recs().length;
   $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${st.worker?' · '+st.worker+' 담당만 보는 중'+(canDrag()?' · ⋮⋮를 끌어 내 순서 변경':''):''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
@@ -520,13 +542,13 @@ function renderRecent(){
     if(c==='books'){resetFilters();$('#q').value=r.title||'';st.q=(r.title||'').toLowerCase();showTab('list');render()}
     else showTab(c==='incoming'?'incoming':c==='memo'?'memo':'hold')})}
 function renderKpis(){
-  const rs=recs(),act=rs.filter(r=>r.stage!=='인쇄완료');
-  const n=s=>rs.filter(r=>r.stage===s).length;
+  const rs=recs(),act=rs.filter(r=>AG(r).stage!=='인쇄완료');
+  const n=s=>rs.filter(r=>AG(r).stage===s).length;
   const K=[['작업 중 도서',act.length,()=>{st.hidePrint=true;st.stages.clear()}],
     ['진행중',n('진행중'),()=>{st.stages=new Set(['진행중'])}],
     ['대기',n('대기')+n('재고대기'),()=>{st.stages=new Set(['대기','재고대기'])}],
-    ['정체 의심 ('+st.thr+'일+)',rs.filter(isStale).length,()=>{st.onlyStale=true;st.stages.clear()}],
-    ['신간 진행',rs.filter(r=>r.kind==='신간'&&r.stage!=='인쇄완료').length,()=>{st.kind='신간';st.stages.clear()}],
+    ['정체 의심 ('+st.thr+'일+)',rs.filter(r=>isStale(AG(r))).length,()=>{st.onlyStale=true;st.stages.clear()}],
+    ['신간 진행',rs.filter(r=>r.kind==='신간'&&AG(r).stage!=='인쇄완료').length,()=>{st.kind='신간';st.stages.clear()}],
     ['입고 예정',M.incoming.size,()=>showTab('incoming')]];
   $('#kpis').innerHTML=K.map((k,i)=>`<div class="kpi" data-k="${i}" tabindex="0" role="button"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
   document.querySelectorAll('.kpi').forEach(el=>{const go=()=>{const i=+el.dataset.k;
@@ -541,23 +563,26 @@ async function fillBy(){
 
 /* ---------- 도서 목록 편집 ---------- */
 const tb=$('#tb');
-function touchRow(tr,r){tr.style.setProperty('--c',col(r.stage));
-  const sel=tr.querySelector('select[data-sel=stage]');if(sel)sel.value=r.stage;
-  const ab=tr.querySelector('.age-box');if(ab)ab.innerHTML=ageTxt(r)}
+function touchRow(tr,r){tr.style.setProperty('--c',col(V(r).stage));
+  tr.querySelectorAll('.pw').forEach(b=>{const v=eff(r,b.dataset.pw);
+    const sel=b.querySelector('select[data-sel=stage]');if(sel)sel.value=v.stage;
+    const bd=b.querySelector('.badge');if(bd){bd.textContent=v.stage;bd.style.setProperty('--c',col(v.stage))}
+    const ab=b.querySelector('.age-box');if(ab)ab.innerHTML=ageTxt(v)})}
+const pwOf=el=>{const b=el.closest('[data-pw]');return b?b.dataset.pw:''};
 tb.addEventListener('input',e=>{
   const el=e.target.closest('[data-f]');if(!el)return;
-  const r=M.books.get(el.dataset.id);if(!r)return;const f=el.dataset.f,v=el.textContent;const fields=[f];
-  if(f==='workers')r.workers=v.split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
+  const r=M.books.get(el.dataset.id);if(!r)return;const f=el.dataset.f,v=el.textContent;let fields=[f];
+  if(f==='note'){const w=pwOf(el),cur=eff(r,w),vals={note:v.trim()};if(!cur.manual)vals.stage=autoStage(vals.note);fields=setF(r,w,vals)}
+  else if(f==='workers')r.workers=v.split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
   else r[f]=v.trim();
-  if(f==='note'&&!r.stageManual){r.stage=autoStage(r.note);fields.push('stage')}
   if(f==='rev'){r.kind=kindOf(r);fields.push('kind')}
   touchRow(el.closest('tr'),r);renderKpis();mark('books',r,fields)});
 tb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[contenteditable]')){e.preventDefault();e.target.blur()}});
 tb.addEventListener('change',e=>{
   const t=e.target,id=t.dataset.id;if(!id)return;const r=M.books.get(id);if(!r)return;let fields=[];
-  if(t.dataset.sel==='stage'){r.stage=t.value;r.stageManual=true;fields=['stage','stageManual']}
+  if(t.dataset.sel==='stage'){fields=setF(r,pwOf(t),{stage:t.value,manual:true})}
   else if(t.dataset.sel==='sec'){r.sec=t.value;r.kind=kindOf(r);fields=['sec','kind']}
-  else if(t.dataset.date){r.date=t.value;r.age=ageOf(r.date);fields=['date']}
+  else if(t.dataset.date){fields=setF(r,pwOf(t),{date:t.value})}
   touchRow(t.closest('tr'),r);renderKpis();mark('books',r,fields)});
 tb.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;
   if(b.dataset.arm){removeDoc('books',b.dataset.del);return}
@@ -608,19 +633,19 @@ const WSTAGES=['진행중','대기','단계완료','재고대기','보류'];
 const openSet=new Set();
 function htmlWorkers(all){
   const byW={};
-  recs().forEach(r=>{if(r.stage==='인쇄완료')return;(r.workers||[]).forEach(w=>(byW[w]=byW[w]||[]).push(r))});
+  recs().forEach(r=>{(r.workers||[]).forEach(w=>{if(eff(r,w).stage==='인쇄완료')return;(byW[w]=byW[w]||[]).push(r)})});
   const others=Object.keys(byW).filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>byW[b].length-byW[a].length||a.localeCompare(b,'ko'));
   const groups=[...ORG,['기타 (외주·미분류)',others,'gx']];
   const card=w=>{
     const mine=(byW[w]||[]);
     if(!mine.length)return `<div class="card idle"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 0건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3><div class="lbl">진행 중인 작업이 없습니다</div></div>`;
-    const by={};mine.forEach(r=>(by[r.stage]=by[r.stage]||[]).push(r));
+    const by={};mine.forEach(r=>{const g=eff(r,w).stage;(by[g]=by[g]||[]).push(r)});
     const stages=WSTAGES.filter(x=>by[x]);
     const open=x=>all||openSet.has(w+'|'+x);
     return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 ${mine.length}건</small> ${(!all&&canWrite)?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3>
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
-      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:1).map(r=>`<div class="item"><b>${esc(r.title)}</b> ${revH(r.rev)}
-        <div class="n">${esc(r.note)} · ${ageTxt(r)}</div></div>`).join('')}</div>`).join('')}</div>`};
+      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(eff(a,w).date||'9999')<(eff(b,w).date||'9999')?-1:1).map(r=>{const v=eff(r,w);return `<div class="item"><b>${esc(r.title)}</b> ${revH(r.rev)}
+        <div class="n">${esc(v.note)} · ${ageTxt(v)}</div></div>`}).join('')}</div>`).join('')}</div>`};
   const html=groups.map(([n,members,gc])=>{
     if(!members.length)return '';
     const tot=members.reduce((t,w)=>t+(byW[w]||[]).length,0);
@@ -667,13 +692,12 @@ function dlFail(e){if(e&&e.code==='declined')return;toast('파일을 저장하�
 $('#bCsv').onclick=async()=>{if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
   const rows=[['구분','도서명','차수','저자','작업자','단계','최종갱신','진행내용']];
-  filtered().forEach(r=>rows.push([r.sec,r.title,revT(r.rev),r.author,(r.workers||[]).join(' / '),r.stage,r.date,r.note]));
+  filtered().forEach(r=>{const v=V(r);rows.push([r.sec,r.title,revT(r.rev),r.author,(r.workers||[]).join(' / '),v.stage,v.date,v.note])});
   try{await dlCap.save({filename:'주간계획서_'+iso(new Date()).replace(/-/g,'')+'.csv',data:'﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')})}catch(e){dlFail(e)}};
 $('#bPrint').onclick=async()=>{
   if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const was=st.edit;st.edit=false;
   let body='';const title=todayTitle();
-  recs().forEach(r=>r.age=ageOf(r.date));
   if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>작업자</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
     $('#pMeta').textContent=$('#pMeta').textContent}
   else if(curTab==='worker')body=htmlWorkers(true);
