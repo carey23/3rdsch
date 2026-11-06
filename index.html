@@ -17,6 +17,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
 header{padding:16px 0 8px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+[hidden]{display:none!important}
 h1{margin:0;font-size:20px}
 .home{display:inline-flex;align-items:center;gap:10px;font:inherit;color:var(--ink);background:none;border:0;padding:4px 10px 4px 4px;margin-left:-4px;border-radius:10px;cursor:pointer}
 .home .hico{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;flex:none}
@@ -239,51 +240,115 @@ const URL_='https://vqnsffkqljnhcxtwqkxx.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxbnNmZmtxbGpuaGN4dHdxa3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NzA2NDIsImV4cCI6MjEwOTE0NjY0Mn0.hZYPvkiD96WZbeoQ-1GNiXtfxTJn0FVdrsaGSo4j78A';
 const POLL=window.JP_POLL_MS||4000;
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
-let PW=ls.get('jp-pw')||'',NAME=ls.get('jp-name')||'';
+let PW=ls.get('jp-pw')||'',NAME=ls.get('jp-name')||'',ME=null;
+const cred=()=>({p_name:NAME,p_pw:PW});
+const NOFN=x=>/Could not find the function/i.test(x&&x.message||'');
 
 async function rpc(fn,args){
   let r;
   try{r=await fetch(URL_+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify(args)})}
   catch(e){throw {code:'network',message:String(e)}}
   const t=await r.text();let j=null;try{j=JSON.parse(t)}catch(e){}
-  if(!r.ok){const m=(j&&(j.message||j.error))||t;throw {code:/bad_password/.test(m)?'bad_password':'error',message:m}}
+  if(!r.ok){const m=(j&&(j.message||j.error))||t;
+    throw {code:/bad_password/.test(m)?'bad_password':/forbidden/.test(m)?'forbidden':'error',message:m}}
   return j}
 
-/* ---------- 로그인 ---------- */
+/* ---------- 화면 조각 (로그인·비밀번호·계정 관리) ---------- */
 const css=document.createElement('style');
-css.textContent=`#jpLogin{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
-#jpLogin form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;width:min(360px,100%);display:flex;flex-direction:column;gap:10px}
-#jpLogin h2{margin:0 0 4px;font-size:18px}#jpLogin p{margin:0;color:var(--sub);font-size:12px}
-#jpLogin input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
-#jpLogin .err{color:var(--warn);font-size:12px;min-height:1.2em}`;
+css.textContent=`.jpOv{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.jpOv.dim{background:rgba(0,0,0,.45);z-index:90;align-items:flex-start;padding-top:4vh}
+.jpOv form,.jpOv .jpBox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;width:min(360px,100%);display:flex;flex-direction:column;gap:10px;color:var(--ink)}
+.jpOv .jpBox.wide{width:min(720px,100%);max-height:92vh;overflow:auto}
+.jpOv h2{margin:0 0 4px;font-size:18px}.jpOv p{margin:0;color:var(--sub);font-size:12px;line-height:1.5}
+.jpOv input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.jpOv .err{color:var(--warn);font-size:12px;min-height:1.2em}
+.jpOv table{width:100%;border-collapse:collapse;font-size:13px}.jpOv th{text-align:left;font-size:11px;color:var(--sub);padding:6px;border-bottom:1px solid var(--line)}
+.jpOv td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.jpOv .jpTmp{background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;padding:10px;font-size:13px}
+.jpOv .jpTmp b{font-size:16px;letter-spacing:1px;user-select:all}
+#jpWho{font-size:12px;color:var(--sub);align-self:center;white-space:nowrap}`;
 document.head.appendChild(css);
+const ESC=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const randPw=()=>{const cs='abcdefghjkmnpqrstuvwxyz23456789',a=new Uint32Array(8);crypto.getRandomValues(a);return [...a].map(x=>cs[x%cs.length]).join('')};
+const loginErr=x=>x.code==='bad_password'?'이름 또는 비밀번호가 맞지 않습니다.':NOFN(x)?'서버 설정이 아직 끝나지 않았습니다. (개인 계정 SQL을 실행해야 합니다)':'서버에 연결하지 못했습니다. 잠시 뒤 다시 시도하세요.';
+
 function askLogin(msg){return new Promise(res=>{
-  const d=document.createElement('div');d.id='jpLogin';
-  d.innerHTML=`<form><h2>주간계획서 현황</h2><p>팀 공유 비밀번호와 본인 이름을 입력하세요. 이름은 "수정한 사람"으로 기록됩니다.</p>
-  <input id="jpName" placeholder="이름 (예: 김지혜)" autocomplete="name" value="${(NAME||'').replace(/"/g,'&quot;')}">
-  <input id="jpPw" type="password" placeholder="공유 비밀번호" autocomplete="current-password">
+  const d=document.createElement('div');d.id='jpLogin';d.className='jpOv';
+  d.innerHTML=`<form><h2>주간계획서 현황</h2><p>이름(아이디)과 개인 비밀번호를 입력하세요. 처음이면 전달받은 초기 비밀번호를 입력하고, 이어서 새 비밀번호를 정하게 됩니다.</p>
+  <input id="jpName" placeholder="이름 (예: 김지혜)" autocomplete="username" value="${ESC(NAME)}">
+  <input id="jpPw" type="password" placeholder="비밀번호" autocomplete="current-password">
   <div class="err" id="jpErr">${msg||''}</div><button class="btn primary" type="submit">들어가기</button></form>`;
   document.body.appendChild(d);
-  const f=d.querySelector('form');
-  f.onsubmit=async e=>{e.preventDefault();const n=d.querySelector('#jpName').value.trim(),p=d.querySelector('#jpPw').value;
+  d.querySelector('form').onsubmit=async e=>{e.preventDefault();const n=d.querySelector('#jpName').value.trim(),p=d.querySelector('#jpPw').value;
     if(!n||!p){d.querySelector('#jpErr').textContent='이름과 비밀번호를 모두 입력하세요.';return}
     d.querySelector('#jpErr').textContent='확인 중…';
-    try{await rpc('jp_check',{pw:p});PW=p;NAME=n;ls.set('jp-pw',p);ls.set('jp-name',n);d.remove();res()}
-    catch(x){d.querySelector('#jpErr').textContent=x.code==='bad_password'?'비밀번호가 맞지 않습니다.':'서버에 연결하지 못했습니다. 잠시 뒤 다시 시도하세요.'}};
+    try{ME=await rpc('jp_login',{p_name:n,p_pw:p});PW=p;NAME=ME.name;ls.set('jp-pw',p);ls.set('jp-name',NAME);d.remove();res()}
+    catch(x){d.querySelector('#jpErr').textContent=loginErr(x)}};
   setTimeout(()=>d.querySelector(NAME?'#jpPw':'#jpName').focus(),50)})}
+
+function forceChange(){return new Promise(res=>{
+  const d=document.createElement('div');d.id='jpForce';d.className='jpOv';
+  d.innerHTML=`<form><h2>새 비밀번호 정하기</h2><p>${ESC(NAME)}님, 처음 로그인했거나 관리자가 비밀번호를 초기화했습니다. 본인만 아는 새 비밀번호(6자 이상)를 정해 주세요.</p>
+  <input id="jpN1" type="password" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password">
+  <input id="jpN2" type="password" placeholder="새 비밀번호 한 번 더" autocomplete="new-password">
+  <div class="err" id="jpErr2"></div><button class="btn primary" type="submit">변경하고 들어가기</button>
+  <button class="btn" type="button" id="jpOut2">로그아웃</button></form>`;
+  document.body.appendChild(d);
+  d.querySelector('#jpOut2').onclick=()=>{ls.del('jp-pw');location.reload()};
+  d.querySelector('form').onsubmit=async e=>{e.preventDefault();const a=d.querySelector('#jpN1').value,b=d.querySelector('#jpN2').value,er=d.querySelector('#jpErr2');
+    if(a.length<6){er.textContent='6자 이상으로 정해 주세요.';return}
+    if(a!==b){er.textContent='두 번 입력한 비밀번호가 다릅니다.';return}
+    if(a===PW){er.textContent='현재 비밀번호와 다른 것으로 정해 주세요.';return}
+    er.textContent='변경 중…';
+    try{await rpc('jp_set_password',{...cred(),p_new:a});PW=a;ls.set('jp-pw',a);ME.must_change=false;d.remove();res()}
+    catch(x){er.textContent='변경하지 못했습니다. 잠시 뒤 다시 시도하세요.'}};
+  setTimeout(()=>d.querySelector('#jpN1').focus(),50)})}
+
 async function ensureLogin(){
-  if(PW&&NAME){try{await rpc('jp_check',{pw:PW});return}catch(x){if(x.code!=='bad_password')return;ls.del('jp-pw');PW=''}}
-  await askLogin(PW?'':'')}
+  if(PW&&NAME){
+    try{ME=await rpc('jp_login',cred())}
+    catch(x){if(x.code==='bad_password'){ls.del('jp-pw');PW=''}else{ME=null;return}}}
+  if(!PW||!NAME||!ME)await askLogin('');
+  if(ME&&ME.must_change)await forceChange()}
+async function refreshMe(){if(ME||!PW)return;try{ME=await rpc('jp_login',cred());fillWho();window.dispatchEvent(new Event('jp-me'))}catch(e){}}
+
+/* ---------- 계정 관리 (관리자 전용) ---------- */
+async function openAdmin(){
+  const d=document.createElement('div');d.className='jpOv dim';
+  d.innerHTML=`<div class="jpBox wide"><h2>계정 관리</h2><p>비밀번호를 초기화하면 임시 비밀번호가 한 번만 표시됩니다. 본인에게 전달하세요. 그 사람은 다음 로그인 때 새 비밀번호를 직접 정합니다.</p>
+  <div id="jpTmp"></div><div id="jpList"><p>불러오는 중…</p></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="jpNewName" placeholder="새 계정 이름" style="flex:1;min-width:140px"><button class="btn" id="jpAdd">계정 추가</button><button class="btn primary" id="jpClose">닫기</button></div></div>`;
+  document.body.appendChild(d);
+  const close=()=>d.remove();d.querySelector('#jpClose').onclick=close;d.addEventListener('click',e=>{if(e.target===d)close()});
+  const showTmp=(name,pw)=>{d.querySelector('#jpTmp').innerHTML=`<div class="jpTmp"><b>${ESC(name)}</b> 님 임시 비밀번호: <b>${ESC(pw)}</b> <button class="btn" id="jpCopy">복사</button><br><span style="color:var(--sub)">이 창을 닫거나 다른 작업을 하면 다시 볼 수 없습니다. 필요하면 다시 초기화하세요.</span></div>`;
+    d.querySelector('#jpCopy').onclick=async()=>{try{await navigator.clipboard.writeText(pw);d.querySelector('#jpCopy').textContent='복사됨'}catch(e){d.querySelector('#jpCopy').textContent='직접 복사해 주세요'}}};
+  async function load(){
+    try{const u=await rpc('jp_admin_users',cred());
+      d.querySelector('#jpList').innerHTML=`<table><thead><tr><th>이름</th><th>권한</th><th>상태</th><th></th></tr></thead><tbody>${u.map(x=>`<tr><td>${ESC(x.name)}</td><td>${x.is_admin?'관리자 (전체 수정)':'일반 (본인 담당만)'}</td><td>${x.must_change?'<span style="color:var(--warn)">비밀번호 변경 대기</span>':'사용 중'}</td>
+        <td style="white-space:nowrap"><button class="btn" data-reset="${ESC(x.name)}">비밀번호 초기화</button> <button class="btn" data-role="${ESC(x.name)}" data-to="${x.is_admin?0:1}">${x.is_admin?'관리자 해제':'관리자 지정'}</button></td></tr>`).join('')}</tbody></table>`}
+    catch(x){d.querySelector('#jpList').innerHTML='<p>계정 목록을 불러오지 못했습니다.</p>'}}
+  d.addEventListener('click',async e=>{
+    const r=e.target.closest('[data-reset]'),ro=e.target.closest('[data-role]');
+    if(r){const n=r.dataset.reset;if(!confirm(n+' 님의 비밀번호를 초기화할까요? 지금 쓰던 비밀번호는 즉시 사용할 수 없게 됩니다.'))return;
+      const pw=randPw();try{await rpc('jp_admin_set_password',{...cred(),p_target:n,p_new:pw});showTmp(n,pw);load()}catch(x){alert('초기화하지 못했습니다.')}}
+    if(ro){const n=ro.dataset.role,to=ro.dataset.to==='1';if(!confirm(n+' 님을 '+(to?'관리자(전체 수정 권한)로 지정':'일반 사용자로 변경')+'할까요?'))return;
+      try{await rpc('jp_admin_set_role',{...cred(),p_target:n,p_admin:to});load()}catch(x){alert(/last_admin/.test(x.message||'')?'마지막 관리자는 해제할 수 없습니다.':'변경하지 못했습니다.')}}});
+  d.querySelector('#jpAdd').onclick=async()=>{const n=d.querySelector('#jpNewName').value.trim();if(!n)return;
+    const pw=randPw();try{await rpc('jp_admin_set_password',{...cred(),p_target:n,p_new:pw});d.querySelector('#jpNewName').value='';showTmp(n,pw);load()}catch(x){alert('계정을 만들지 못했습니다.')}};
+  load()}
+
+function fillWho(){const w=document.getElementById('jpWho');if(w)w.textContent=NAME?(NAME+(ME&&ME.is_admin?' · 관리자':'')):''}
 function addAccountButtons(){
   const t=document.querySelector('.tools');if(!t||document.getElementById('jpAcct'))return;
   const w=document.createElement('span');w.id='jpAcct';w.style.display='contents';
-  w.innerHTML='<button class="btn" id="jpPwBtn">비밀번호 변경</button><button class="btn" id="jpOut">로그아웃</button>';
-  t.appendChild(w);
+  w.innerHTML='<span id="jpWho"></span>'+(ME&&ME.is_admin?'<button class="btn" id="jpAdm">계정 관리</button>':'')+'<button class="btn" id="jpPwBtn">비밀번호 변경</button><button class="btn" id="jpOut">로그아웃</button>';
+  t.appendChild(w);fillWho();
   document.getElementById('jpOut').onclick=()=>{ls.del('jp-pw');location.reload()};
+  const adm=document.getElementById('jpAdm');if(adm)adm.onclick=openAdmin;
   document.getElementById('jpPwBtn').onclick=async()=>{
-    const n=prompt('새 공유 비밀번호 (6자 이상). 바꾸면 팀원 모두 새 비밀번호로 다시 들어와야 합니다.');if(!n)return;
-    try{await rpc('jp_set_password',{old_pw:PW,new_pw:n});PW=n;ls.set('jp-pw',n);alert('비밀번호를 바꿨습니다. 팀원에게 새 비밀번호를 알려 주세요.')}
-    catch(x){alert('바꾸지 못했습니다: '+(x.message||''))}}}
+    const n=prompt('새 비밀번호 (6자 이상). 바꾸면 다음부터 새 비밀번호로 들어와야 합니다.');if(!n)return;
+    try{await rpc('jp_set_password',{...cred(),p_new:n});PW=n;ls.set('jp-pw',n);alert('비밀번호를 바꿨습니다.')}
+    catch(x){alert('바꾸지 못했습니다: '+(/too_short/.test(x.message||'')?'6자 이상이어야 합니다.':(x.message||'')))}}}
 
 /* ---------- 캐시 + 구독 ---------- */
 const C={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:new Map()};
@@ -307,7 +372,7 @@ function setConn(ok){const d=document.getElementById('dot'),c=document.getElemen
 let pollT=null;
 async function poll(){
   clearTimeout(pollT);
-  try{const rows=await rpc('jp_pull',{pw:PW,since});const t=applyRows(rows||[]);setConn(true);
+  try{const rows=await rpc('jp_pull',{...cred(),since});refreshMe();const t=applyRows(rows||[]);setConn(true);
     if(!ready){ready=true;Object.keys(C).forEach(emit)}else t.forEach(emit)}
   catch(e){if(e.code==='bad_password'){ls.del('jp-pw');location.reload();return}setConn(false)}
   pollT=setTimeout(poll,document.hidden?15000:POLL)}
@@ -315,13 +380,10 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ready){cl
 
 function colRef(c){return {onSnapshot(next){const s={c,next,sent:new Map(),first:true};subs.push(s);if(ready)setTimeout(()=>emit(c),0);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}}}}
 function docRef(path){const [c,id]=path.split('/');
-  const write=async patch=>{await rpc('jp_patch',{pw:PW,p_coll:c,p_id:id,p_patch:patch});
+  const write=async patch=>{await rpc('jp_patch',{...cred(),p_coll:c,p_id:id,p_patch:patch});
     const cur=C[c].get(id);C[c].set(id,{data:Object.assign({},cur&&!cur.deleted?cur.data:{},JSON.parse(JSON.stringify(patch))),deleted:false});emit(c)};
   return {update:write,set:write,
-    async delete(){
-      try{await rpc('jp_delete',{pw:PW,p_coll:c,p_id:id,p_by:NAME})}
-      catch(x){if(/Could not find the function/i.test(x&&x.message||'')){await rpc('jp_delete',{pw:PW,p_coll:c,p_id:id})}else throw x}
-      const cur=C[c].get(id);if(cur){cur.deleted=true}emit(c)},
+    async delete(){await rpc('jp_delete',{...cred(),p_coll:c,p_id:id});const cur=C[c].get(id);if(cur){cur.deleted=true}emit(c)},
     onSnapshot(next){const s={c,sent:new Map(),first:true,next:snap=>{const d=snap.docs.length?null:null;
         const v=C[c].get(id);next(mkDoc(id,v&&!v.deleted?v.data:undefined))}};
       s.next=()=>{const v=C[c].get(id);next(mkDoc(id,v&&!v.deleted?v.data:undefined))};
@@ -336,8 +398,10 @@ const dlCap={async save({filename,data}){const b=new Blob([data],{type:/\.csv$/.
 
 let started=null;
 function start(){if(!started){started=(async()=>{await ensureLogin();addAccountButtons();poll()})()}return started}
-window.JPX={hist:(limit,before)=>rpc('jp_hist',{pw:PW,p_limit:limit||200,p_before:before||null}),
-  noHist:x=>/Could not find the function/i.test(x&&x.message||'')};
+window.JPX={hist:(limit,before)=>rpc('jp_hist',{...cred(),p_limit:limit||200,p_before:before||null}),
+  noHist:x=>NOFN(x),
+  cached:(c,id)=>{const v=C[c]&&C[c].get(id);return v&&!v.deleted?v.data:null},
+  get me(){return ME}};
 window.claude={use:async n=>{await start();return n==='db'?db:n==='user'?userCap:n==='downloads'?dlCap:null}};
 })();
 
@@ -353,8 +417,7 @@ const ORG=[
  ['출판2부',['이미향','김희현'],'g3'],
  ['디자인부',['이연주','김진혜','강현희','박지은','정은진','방지예'],'g4']];
 const ORG_KNOWN=new Set(ORG.flatMap(g=>g[1]));
-/* 수정 권한: 관리자는 전부, 그 외는 작업자에 본인 이름이 있는 도서만 (작업자가 비어 있는 도서는 누구나) */
-const ADMINS=['차인태'];
+/* 수정 권한(서버가 같은 규칙으로 다시 검사함): 관리자는 전부, 그 외는 작업자에 본인 이름이 있는 도서만 (작업자가 비어 있는 도서는 누구나) */
 const SECS_DEFAULT=['진행 도서 · 개정','진행 도서 · 신간','권오수 선생님 모음','인천대산전기학원','환경'];
 const col=s=>`var(${STAGE[s]||'--c-prog'})`;
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
@@ -382,7 +445,7 @@ const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
 const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','단계완료'].includes(v.stage);
 /* 담당자별 진행 상황: 진행내용(pn_)·단계(ps_)·갱신일(pd_)·단계수동(pm_) 을 이름별로 따로 저장. 없으면 도서 공통값(note/stage/date)을 씀 */
-const isAdmin=()=>ADMINS.includes(myId);
+const isAdmin=()=>!!(window.JPX&&window.JPX.me&&window.JPX.me.is_admin);
 const mayBook=r=>canWrite&&(isAdmin()||!(r.workers||[]).length||(r.workers||[]).includes(myId));
 const mayWorker=(r,w)=>canWrite&&(isAdmin()||(w?w===myId:mayBook(r)));
 const pk=(w,f)=>'p'+f+'_'+w;
@@ -421,7 +484,12 @@ async function flush(coll,rec){
   let failed=false;
   try{await db.doc(coll+'/'+rec.id).update(patch);if(!onlyOrd){rec.by=patch.by;rec.at=patch.at;renderRecent()}
     const n=new Date();setSaved('저장됨 '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'))}
-  catch(e){failed=true;f.forEach(k=>rec._d.add(k));
+  catch(e){failed=true;
+    if(e&&e.code==='forbidden'){ /* 서버가 권한 없음으로 거부: 화면의 바뀐 값을 서버 값으로 되돌림 */
+      const cd=window.JPX&&window.JPX.cached(coll,rec.id);
+      f.forEach(k=>{if(cd&&k in cd)rec[k]=clone(cd[k]);else delete rec[k]});
+      rec._d.clear();setSaved('저장 안 됨',true);toast('수정 권한이 없어 저장되지 않았습니다. (본인 담당 도서만 수정할 수 있습니다)');requestRender(true);return}
+    f.forEach(k=>rec._d.add(k));
     setSaved('저장 실패',true);
     toast(e&&e.code==='invalid_argument'?'저장하지 못했습니다. 다른 사람이 삭제했거나 수정 권한이 없습니다.':'저장하지 못했습니다. 잠시 뒤 다시 수정해 주세요.')}
   finally{rec._busy=false;if(!failed&&(rec._again||rec._d.size)){rec._again=false;mark(coll,rec,[])}}
@@ -430,11 +498,11 @@ async function createDoc(coll,data){
   const id=(coll[0])+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   const rec={id,...data,_d:new Set()};M[coll].set(id,rec);
   const body={...data};if(myId)body.by=myId;body.at=Date.now();
-  try{await db.doc(coll+'/'+id).set(body)}catch(e){M[coll].delete(id);toast('추가하지 못했습니다. 수정 권한을 확인해 주세요.');requestRender(true);return null}
+  try{await db.doc(coll+'/'+id).set(body)}catch(e){M[coll].delete(id);toast(e&&e.code==='forbidden'?'추가 권한이 없습니다. (작업자에 본인 이름이 있어야 합니다)':'추가하지 못했습니다. 수정 권한을 확인해 주세요.');requestRender(true);return null}
   return rec}
 async function removeDoc(coll,id){
   const rec=M[coll].get(id);M[coll].delete(id);requestRender(true);
-  try{await db.doc(coll+'/'+id).delete()}catch(e){if(rec)M[coll].set(id,rec);toast('삭제하지 못했습니다.');requestRender(true)}}
+  try{await db.doc(coll+'/'+id).delete()}catch(e){if(rec)M[coll].set(id,rec);toast(e&&e.code==='forbidden'?'삭제 권한이 없습니다.':'삭제하지 못했습니다.');requestRender(true)}}
 
 /* ---------- 구독 ---------- */
 function ingest(coll,snap){
@@ -771,12 +839,12 @@ document.addEventListener('click',e=>{
     b.setAttribute('aria-expanded',on);const p=[...card.querySelectorAll('.wstage')].find(x=>x.dataset.k===k);if(p)p.classList.toggle('open',on);return}
   if(e.target.id==='wOpen'){document.querySelectorAll('#wcards .stbtn').forEach(x=>openSet.add(x.dataset.tog));renderWorkers();return}
   if(e.target.id==='wClose'){openSet.clear();renderWorkers()}});
-const E=()=>st.edit?' contenteditable="plaintext-only"':'';
+const E=()=>st.edit&&isAdmin()?' contenteditable="plaintext-only"':'';
 function htmlMemo(){return list('memo').map(g=>{
     const subs={};(g.items||[]).forEach((it,ji)=>(subs[it.label||'']=subs[it.label||'']||[]).push([ji,it.text]));
     return `<div class="card"><h3>${esc(g.title)}</h3>${Object.entries(subs).map(([l,xs])=>`${l?`<div class="lbl">[${esc(l)}]</div>`:''}<ul>${xs.map(([ji,x])=>`<li><span${E()} data-m="memo" data-g="${esc(g.id)}" data-j="${ji}">${esc(x)}</span></li>`).join('')}</ul>`).join('')}
       ${!(g.items||[]).length?'<div class="lbl">(기재 없음)</div>':''}</div>`}).join('')||'<div class="empty">내용이 없습니다</div>'}
-function htmlInc(){return list('incoming').map(r=>`<tr>${['date','title','author','progress','rev'].map(f=>`<td${f==='title'?' class="t"':''}><span${E()} data-m="inc" data-id="${esc(r.id)}" data-f="${f}">${esc(r[f])}</span></td>`).join('')}<td class="act"><button class="chip" data-incdel="${esc(r.id)}">삭제</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">입고 예정이 없습니다</td></tr>'}
+function htmlInc(){return list('incoming').map(r=>`<tr>${['date','title','author','progress','rev'].map(f=>`<td${f==='title'?' class="t"':''}><span${E()} data-m="inc" data-id="${esc(r.id)}" data-f="${f}">${esc(r[f])}</span></td>`).join('')}<td class="act">${isAdmin()?`<button class="chip" data-incdel="${esc(r.id)}">삭제</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">입고 예정이 없습니다</td></tr>'}
 function htmlHold(){return list('hold').map(g=>`<div class="card"><h3>${esc(g.title)}<small>${(g.items||[]).length}건</small></h3>${(g.items||[]).map((i,ji)=>`<div class="item"><span${E()} class="age" data-m="hold" data-g="${esc(g.id)}" data-j="${ji}" data-f="date">${esc(i.date)}</span> <span${E()} data-m="hold" data-g="${esc(g.id)}" data-j="${ji}" data-f="text">${esc(i.text)}</span></div>`).join('')}</div>`).join('')||'<div class="empty">내용이 없습니다</div>'}
 function renderMisc(){$('#memo').innerHTML=htmlMemo();$('#inc').innerHTML=htmlInc();$('#hold').innerHTML=htmlHold()}
 document.addEventListener('input',e=>{const el=e.target.closest('[data-m]');if(!el)return;const v=el.textContent.trim();const k=el.dataset.m;
@@ -801,9 +869,10 @@ $('#bHome').onclick=()=>{
   if(keep){st.worker=keep;lsSet('jp-worker',keep);$('#fWorker').value=keep}
   st.sort={k:'stage',dir:1};if(st.edit)setEdit(false);
   showTab('list');render();window.scrollTo({top:0,behavior:'smooth'})};
+window.addEventListener('jp-me',()=>requestRender(true));
 function setEdit(on){st.edit=on&&canWrite;document.body.classList.toggle('edit',st.edit);
   $('#bEdit').classList.toggle('on',st.edit);$('#bEdit').textContent=st.edit?'편집 모드 끄기':'편집 모드';
-  $('#incBar').hidden=!st.edit;$('#editBanner').classList.toggle('show',st.edit);
+  $('#incBar').hidden=!(st.edit&&isAdmin());$('#editBanner').classList.toggle('show',st.edit);
   requestRender(true)}
 $('#bEdit').onclick=()=>setEdit(!st.edit);
 function dlFail(e){if(e&&e.code==='declined')return;toast('파일을 저장하지 못했습니다.')}
