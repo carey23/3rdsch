@@ -70,9 +70,22 @@ tr.r.locked td{background:color-mix(in srgb,var(--sub) 6%,transparent)}
 #hist .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--accent-bg);color:var(--accent)}
 #hist .tag.del{background:color-mix(in srgb,var(--warn) 15%,var(--card));color:var(--warn)}
 #hist .msg{padding:24px 6px;color:var(--sub);font-size:13px}
-.pw{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.pw+.pw{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
-.pwn{color:var(--sub);font-size:11px;min-width:3.4em;font-weight:600}
+table.list{table-layout:fixed}
+@media screen{table.list{min-width:1260px}}
+table.list td{word-break:keep-all;overflow-wrap:anywhere}
+table.list th{overflow:hidden;text-overflow:ellipsis}
+col.act{display:none}
+body.edit col.act{display:table-column}
+td.nm{line-height:1.5}
+td.nm .w{white-space:nowrap}
+td.nm [contenteditable]{min-width:5em;display:block}
+td.prog{padding:0}
+.pw{display:grid;grid-template-columns:10fr 12fr 19fr;align-items:start}
+.pw+.pw{border-top:1px dashed var(--line)}
+.pc{padding:7px 9px;min-width:0}
+.pc .age-box{margin-top:3px}
+.pwn{font-size:11px;color:var(--sub);font-weight:600;margin-bottom:3px}
+.pfoot{padding:0 9px 6px;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
 .grip{cursor:grab;color:var(--sub);user-select:none;margin-right:6px;font-size:13px;letter-spacing:-2px}
 .grip:active{cursor:grabbing}
 tr.r.dragging{opacity:.4}
@@ -219,7 +232,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
     </div>
     <div class="bar" style="padding:6px 10px"><span class="lbl">단계</span><div class="chips" id="stageChips"></div></div>
     <div class="count"><span id="count"></span> <button type="button" class="chip no-print" id="bMyOrder" hidden>내 순서로 보기</button></div>
-    <div class="tbl-wrap"><table>
+    <div class="tbl-wrap"><table class="list"><colgroup><col style="width:11%"><col style="width:14%"><col style="width:5%"><col style="width:7%"><col style="width:9%"><col style="width:9%"><col style="width:10%"><col style="width:12%"><col style="width:19%"><col class="act" style="width:4%"></colgroup>
       <thead><tr>
         <th data-k="sec">구분</th><th data-k="title">도서명</th><th data-k="rev">차수</th><th data-k="author">저자</th>
         <th data-k="editors">담당자</th><th data-k="designers">디자이너</th><th data-k="stage">단계</th><th data-k="date">최종 갱신</th><th>진행 내용</th><th class="act">삭제</th>
@@ -632,19 +645,19 @@ function rowHtml(r,plain){
   const secCell=eb?`<select data-sel="sec" data-id="${esc(id)}" aria-label="구분">${secs.map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`:`<span class="sec">${esc(secShort(r.sec))}</span>`;
   const ro=rolesOf(r);
   const roleCell=(key,names)=>eb?ed(key,id,names.join(' / ')):names.map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
-  const wk=`<td>${roleCell('editors',ro.editors)}</td><td>${roleCell('designers',ro.designers)}</td>`;
+  const wk=`<td class="nm">${roleCell('editors',ro.editors)}</td><td class="nm">${roleCell('designers',ro.designers)}</td>`;
   const ws=wsOf(r),multi=ws.length>1;
-  const blk=(w,inner)=>`<div class="pw" data-pw="${esc(w)}">${multi?`<small class="pwn">${esc(w)}</small>`:''}${inner}</div>`;
-  const stg=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit&&mayWorker(r,w)?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(x=>`<option${x===v.stage?' selected':''}>${x}</option>`).join('')}</select>`:`<span class="badge" style="--c:${col(v.stage)}">${esc(v.stage)}</span>`)}).join('');
-  const dt=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit&&mayWorker(r,w)?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(v.date)}" aria-label="최종 갱신일"> <span class="age-box">${ageTxt(v)}</span>`:ageTxt(v))}).join('');
-  const nt=ws.map(w=>blk(w,ed('note',id,eff(r,w).note,'',mayWorker(r,w)))).join('');
+  const prow=ws.map(w=>{const v=eff(r,w),mw=st.edit&&mayWorker(r,w);
+    const lab=multi?`<div class="pwn">${esc(w)}</div>`:'';
+    const sc=mw?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(x=>`<option${x===v.stage?' selected':''}>${x}</option>`).join('')}</select>`:`<span class="badge" style="--c:${col(v.stage)}">${esc(v.stage)}</span>`;
+    const dc=mw?`<input type="date" data-date="1" data-id="${esc(id)}" value="${esc(v.date)}" aria-label="최종 갱신일"><div class="age-box">${ageTxt(v)}</div>`:ageTxt(v);
+    return `<div class="pw" data-pw="${esc(w)}"><div class="pc">${lab}${sc}</div><div class="pc">${dc}</div><div class="pc">${ed('note',id,v.note,'',st.edit&&mayWorker(r,w))}</div></div>`}).join('');
   const by=(!plain&&r.by&&r.at)?`<div class="sec hist-link" data-by="${esc(r.by)}" data-at="${r.at}" data-hist="${esc(r.title||'')}" title="이 도서의 변경 이력 보기"></div>`:'';
   const grip=(!plain&&canDrag())?`<span class="grip" draggable="true" data-grip="${esc(id)}" title="끌어서 내 순서 바꾸기">⋮⋮</span>`:'';
   return `<tr class="r${st.edit&&!mb?' locked':''}" data-id="${esc(id)}" style="--c:${c}"${st.edit&&!mb?' title="담당자가 아니어서 수정할 수 없습니다"':''}>
     <td>${grip}${secCell}${st.edit&&!mb&&!plain?'<div class="sec">보기 전용 (담당 아님)</div>':''}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
     <td class="t">${ed('title',id,r.title,'',mb)}</td><td class="nw">${eb?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author,'',mb)}</td>
-    ${wk}<td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
-    <td>${nt}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
+    ${wk}<td class="prog" colspan="3">${prow}${by||(!st.edit&&r.extra&&r.extra.includes('|'))?`<div class="pfoot">${by}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</div>`:''}</td>
     <td class="act">${mb?`<button class="chip" data-del="${esc(id)}">삭제</button>`:''}</td></tr>`}
 function render(){
   const a=filtered();
@@ -966,7 +979,7 @@ $('#bPrint').onclick=async()=>{
   if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const was=st.edit;st.edit=false;
   let body='';const title=todayTitle();
-  if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>담당자</th><th>디자이너</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
+  if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table class="list"><colgroup><col style="width:11%"><col style="width:14%"><col style="width:5%"><col style="width:7%"><col style="width:9%"><col style="width:9%"><col style="width:10%"><col style="width:12%"><col style="width:19%"></colgroup><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>담당자</th><th>디자이너</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
     $('#pMeta').textContent=$('#pMeta').textContent}
   else if(curTab==='worker')body=htmlWorkers(true);
   else if(curTab==='memo')body=`<div class="memo-grid">${htmlMemo()}</div>`;
