@@ -482,7 +482,7 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let db=null,userCap=null,dlCap=null,myId=null,canWrite=false;
 const M={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:null};
 const loaded={books:false,incoming:false,memo:false,hold:false,meta:false};
-const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'stage',dir:1},sortTouched:false};
+const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'date',dir:-1},sortTouched:false};
 let curTab='list';
 const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
@@ -631,7 +631,9 @@ function filtered(){
 function sortRecs(a){
   const {k,dir}=st.sort;
   const v=r=>k==='editors'||k==='designers'?rolesOf(r)[k].join(','):k==='workers'?(r.workers||[]).join(','):k==='date'?(V(r).date||'9999'):k==='stage'?ORDER.indexOf(V(r).stage):(r[k]||'');
-  a.sort((x,y)=>{const A=v(x),B=v(y);const c=(A<B?-1:A>B?1:0)*dir;if(c)return c;
+  a.sort((x,y)=>{const A=v(x),B=v(y);
+    if(k==='date'){const ea=A==='9999',eb=B==='9999';if(ea!==eb)return ea?1:-1}
+    const c=(A<B?-1:A>B?1:0)*dir;if(c)return c;
     const d1=V(x).date||'9999',d2=V(y).date||'9999';return (d1<d2?-1:d1>d2?1:0)||((x.order??0)-(y.order??0))});
   if(personalOn()){const w='wo_'+st.worker;a.sort((x,y)=>(x[w]??1e9)-(y[w]??1e9))}
   return a}
@@ -963,7 +965,7 @@ function drawTitle(){const t=todayTitle();$('#ttl').textContent=t;$('#pTtl').tex
 $('#bHome').onclick=()=>{
   const keep=st.worker;closeHist();resetFilters();
   if(keep){st.worker=keep;lsSet('jp-worker',keep);$('#fWorker').value=keep}
-  st.sort={k:'stage',dir:1};if(st.edit)setEdit(false);
+  st.sort={k:'date',dir:-1};if(st.edit)setEdit(false);
   showTab('list');render();window.scrollTo({top:0,behavior:'smooth'})};
 window.addEventListener('jp-me',()=>requestRender(true));
 function setEdit(on){st.edit=on&&canWrite;document.body.classList.toggle('edit',st.edit);
