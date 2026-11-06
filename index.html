@@ -43,6 +43,18 @@ h1{margin:0;font-size:20px}
 tr.r.locked td{background:color-mix(in srgb,var(--sub) 6%,transparent)}
 .hist-link{cursor:pointer;text-decoration:underline dotted}
 .hist-link:hover{color:var(--accent)}
+#secBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
+#secBack.on{display:flex}
+#secBox{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#secBox .hh{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+#secBox .hh h2{margin:0;font-size:16px;margin-right:auto}
+#secBox .hb{overflow:auto;padding:10px 14px 14px;font-size:13px}
+#secBox .tip{color:var(--sub);font-size:12px;line-height:1.5;margin:0 0 10px}
+#secBox table{width:100%;border-collapse:collapse}
+#secBox td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+#secBox input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+#secBox .cnt{color:var(--sub);white-space:nowrap}
+#secBox .addrow{display:flex;gap:8px;margin-top:12px}
 #histBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
 #histBack.on{display:flex}
 #hist{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
@@ -149,7 +161,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
-  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack{display:none!important}
+  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{display:none!important}.panel.on{display:block!important}
   .printhead{display:block;margin-bottom:6px}
@@ -196,7 +208,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   <section class="panel" id="p-list">
     <div class="bar">
       <input type="search" id="q" placeholder="도서명·저자·작업자·진행내용 검색" aria-label="검색">
-      <select id="fSec" aria-label="구분"></select>
+      <select id="fSec" aria-label="구분"></select><button type="button" class="btn no-print" id="bSecs" hidden title="구분 추가·이름 변경·삭제·순서 바꾸기">구분 관리</button>
       <select id="fKind" aria-label="신간·개정"><option value="">신간+개정</option><option>신간</option><option>개정</option></select>
       <select id="fWorker" aria-label="작업자"></select>
       <label class="lbl">정체 기준 <select id="thr"><option value="7">7일</option><option value="14" selected>14일</option><option value="30">30일</option></select></label>
@@ -210,7 +222,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
     <div class="tbl-wrap"><table>
       <thead><tr>
         <th data-k="sec">구분</th><th data-k="title">도서명</th><th data-k="rev">차수</th><th data-k="author">저자</th>
-        <th data-k="workers">작업자</th><th data-k="stage">단계</th><th data-k="date">최종 갱신</th><th>진행 내용</th><th class="act">삭제</th>
+        <th data-k="editors">담당자</th><th data-k="designers">디자이너</th><th data-k="stage">단계</th><th data-k="date">최종 갱신</th><th>진행 내용</th><th class="act">삭제</th>
       </tr></thead>
       <tbody id="tb"></tbody>
     </table></div>
@@ -228,6 +240,9 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 
 </div>
 <div id="toast" role="status"></div>
+<div id="secBack" class="no-print"><div id="secBox" role="dialog" aria-label="구분 관리">
+  <div class="hh"><h2>구분 관리</h2><button class="btn" id="secClose">닫기</button></div>
+  <div class="hb" id="secBody"></div></div></div>
 <div id="histBack" class="no-print"><div id="hist" role="dialog" aria-label="변경 이력">
   <div class="hh"><h2>변경 이력</h2><input type="search" id="histQ" placeholder="도서명·수정한 사람·칸 검색"><button class="btn" id="histReload">새로고침</button><button class="btn" id="histClose">닫기</button></div>
   <div class="hb" id="histBody"></div></div></div>
@@ -417,8 +432,21 @@ const ORG=[
  ['출판2부',['이미향','김희현'],'g3'],
  ['디자인부',['이연주','김진혜','강현희','박지은','정은진','방지예'],'g4']];
 const ORG_KNOWN=new Set(ORG.flatMap(g=>g[1]));
+/* 작업자 칸 구분: 담당자(편집) / 디자이너(조판·디자인).
+   저장 필드: editors(담당자 배열), designers(디자이너 배열), workers(둘을 합친 전체 — 권한·필터·작업자별 화면이 계속 이 값을 씀).
+   예전 데이터(역할 필드 없음)는 한글편집팀·디자인부 = 디자이너, 그 밖의 명단 = 담당자, 명단에 없는 이름은 첫 번째면 디자이너·그 외 담당자로 추정해서 보여 줌 */
+const DESIGN_SET=new Set(ORG.filter(g=>g[2]==='g2'||g[2]==='g4').flatMap(g=>g[1]));
+const uniq=a=>[...new Set(a)];
+function rolesOf(r){
+  const ws=r.workers||[];
+  if(Array.isArray(r.editors)||Array.isArray(r.designers)){
+    const e=(Array.isArray(r.editors)?r.editors:[]).filter(n=>ws.includes(n)),d=(Array.isArray(r.designers)?r.designers:[]).filter(n=>ws.includes(n));
+    return {editors:[...e,...ws.filter(n=>!e.includes(n)&&!d.includes(n))],designers:d}}
+  const e=[],d=[];ws.forEach((n,i)=>(DESIGN_SET.has(n)||(!ORG_KNOWN.has(n)&&i===0)?d:e).push(n));return {editors:e,designers:d}}
 /* 수정 권한(서버가 같은 규칙으로 다시 검사함): 관리자는 전부, 그 외는 작업자에 본인 이름이 있는 도서만 (작업자가 비어 있는 도서는 누구나) */
 const SECS_DEFAULT=['진행 도서 · 개정','진행 도서 · 신간','권오수 선생님 모음','인천대산전기학원','환경'];
+let SEC_LIST=null; /* 관리자가 저장한 구분 목록 (meta/sections) */
+const allSecs=()=>[...new Set([...(SEC_LIST&&SEC_LIST.length?SEC_LIST:SECS_DEFAULT),...recs().map(r=>r.sec).filter(Boolean)])];
 const col=s=>`var(${STAGE[s]||'--c-prog'})`;
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -523,6 +551,7 @@ function subscribe(){
       if(!snap.metadata.fromCache){liveOk=true;clearTimeout(connTimer);setConn('live','실시간 연결됨')}
       requestRender()},
       err=>{setConn('err',err&&err.code==='revoked'?'접근 권한이 변경되었습니다':'연결 오류');toast('실시간 연결이 끊겼습니다. 페이지를 새로 열어 주세요.')})});
+  db.doc('meta/sections').onSnapshot(s=>{SEC_LIST=s.exists&&Array.isArray(s.data().list)?s.data().list:null;requestRender()},()=>{});
   db.doc('meta/main').onSnapshot(s=>{if(s.exists){const d=s.data();if(!M.meta)M.meta={id:'main',_d:new Set()};if(!M.meta._t)M.meta.title=d.title;M.meta.source=d.source}loaded.meta=true;requestRender()},()=>{});
 }
 
@@ -545,7 +574,7 @@ $('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(b)showTab(b.dataset.t
 let wnames=[];
 function drawSelects(){
   const rs=recs();
-  const secs=[...new Set([...SECS_DEFAULT,...rs.map(r=>r.sec).filter(Boolean)])];
+  const secs=allSecs();$('#bSecs').hidden=!isAdmin();
   $('#fSec').innerHTML='<option value="">전체 구분</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join('');
   $('#fSec').value=secs.includes(st.sec)?st.sec:'';
   const wc={};rs.forEach(r=>(r.workers||[]).forEach(w=>wc[w]=(wc[w]||0)+1));
@@ -586,7 +615,7 @@ function filtered(){
   return sortRecs(a)}
 function sortRecs(a){
   const {k,dir}=st.sort;
-  const v=r=>k==='workers'?(r.workers||[]).join(','):k==='date'?(V(r).date||'9999'):k==='stage'?ORDER.indexOf(V(r).stage):(r[k]||'');
+  const v=r=>k==='editors'||k==='designers'?rolesOf(r)[k].join(','):k==='workers'?(r.workers||[]).join(','):k==='date'?(V(r).date||'9999'):k==='stage'?ORDER.indexOf(V(r).stage):(r[k]||'');
   a.sort((x,y)=>{const A=v(x),B=v(y);const c=(A<B?-1:A>B?1:0)*dir;if(c)return c;
     const d1=V(x).date||'9999',d2=V(y).date||'9999';return (d1<d2?-1:d1>d2?1:0)||((x.order??0)-(y.order??0))});
   if(personalOn()){const w='wo_'+st.worker;a.sort((x,y)=>(x[w]??1e9)-(y[w]??1e9))}
@@ -599,9 +628,11 @@ const mineAll=w=>sortRecs(recs().filter(r=>(r.workers||[]).includes(w)));
 const ed=(f,id,v,cls,ok=true)=>`<span ${st.edit&&ok?'contenteditable="plaintext-only"':''} data-f="${f}" data-id="${esc(id)}"${cls?` class="${cls}"`:''}>${esc(v)}</span>`;
 function rowHtml(r,plain){
   const id=r.id,vw=V(r),c=col(vw.stage),mb=mayBook(r),eb=st.edit&&mb;
-  const secs=[...new Set([...SECS_DEFAULT,r.sec])];
+  const secs=[...new Set([...allSecs(),r.sec])];
   const secCell=eb?`<select data-sel="sec" data-id="${esc(id)}" aria-label="구분">${secs.map(s=>`<option${s===r.sec?' selected':''}>${esc(s)}</option>`).join('')}</select>`:`<span class="sec">${esc(secShort(r.sec))}</span>`;
-  const wk=eb?ed('workers',id,(r.workers||[]).join(' / ')):(r.workers||[]).map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
+  const ro=rolesOf(r);
+  const roleCell=(key,names)=>eb?ed(key,id,names.join(' / ')):names.map(w=>`<span class="w" data-w="${esc(w)}">${esc(w)}</span>`).join(' / ');
+  const wk=`<td>${roleCell('editors',ro.editors)}</td><td>${roleCell('designers',ro.designers)}</td>`;
   const ws=wsOf(r),multi=ws.length>1;
   const blk=(w,inner)=>`<div class="pw" data-pw="${esc(w)}">${multi?`<small class="pwn">${esc(w)}</small>`:''}${inner}</div>`;
   const stg=ws.map(w=>{const v=eff(r,w);return blk(w,st.edit&&mayWorker(r,w)?`<select data-sel="stage" data-id="${esc(id)}" aria-label="단계">${ORDER.map(x=>`<option${x===v.stage?' selected':''}>${x}</option>`).join('')}</select>`:`<span class="badge" style="--c:${col(v.stage)}">${esc(v.stage)}</span>`)}).join('');
@@ -612,16 +643,16 @@ function rowHtml(r,plain){
   return `<tr class="r${st.edit&&!mb?' locked':''}" data-id="${esc(id)}" style="--c:${c}"${st.edit&&!mb?' title="담당자가 아니어서 수정할 수 없습니다"':''}>
     <td>${grip}${secCell}${st.edit&&!mb&&!plain?'<div class="sec">보기 전용 (담당 아님)</div>':''}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
     <td class="t">${ed('title',id,r.title,'',mb)}</td><td class="nw">${eb?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author,'',mb)}</td>
-    <td>${wk}</td><td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
+    ${wk}<td class="stg">${stg}</td><td class="dt">${dt}${by}</td>
     <td>${nt}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</td>
     <td class="act">${mb?`<button class="chip" data-del="${esc(id)}">삭제</button>`:''}</td></tr>`}
 function render(){
   const a=filtered();
   const all=recs().length;
   $('#count').textContent=loaded.books?`${a.length}건 표시 (전체 ${all}건)${canWrite&&!isAdmin()&&loaded.books&&!recs().some(r=>(r.workers||[]).includes(myId))?' · 로그인 이름('+myId+')이 작업자에 없어 보기만 가능합니다':''}${st.worker?' · '+st.worker+' 담당만 보는 중'+(canDrag()?' · ⋮⋮를 끌어 내 순서 변경':''):''} · 정체 기준 ${st.thr}일 · 헤더 클릭 시 정렬`:'';
-  $('#tb').innerHTML=!loaded.books?'<tr><td colspan="9" class="empty">불러오는 중…</td></tr>'
+  $('#tb').innerHTML=!loaded.books?'<tr><td colspan="10" class="empty">불러오는 중…</td></tr>'
     :a.length?a.map(r=>rowHtml(r)).join('')
-    :`<tr><td colspan="9" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
+    :`<tr><td colspan="10" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
   $('#bMyOrder').hidden=!(st.worker&&st.sortTouched);
   document.querySelectorAll('#stageChips .chip').forEach(c=>c.classList.toggle('on',st.stages.has(c.dataset.s)));
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
@@ -679,10 +710,22 @@ tb.addEventListener('input',e=>{
   const r=M.books.get(el.dataset.id);if(!r)return;const f=el.dataset.f,v=el.textContent;let fields=[f];
   if(f==='note'?!mayWorker(r,pwOf(el)):!mayBook(r)){toast('담당자가 아니어서 수정할 수 없습니다');requestRender(true);return}
   if(f==='note'){const w=pwOf(el),cur=eff(r,w),vals={note:v.trim()};if(!cur.manual)vals.stage=autoStage(vals.note);fields=setF(r,w,vals)}
-  else if(f==='workers')r.workers=v.split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
+  else if(f==='editors'||f==='designers')return;
   else r[f]=v.trim();
   if(f==='rev'){r.kind=kindOf(r);fields.push('kind')}
   touchRow(el.closest('tr'),r);renderKpis();mark('books',r,fields)});
+function commitRoles(el){
+  const r=M.books.get(el.dataset.id);if(!r)return;const f=el.dataset.f;
+  const names=uniq(el.textContent.split(/[\/,]/).map(s=>s.trim()).filter(Boolean));
+  const ro=rolesOf(r);if(JSON.stringify(ro[f])===JSON.stringify(names))return;
+  if(!mayBook(r)){toast('담당자가 아니어서 수정할 수 없습니다');requestRender(true);return}
+  const o=f==='editors'?'designers':'editors',next={editors:ro.editors,designers:ro.designers};
+  next[f]=names;next[o]=next[o].filter(n=>!names.includes(n));
+  const ws=[...next.editors,...next.designers];
+  if(!isAdmin()&&myId&&(r.workers||[]).includes(myId)&&ws.length&&!ws.includes(myId)&&!confirm('작업자에서 본인 이름을 빼면 이 도서를 더 이상 수정할 수 없습니다. 계속할까요?')){requestRender(true);return}
+  r.editors=next.editors;r.designers=next.designers;r.workers=ws;
+  mark('books',r,['editors','designers','workers']);requestRender(true)}
+tb.addEventListener('focusout',e=>{const el=e.target.closest&&e.target.closest('[data-f=editors],[data-f=designers]');if(el)commitRoles(el)});
 tb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[contenteditable]')){e.preventDefault();e.target.blur()}});
 tb.addEventListener('change',e=>{
   const t=e.target,id=t.dataset.id;if(!id)return;const r=M.books.get(id);if(!r)return;let fields=[];
@@ -722,7 +765,7 @@ function moveMine(id,tid,after){
   requestRender(true);if(n)toast(w+' 담당 도서 순서를 바꿨습니다')}
 
 /* ---------- 변경 이력 (누가·언제·어떤 칸을·무엇에서 무엇으로) ---------- */
-const HF={title:'도서명',rev:'차수',author:'저자',workers:'작업자',sec:'구분',note:'진행 내용',stage:'단계',date:'갱신일',progress:'현재 진행',items:'내용'};
+const HF={title:'도서명',rev:'차수',author:'저자',workers:'작업자(전체)',editors:'담당자',designers:'디자이너',sec:'구분',note:'진행 내용',stage:'단계',date:'갱신일',progress:'현재 진행',items:'내용'};
 function fieldLabel(f){
   if(f==='__create')return '추가';if(f==='__delete')return '삭제';if(f==='__restore')return '복원';
   const m=/^p([nsd])_(.+)$/.exec(f);if(m)return {n:'진행 내용',s:'단계',d:'갱신일'}[m[1]]+' ('+m[2]+')';
@@ -744,6 +787,7 @@ function canRestore(h){
   if(h.old_val===null||h.old_val===undefined)return false;
   if(h.coll!=='books')return true;
   const r=M.books.get(h.doc_id);if(!r)return false;
+  if(h.field==='workers')return false;
   const m=/^p[nsd]_(.+)$/.exec(h.field);return m?mayWorker(r,m[1]):mayBook(r)}
 function drawHist(){
   const q=($('#histQ').value||'').trim().toLowerCase();
@@ -789,9 +833,46 @@ $('#histBody').addEventListener('click',async e=>{
   b.disabled=true;
   try{const d=db.doc(h.coll+'/'+h.doc_id);
     if(h.field==='__delete')await d.set({...h.old_val,by:myId,at:Date.now()});
+    else if(h.field==='editors'||h.field==='designers'){const r=M.books.get(h.doc_id),ro=rolesOf(r),f=h.field,o=f==='editors'?'designers':'editors',nx={editors:ro.editors,designers:ro.designers};
+      nx[f]=h.old_val||[];nx[o]=nx[o].filter(n=>!nx[f].includes(n));
+      await d.update({editors:nx.editors,designers:nx.designers,workers:[...nx.editors,...nx.designers],by:myId,at:Date.now()})}
     else await d.update({[h.field]:h.old_val,by:myId,at:Date.now()});
     toast('되돌렸습니다');loadHist(true)}
   catch(x){toast('되돌리지 못했습니다');b.disabled=false}});
+
+/* ---------- 구분 관리 (관리자) ---------- */
+const secCount=n=>recs().filter(r=>r.sec===n).length;
+async function saveSecs(list){
+  try{await db.doc('meta/sections').set({list});SEC_LIST=list;requestRender(true);drawSecs();return true}
+  catch(e){toast(e&&e.code==='forbidden'?'관리자만 구분을 바꿀 수 있습니다':'구분 목록을 저장하지 못했습니다');return false}}
+function drawSecs(){
+  const L=allSecs();
+  $('#secBody').innerHTML=`<p class="tip">구분을 추가하면 도서 목록의 "구분" 선택칸과 각 도서 줄의 구분 선택에 바로 나타납니다. 이름을 바꾸면 그 구분의 도서도 함께 바뀌고, 도서가 없는 구분만 삭제할 수 있습니다. 위·아래 화살표로 선택칸에 보이는 순서를 바꿉니다.</p>
+  <table><tbody>${L.map((n,i)=>`<tr data-sec="${esc(n)}"><td style="width:62px;white-space:nowrap"><button class="chip" data-up="${i}" ${i?'':'disabled'} aria-label="위로">▲</button> <button class="chip" data-dn="${i}" ${i<L.length-1?'':'disabled'} aria-label="아래로">▼</button></td>
+    <td><input type="text" maxlength="30" value="${esc(n)}" data-name="${esc(n)}"></td><td class="cnt">도서 ${secCount(n)}건</td>
+    <td style="white-space:nowrap"><button class="chip" data-rename="${esc(n)}">이름 변경</button> <button class="chip" data-delsec="${esc(n)}" ${secCount(n)?'disabled title="도서가 있는 구분은 삭제할 수 없습니다"':''}>삭제</button></td></tr>`).join('')}</tbody></table>
+  <div class="addrow"><input type="text" id="secNew" maxlength="30" placeholder="새 구분 이름 (예: 국가기술자격)"><button class="btn primary" id="secAdd">추가</button></div>`}
+function openSecs(){if(!isAdmin())return;$('#secBack').classList.add('on');drawSecs()}
+function closeSecs(){$('#secBack').classList.remove('on')}
+$('#bSecs').onclick=openSecs;$('#secClose').onclick=closeSecs;
+$('#secBack').addEventListener('click',e=>{if(e.target.id==='secBack')closeSecs()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSecs()});
+$('#secBody').addEventListener('click',async e=>{
+  if(!isAdmin())return;const L=allSecs();
+  const up=e.target.closest('[data-up]'),dn=e.target.closest('[data-dn]'),rn=e.target.closest('[data-rename]'),dl=e.target.closest('[data-delsec]');
+  if(up||dn){const i=+(up||dn).dataset[up?'up':'dn'],j=up?i-1:i+1;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];await saveSecs(L);return}
+  if(rn){const old=rn.dataset.rename,inp=[...$('#secBody').querySelectorAll('[data-name]')].find(x=>x.dataset.name===old),nn=(inp?inp.value:'').trim();
+    if(!nn||nn===old)return;if(L.includes(nn)){toast('이미 있는 구분 이름입니다');return}
+    const n=secCount(old);if(n&&!confirm('"'+old+'" 을(를) "'+nn+'" 으로 바꿉니다. 이 구분의 도서 '+n+'건도 함께 바뀝니다. 계속할까요?'))return;
+    if(!await saveSecs(L.map(x=>x===old?nn:x)))return;
+    recs().filter(r=>r.sec===old).forEach(r=>{r.sec=nn;r.kind=kindOf(r);mark('books',r,['sec','kind'])});
+    if(st.sec===old)st.sec=nn;requestRender(true);drawSecs();toast('구분 이름을 바꿨습니다');return}
+  if(dl){const n=dl.dataset.delsec;if(secCount(n)){toast('도서가 있는 구분은 삭제할 수 없습니다');return}
+    if(!confirm('"'+n+'" 구분을 삭제할까요?'))return;
+    if(await saveSecs(L.filter(x=>x!==n))){if(st.sec===n)st.sec='';requestRender(true)}return}
+  if(e.target.id==='secAdd'){const v=$('#secNew').value.trim();if(!v)return;if(L.includes(v)){toast('이미 있는 구분입니다');return}
+    if(await saveSecs([...L,v]))toast('"'+v+'" 구분을 추가했습니다')}});
+$('#secBody').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='secNew'){e.preventDefault();$('#secAdd').click()}});
 async function addBook(workers){
   if(!canWrite){toast('수정 권한이 없습니다');return}
   let me=(workers&&workers[0])||st.worker||'';
@@ -801,7 +882,7 @@ async function addBook(workers){
   if(!st.edit)setEdit(true);
   showTab('list');
   const mx=Math.max(0,...recs().map(r=>r.order||0));
-  const rec=await createDoc('books',{sec:'진행 도서 · 개정',title:'새 도서',rev:'',author:'',workers:workers||[],date:iso(TODAY),note:'',kind:'개정',stage:'진행중',extra:'',order:mx+1});
+  const rec=await createDoc('books',{sec:'진행 도서 · 개정',title:'새 도서',rev:'',author:'',workers:workers||[],editors:rolesOf({workers:workers||[]}).editors,designers:rolesOf({workers:workers||[]}).designers,date:iso(TODAY),note:'',kind:'개정',stage:'진행중',extra:'',order:mx+1});
   if(!rec)return;rec._new=1;
   await new Promise(r=>setTimeout(r,160));drawSelects();$('#fWorker').value=st.worker;render();
   const el=tb.querySelector(`[data-f=title][data-id="${rec.id}"]`);if(el){el.scrollIntoView({block:'center'});el.focus();document.getSelection().selectAllChildren(el)}}
@@ -878,14 +959,14 @@ $('#bEdit').onclick=()=>setEdit(!st.edit);
 function dlFail(e){if(e&&e.code==='declined')return;toast('파일을 저장하지 못했습니다.')}
 $('#bCsv').onclick=async()=>{if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
-  const rows=[['구분','도서명','차수','저자','작업자','단계','최종갱신','진행내용']];
-  filtered().forEach(r=>{const v=V(r);rows.push([r.sec,r.title,revT(r.rev),r.author,(r.workers||[]).join(' / '),v.stage,v.date,v.note])});
+  const rows=[['구분','도서명','차수','저자','담당자','디자이너','단계','최종갱신','진행내용']];
+  filtered().forEach(r=>{const v=V(r);const ro=rolesOf(r);rows.push([r.sec,r.title,revT(r.rev),r.author,ro.editors.join(' / '),ro.designers.join(' / '),v.stage,v.date,v.note])});
   try{await dlCap.save({filename:'주간계획서_'+iso(new Date()).replace(/-/g,'')+'.csv',data:'﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')})}catch(e){dlFail(e)}};
 $('#bPrint').onclick=async()=>{
   if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const was=st.edit;st.edit=false;
   let body='';const title=todayTitle();
-  if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>작업자</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
+  if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>담당자</th><th>디자이너</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
     $('#pMeta').textContent=$('#pMeta').textContent}
   else if(curTab==='worker')body=htmlWorkers(true);
   else if(curTab==='memo')body=`<div class="memo-grid">${htmlMemo()}</div>`;
