@@ -7,11 +7,11 @@
 <title>주간계획서 현황</title>
 <style id="pagecss">
 /* layout: 상단 요약 카드 → 탭(도서 목록 / 작업자별 / 체크포인트 / 입고예정 / 보류) → 표. 편집 모드에서 칸을 직접 고치고 모든 접속자에게 실시간 반영 */
-:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
+:root{--on-accent:#fff;--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
 --c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--ok:#2f855a;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--gx:#5b6472}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--on-accent:#0b1220;--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
 --c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--gx:#a3acba;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
+:root[data-theme="dark"]{--on-accent:#0b1220;--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
 --c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--gx:#a3acba;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
@@ -101,9 +101,11 @@ tr.r.dropa td{box-shadow:inset 0 -3px 0 var(--accent)}
 .recent .none{font-size:12px;color:var(--sub);align-self:center}
 .kpi b{display:block;font-size:22px;line-height:1.2;font-variant-numeric:tabular-nums}
 .kpi span{font-size:12px;color:var(--sub)}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 12px;flex-wrap:wrap}
-.tab{padding:8px 14px;border:0;background:none;color:var(--sub);font:inherit;cursor:pointer;border-bottom:2px solid transparent}
-.tab.on{color:var(--accent);border-color:var(--accent);font-weight:700}
+.tabs{display:flex;gap:6px;margin:16px 0 14px;flex-wrap:wrap;padding:6px;background:color-mix(in srgb,var(--accent) 8%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:14px}
+.tab{flex:1 1 auto;min-width:120px;padding:11px 18px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:600;text-align:center;cursor:pointer;transition:background .15s,box-shadow .15s}
+.tab:hover{background:color-mix(in srgb,var(--accent) 14%,var(--card))}
+.tab.on{background:var(--accent);color:var(--on-accent);font-weight:700;box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 45%,transparent)}
+.tab.on:hover{background:var(--accent)}
 .panel{display:none}.panel.on{display:block}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
 .bar input[type=search],.bar select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
