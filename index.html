@@ -43,18 +43,18 @@ h1{margin:0;font-size:20px}
 tr.r.locked td{background:color-mix(in srgb,var(--sub) 6%,transparent)}
 .hist-link{cursor:pointer;text-decoration:underline dotted}
 .hist-link:hover{color:var(--accent)}
-#secBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
-#secBack.on{display:flex}
-#secBox{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
-#secBox .hh{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
-#secBox .hh h2{margin:0;font-size:16px;margin-right:auto}
-#secBox .hb{overflow:auto;padding:10px 14px 14px;font-size:13px}
-#secBox .tip{color:var(--sub);font-size:12px;line-height:1.5;margin:0 0 10px}
-#secBox table{width:100%;border-collapse:collapse}
-#secBox td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
-#secBox input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
-#secBox .cnt{color:var(--sub);white-space:nowrap}
-#secBox .addrow{display:flex;gap:8px;margin-top:12px}
+#secBack,#rkBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
+#secBack.on,#rkBack.on{display:flex}
+#secBox,#rkBox{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#secBox .hh,#rkBox .hh{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+#secBox .hh h2,#rkBox .hh h2{margin:0;font-size:16px;margin-right:auto}
+#secBox .hb,#rkBox .hb{overflow:auto;padding:10px 14px 14px;font-size:13px}
+#secBox .tip,#rkBox .tip{color:var(--sub);font-size:12px;line-height:1.5;margin:0 0 10px}
+#secBox table,#rkBox table{width:100%;border-collapse:collapse}
+#secBox td,#rkBox td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+#secBox input[type=text],#rkBox input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+#secBox .cnt,#rkBox .cnt{color:var(--sub);white-space:nowrap}
+#secBox .addrow,#rkBox .addrow{display:flex;gap:8px;margin-top:12px}
 #histBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
 #histBack.on{display:flex}
 #hist{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
@@ -176,7 +176,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
-  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack{display:none!important}
+  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{display:none!important}.panel.on{display:block!important}
   .printhead{display:block;margin-bottom:6px}
@@ -265,6 +265,21 @@ body.jr-open>header,body.jr-open>.wrap{display:none!important}
 .jr-tt em{font-style:normal;color:var(--sub);font-weight:500;font-size:12px;margin-left:4px}
 .jr-nt{grid-column:2;color:var(--ink);font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:keep-all}
 .jr-co{grid-column:2;font-size:11px;color:var(--sub)}
+.jr-att{display:flex;gap:5px 5px;flex-wrap:wrap;align-items:center;padding:8px 14px;border-top:1px solid var(--line);background:var(--card)}
+.jr-att i{width:1px;height:16px;background:var(--line);margin:0 4px}
+.jr-att .jr-shl{font-size:11px;color:var(--sub);font-weight:600}
+.jr-tg{--c:var(--sub);display:inline-flex;align-items:center;font:inherit;font-size:11.5px;font-weight:600;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:2px 9px 2px 6px;cursor:pointer;white-space:nowrap}
+.jr-tg::before{content:'';width:13px;height:13px;border:1.5px solid currentColor;border-radius:4px;margin-right:6px;flex:none;box-sizing:border-box}
+.jr-tg.on{color:var(--c);border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--card));font-weight:700}
+.jr-tg.on::before{content:'✓';background:var(--c);border-color:var(--c);color:var(--on-accent);font-size:10px;line-height:10px;justify-content:center;display:inline-flex;align-items:center}
+span.jr-tg{cursor:default}
+button.jr-tg:hover{border-color:var(--c)}
+button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.jr-tg.f0{--c:var(--c-wait)}.jr-tg.f1{--c:var(--c-stock)}.jr-tg.l{--c:var(--c-step)}.jr-tg.sh.on{--c:var(--accent)}
+.jr-asum{display:flex;gap:6px 14px;flex-wrap:wrap;margin:0 2px 12px;font-size:12.5px}
+.jr-asum span b{margin-right:5px}
+.jr-asum:empty{display:none}
+.jr-sum{padding:6px 16px 0;font-size:12px;color:var(--sub)}
 .jr-none{color:var(--sub);font-size:13px;padding:8px 0}
 .jr-on{margin-top:4px;border-top:1px dashed var(--line);padding-top:8px}
 .jr-on summary{cursor:pointer;color:var(--sub);font-size:12px;font-weight:600}
@@ -300,6 +315,8 @@ body.jr-open>header,body.jr-open>.wrap{display:none!important}
  .jr-tt{font-size:12.5px}.jr-tt em{font-size:10.5px}.jr-nt{font-size:11.5px;line-height:1.45}.jr-co{font-size:10px}.jr-st{font-size:10px}
  .jr-nm{font-size:14px}.jr-nm small{font-size:10px}.jr-cnt{font-size:10.5px}
  .jr-c.idle{display:none!important}
+ .jr-tg:not(.on){display:none!important}.jr-att i{display:none}.jr-att .jr-shl{display:none}.jr-att{padding:4px 10px;background:#fafafa!important}.jr-att:not(:has(.on)){display:none}
+ .jr-tg{font-size:10.5px;padding:1px 8px 1px 5px}.jr-asum{font-size:11px;margin-bottom:6px}
  #jr.brk .jr-gh.pb{break-before:page}
  .jr-gh{break-after:avoid;margin-top:0;border-bottom:2px solid #333}.jr-gh b{color:#111;font-size:14px}
  .jr-mt{font-size:11px}.jr-mt th{color:#444}.jr-mt td{padding:4px 5px}.jr-mt tr{break-inside:avoid}
@@ -374,7 +391,8 @@ body.jr-open>header,body.jr-open>.wrap{display:none!important}
       <div class="jr-nav no-print"><button type="button" class="jr-hbtn" id="jrPrev" aria-label="전날">‹</button><input type="date" id="jrDate" aria-label="날짜 선택"><input type="month" id="jrMonth" aria-label="월 선택" hidden><button type="button" class="jr-hbtn" id="jrNext" aria-label="다음날">›</button><button type="button" class="jr-hbtn" id="jrToday">오늘</button></div></div>
     <div class="jr-kpis" id="jrK"></div>
   </div>
-  <div class="jr-bar no-print"><span class="lbl">부서</span><div class="jr-chips" id="jrDept"></div><span class="lbl">작업자</span><select id="jrWho" aria-label="작업자"></select><label class="lbl" id="jrAllL"><input type="checkbox" id="jrAll"> 갱신 없는 사람도 보기</label><label class="lbl"><input type="checkbox" id="jrBrk" checked> 인쇄 시 부서별로 쪽 나누기</label><span class="lbl" id="jrHint"></span></div>
+  <div class="jr-bar no-print"><span class="lbl">부서</span><div class="jr-chips" id="jrDept"></div><span class="lbl">작업자</span><select id="jrWho" aria-label="작업자"></select><label class="lbl" id="jrAllL"><input type="checkbox" id="jrAll"> 갱신 없는 사람도 보기</label><button type="button" class="chip" id="jrRk" hidden>직급 설정</button><label class="lbl"><input type="checkbox" id="jrBrk" checked> 인쇄 시 부서별로 쪽 나누기</label><span class="lbl" id="jrHint"></span></div>
+  <div class="jr-asum" id="jrAtt"></div>
   <div class="jr-grid" id="jrGrid"></div>
   <div class="jr-foot" id="jrFoot"></div>
 </div>
@@ -382,6 +400,9 @@ body.jr-open>header,body.jr-open>.wrap{display:none!important}
 <div id="secBack" class="no-print"><div id="secBox" role="dialog" aria-label="구분 관리">
   <div class="hh"><h2>구분 관리</h2><button class="btn" id="secClose">닫기</button></div>
   <div class="hb" id="secBody"></div></div></div>
+<div id="rkBack" class="no-print"><div id="rkBox" role="dialog" aria-label="직급 설정">
+  <div class="hh"><h2>직급 설정</h2><button class="btn primary" id="rkSave">저장</button><button class="btn" id="rkClose">닫기</button></div>
+  <div class="hb" id="rkBody"></div></div></div>
 <div id="histBack" class="no-print"><div id="hist" role="dialog" aria-label="변경 이력">
   <div class="hh"><h2>변경 이력</h2><input type="search" id="histQ" placeholder="도서명·수정한 사람·칸 검색"><button class="btn" id="histReload">새로고침</button><button class="btn" id="histClose">닫기</button></div>
   <div class="hb" id="histBody"></div></div></div>
@@ -690,8 +711,10 @@ function subscribe(){
       if(!snap.metadata.fromCache){liveOk=true;clearTimeout(connTimer);setConn('live','실시간 연결됨')}
       requestRender()},
       err=>{setConn('err',err&&err.code==='revoked'?'접근 권한이 변경되었습니다':'연결 오류');toast('실시간 연결이 끊겼습니다. 페이지를 새로 열어 주세요.')})});
-  db.collection('meta').onSnapshot(snap=>{let ch=false;snap.docChanges().forEach(c=>{const id=c.doc.id;if(!id.startsWith('log_'))return;ch=true;
+  db.collection('meta').onSnapshot(snap=>{let ch=false;snap.docChanges().forEach(c=>{const id=c.doc.id;if(id.startsWith('shift_')){ch=true;if(c.type==='removed')SHIFTS.delete(id.slice(6));else SHIFTS.set(id.slice(6),c.doc.data().v||'');return}
+    if(!id.startsWith('log_'))return;ch=true;
     if(c.type==='removed')LOGS.delete(id.slice(4));else LOGS.set(id.slice(4),c.doc.data())});if(ch&&jr.on&&!document.activeElement.matches('.jr-op'))jrRender()},()=>{});
+  db.doc('meta/ranks').onSnapshot(s=>{RANK_SAVED=s.exists&&s.data().map&&typeof s.data().map==='object'?s.data().map:null;requestRender()},()=>{});
   db.doc('meta/sections').onSnapshot(s=>{SEC_LIST=s.exists&&Array.isArray(s.data().list)?s.data().list:null;requestRender()},()=>{});
   db.doc('meta/main').onSnapshot(s=>{if(s.exists){const d=s.data();if(!M.meta)M.meta={id:'main',_d:new Set()};if(!M.meta._t)M.meta.title=d.title;M.meta.source=d.source}loaded.meta=true;requestRender()},()=>{});
 }
@@ -1034,20 +1057,27 @@ $('#bAddTop').onclick=()=>addBook([]);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-addfor]');if(b)addBook([b.dataset.addfor])});
 
 /* ---------- 오늘의 업무일지: 도서 자료에서 자동 정리 + 본인 의견(meta/log_날짜 문서의 lg_이름 칸) ---------- */
+const SHIFTS=new Map(); /* 이름 → '0800'|'0900' (근무시간 확인용 표시, 날짜와 무관하게 유지) */
+const FLAGS=['잔업','야근'],LEAVES=['오전반차','오후반차','연차'];
 const LOGS=new Map(); /* 날짜 → {lg_이름: 의견} */
 const WD=['일','월','화','수','목','금','토'];
 const jr={on:false,date:iso(TODAY),who:'',all:false,scroll:0,dept:'',mode:'day',month:iso(TODAY).slice(0,7),hc:{}};
 const DEPTS=[...ORG.map(g=>g[0]),'기타 · 외주'];
+const RANK_DEFAULT={'차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리'};
+let RANK_SAVED=null; /* 관리자가 저장한 직급 (meta/ranks → {map:{이름:직급}}) */
+const rankOf=w=>{const m=RANK_SAVED&&Object.prototype.hasOwnProperty.call(RANK_SAVED,w)?RANK_SAVED[w]:RANK_DEFAULT[w];return m||''};
+const nm=w=>w+(rankOf(w)?' '+rankOf(w):'');
 const deptOf=w=>{const g=ORG.find(o=>o[1].includes(w));return g?g[0]:'기타 · 외주'};
 const deptCls=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
 const GO_ACT=['진행중','대기','단계완료','재고대기'];
 const jrPeopleAll=()=>{const n=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>n.add(w)));
   return [...ORG.flatMap(g=>g[1]).filter(w=>n.has(w)),...[...n].filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>a.localeCompare(b,'ko'))]};
+const jrFl=(D,w)=>{const d=LOGS.get(D);const a=d&&d['lf_'+w];return Array.isArray(a)?a:[]};
 const jrOp=(D,w)=>{const d=LOGS.get(D);return d&&typeof d['lg_'+w]==='string'?d['lg_'+w]:''};
 function jrCalc(D){
   const isNow=D===iso(TODAY);
   const people=jrPeopleAll();
-  Object.keys(LOGS.get(D)||{}).forEach(k=>{if(k.startsWith('lg_')&&!people.includes(k.slice(3)))people.push(k.slice(3))});
+  Object.keys(LOGS.get(D)||{}).forEach(k=>{if((k.startsWith('lg_')||k.startsWith('lf_'))&&!people.includes(k.slice(3)))people.push(k.slice(3))});
   if(myId&&!people.includes(myId))people.push(myId);
   const rows=people.map(w=>{
     const done=[],going=[];
@@ -1055,18 +1085,26 @@ function jrCalc(D){
       if(v.date===D)done.push([r,v]);else if(isNow&&GO_ACT.includes(v.stage))going.push([r,v])});
     done.sort((a,b)=>ORDER.indexOf(a[1].stage)-ORDER.indexOf(b[1].stage)||(a[0].title||'').localeCompare(b[0].title||'','ko'));
     going.sort((a,b)=>(b[1].age??0)-(a[1].age??0));
-    return {w,done,going,op:jrOp(D,w)}});
+    return {w,done,going,op:jrOp(D,w),fl:jrFl(D,w)}});
   return {isNow,rows};
 }
 const jrTitleOf=D=>{const d=new Date(D+'T00:00:00');return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일<span>${WD[d.getDay()]}요일</span>`};
 function jrTodayCount(){const D=iso(TODAY),ids=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>{if(eff(r,w).date===D)ids.add(r.id)}));return ids.size}
 function jrBadge(){const el=$('#jrN');if(el)el.textContent=loaded.books?jrTodayCount():'…'}
+function jrAttHtml(w,fl,can){
+  const sh=SHIFTS.get(w)||'',W=esc(w);
+  const tg=(f,cls)=>{const on=fl.includes(f);return can?`<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${cls}${on?' on':''}" data-jf="${f}" data-jw="${W}">${f}</button>`:(on?`<span class="jr-tg ${cls} on">${f}</span>`:'')};
+  const SH=[['0800','08–17'],['0900','09–18']];
+  if(can)return `<div class="jr-att">${FLAGS.map((f,i)=>tg(f,'f'+i)).join('')}<i></i>${LEAVES.map(f=>tg(f,'l')).join('')}<i></i><span class="jr-shl">근무</span>${SH.map(([v,l])=>`<button type="button" role="checkbox" aria-checked="${sh===v}" class="jr-tg sh${sh===v?' on':''}" data-jsh="${v}" data-jw="${W}">${l}</button>`).join('')}</div>`;
+  const parts=[...FLAGS.map((f,i)=>tg(f,'f'+i)),...LEAVES.map(f=>tg(f,'l')),sh?`<span class="jr-tg sh on">근무 ${sh==='0800'?'08–17':'09–18'}</span>`:''].filter(Boolean);
+  return parts.length?`<div class="jr-att">${parts.join('')}</div>`:''}
 function jrChrome(){
   const m=jr.mode==='month';
   $('#jrMDay').classList.toggle('on',!m);$('#jrMMon').classList.toggle('on',m);
   $('#jrDate').hidden=m;$('#jrMonth').hidden=!m;$('#jrAllL').hidden=m;$('#jrToday').textContent=m?'이번 달':'오늘';
   $('#jrKick').textContent=(m?'월간 업무일지 · MONTHLY LOG':'오늘의 업무일지 · DAILY LOG')+(jr.dept?' · '+jr.dept:'');
   $('#jrDept').innerHTML=['',...DEPTS].map(d=>`<button type="button" class="jr-chip${jr.dept===d?' on':''}" style="--gc:var(--${d?deptCls(d):'accent'})" data-d="${esc(d)}">${d||'전체'}</button>`).join('');
+  $('#jrRk').hidden=!isAdmin();
   $('#jr').classList.toggle('brk',$('#jrBrk').checked)}
 function jrRender(){
   if(!jr.on)return;
@@ -1078,12 +1116,14 @@ function jrRender(){
   const ids=new Set();let stepN=0,prN=0,active=0,opN=0;
   rows.forEach(x=>{if(x.done.length)active++;if(x.op.trim())opN++;x.done.forEach(([r,v])=>{ids.add(r.id);if(v.stage==='단계완료')stepN++;if(v.stage==='인쇄완료')prN++})});
   $('#jrK').innerHTML=[[ids.size,'갱신된 도서'],[active,'업무 기록한 사람'],[stepN,'단계 완료'],[prN,'인쇄 넘김'],[opN,'의견 작성']].map(([n,l])=>`<div class="jr-k"><b>${n}</b><span>${l}</span></div>`).join('');
+  {const g={};[...FLAGS,...LEAVES].forEach(f=>g[f]=[]);rows.forEach(x=>x.fl.forEach(f=>g[f]&&g[f].push(nm(x.w))));
+   $('#jrAtt').innerHTML=[...FLAGS,...LEAVES].filter(f=>g[f].length).map(f=>`<span class="jr-tg on ${FLAGS.includes(f)?'f'+FLAGS.indexOf(f):'l'}"><b>${f} ${g[f].length}</b>${esc(g[f].join(', '))}</span>`).join('')}
   const whoSel=$('#jrWho');const names=rows.filter(x=>x.done.length||x.going.length||x.op||x.w===myId).map(x=>x.w);
-  whoSel.innerHTML='<option value="">전체</option>'+(myId&&names.includes(myId)?`<option value="${esc(myId)}">나 (${esc(myId)})</option>`:'')+names.filter(n=>n!==myId).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  whoSel.innerHTML='<option value="">전체</option>'+(myId&&names.includes(myId)?`<option value="${esc(myId)}">나 (${esc(nm(myId))})</option>`:'')+names.filter(n=>n!==myId).map(n=>`<option value="${esc(n)}">${esc(nm(n))}</option>`).join('');
   whoSel.value=names.includes(jr.who)||jr.who===myId?jr.who:'';jr.who=whoSel.value;
   $('#jrAll').checked=jr.all;
   $('#jrHint').textContent=isNow?'작업자로 지정된 도서의 오늘 진행 내용이 자동으로 모입니다. 카드 아래 칸에 본인 의견을 적으면 자동 저장됩니다.':'지난 날짜는 그날 마지막으로 갱신된 업무 기준입니다.';
-  const shown=rows.filter(x=>jr.who?x.w===jr.who:(x.done.length||x.op.trim()||x.w===myId||jr.all)).sort((a,b)=>DEPTS.indexOf(deptOf(a.w))-DEPTS.indexOf(deptOf(b.w))||(!!b.done.length-!!a.done.length)||(a.w===myId?-1:b.w===myId?1:0));
+  const shown=rows.filter(x=>jr.who?x.w===jr.who:(x.done.length||x.op.trim()||x.fl.length||x.w===myId||jr.all)).sort((a,b)=>DEPTS.indexOf(deptOf(a.w))-DEPTS.indexOf(deptOf(b.w))||(!!b.done.length-!!a.done.length)||(a.w===myId?-1:b.w===myId?1:0));
   let lastD=null;const hdr=x=>{const d=deptOf(x.w);if(d===lastD)return '';const first=lastD===null;lastD=d;const m=shown.filter(y=>deptOf(y.w)===d);return `<div class="jr-gh${first?'':' pb'}" style="--gc:var(--${deptCls(d)})"><b>${esc(d)}</b><span>${m.length}명 · ${m.reduce((t,y)=>t+y.done.length,0)}건 갱신</span></div>`};
   const ae=document.activeElement,keepFocus=ae&&ae.classList&&ae.classList.contains('jr-op')?{w:ae.dataset.w,s:ae.selectionStart,e:ae.selectionEnd}:null;
   $('#jrGrid').innerHTML=shown.length?shown.map(x=>{
@@ -1092,9 +1132,10 @@ function jrRender(){
       return `<div class="jr-it"><span class="jr-st" style="--c:${col(v.stage)}">${esc(v.stage)}</span><div class="jr-tt">${esc(r.title)}${r.rev?`<em>${revH(r.rev)}</em>`:''}</div>
        ${v.note?`<div class="jr-nt">${esc(v.note)}</div>`:''}${co.length?`<div class="jr-co">함께: ${esc(co.join(', '))}</div>`:''}</div>`}).join('');
     const going=x.going.length?`<details class="jr-on"><summary>계속 진행 중인 도서 ${x.going.length}건</summary>${x.going.map(([r,v])=>`<div class="o" style="--c:${col(v.stage)}"><i></i><b>${esc(r.title)}</b><span>${esc(v.stage)} · ${v.age==null?'상시':v.age+'일 전'}</span></div>`).join('')}</details>`:'';
-    const op=can?`<label for="op-${esc(w)}">${w===myId?'내 의견·메모':esc(w)+' 의견·메모 (관리자 수정)'}<span class="jr-sv" data-k="${esc(D+'|'+w)}"></span></label><textarea class="jr-op" id="op-${esc(w)}" data-jw="${esc(w)}" rows="2" placeholder="오늘 업무에 대한 의견, 이슈, 내일 계획을 남겨 보세요" maxlength="3000">${esc(x.op)}</textarea><div class="op-p">${esc(x.op)}</div>`
-      :(x.op.trim()?`<label>${esc(w)}의 의견·메모</label><div class="jr-ro op-p2">${esc(x.op)}</div><div class="op-p">${esc(x.op)}</div>`:'');
-    return hdr(x)+`<article class="jr-c${w===myId?' me':''}${(!x.done.length&&!x.op.trim())?' idle':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(w)}<small>${esc(gn)}</small></div><span class="jr-cnt${x.done.length?'':' z'}">${x.done.length?x.done.length+'건 갱신':'갱신 없음'}</span></div>
+    const op=can?`<label for="op-${esc(w)}">${w===myId?'내 의견·메모':esc(nm(w))+' 의견·메모 (관리자 수정)'}<span class="jr-sv" data-k="${esc(D+'|'+w)}"></span></label><textarea class="jr-op" id="op-${esc(w)}" data-jw="${esc(w)}" rows="2" placeholder="오늘 업무에 대한 의견, 이슈, 내일 계획을 남겨 보세요" maxlength="3000">${esc(x.op)}</textarea><div class="op-p">${esc(x.op)}</div>`
+      :(x.op.trim()?`<label>${esc(nm(w))}의 의견·메모</label><div class="jr-ro op-p2">${esc(x.op)}</div><div class="op-p">${esc(x.op)}</div>`:'');
+    return hdr(x)+`<article class="jr-c${w===myId?' me':''}${(!x.done.length&&!x.op.trim()&&!x.fl.length)?' idle':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(nm(w))}<small>${esc(gn)}</small></div><span class="jr-cnt${x.done.length?'':' z'}">${x.done.length?x.done.length+'건 갱신':'갱신 없음'}</span></div>
+      ${jrAttHtml(w,x.fl,can)}
       <div class="jr-b">${items||'<div class="jr-none">'+(isNow?'오늘 갱신한 업무가 없습니다.':'이 날 갱신한 업무가 없습니다.')+'</div>'}${going}</div>
       ${op?`<div class="jr-opw${x.op.trim()?'':' empty'}">${op}</div>`:''}</article>`}).join('')
     :'<div class="jr-empty">표시할 내용이 없습니다. 위에서 “갱신 없는 사람도 보기”를 켜 보세요.</div>';
@@ -1135,8 +1176,9 @@ function jrMonthCalc(ym){
     if(e[k]===undefined)e[k]=h.new_val});   /* 이력은 최신순 → 먼저 만난 값이 그날의 마지막 값 */
   const ops={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lg_')&&typeof v[k]==='string'&&v[k].trim())(ops[k.slice(3)]=ops[k.slice(3)]||[]).push([d,v[k]])})});
   Object.values(ops).forEach(a=>a.sort((x,y)=>x[0]<y[0]?-1:1));
-  const people=[...new Set([...Object.keys(per),...Object.keys(ops)])];
-  return {per,ops,people};
+  const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])&&v[k].length){const w=k.slice(3);const a=att[w]=att[w]||{};v[k].forEach(f=>a[f]=(a[f]||0)+1)}})});
+  const people=[...new Set([...Object.keys(per),...Object.keys(ops),...Object.keys(att)])];
+  return {per,ops,att,people};
 }
 function jrRenderMonth(){
   const ym=jr.month,[Y,Mo]=ym.split('-').map(Number);
@@ -1147,9 +1189,10 @@ function jrRenderMonth(){
   if(!c||(!c.rows&&!c.err)){$('#jrK').innerHTML='';$('#jrGrid').innerHTML='<div class="jr-load">변경 이력을 불러오는 중…</div>';jrLoadHist(ym);return}
   if(c.err){$('#jrK').innerHTML='';$('#jrGrid').innerHTML=`<div class="jr-empty">변경 이력을 불러오지 못했습니다 (${esc(c.err)}). <button type="button" class="btn" id="jrRetry">다시 시도</button></div>`;return}
   const m=jrMonthCalc(ym);
+  $('#jrAtt').innerHTML='';
   const inD=w=>!jr.dept||deptOf(w)===jr.dept;
   const list=m.people.filter(inD).sort((a,b)=>DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||(ORG.flatMap(g=>g[1]).indexOf(a)+1||999)-(ORG.flatMap(g=>g[1]).indexOf(b)+1||999)||a.localeCompare(b,'ko'));
-  const whoSel=$('#jrWho');whoSel.innerHTML='<option value="">전체</option>'+list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  const whoSel=$('#jrWho');whoSel.innerHTML='<option value="">전체</option>'+list.map(n=>`<option value="${esc(n)}">${esc(nm(n))}</option>`).join('');
   whoSel.value=list.includes(jr.who)?jr.who:'';jr.who=whoSel.value;
   const shown=list.filter(w=>!jr.who||w===jr.who);
   let ent=0;const days=new Set(),titles=new Set();let opN=0;
@@ -1162,7 +1205,8 @@ function jrRenderMonth(){
     const rows=[];Object.keys(m.per[w]||{}).sort().forEach(d=>{const dt=new Date(d+'T00:00:00');Object.entries(m.per[w][d]).forEach(([t,e])=>rows.push([d,dt,t,e]))});
     const body=rows.map(([d,dt,t,e])=>`<tr><td class="d">${d.slice(5).replace('-','.')} (${WD[dt.getDay()]})</td><td class="t">${esc(t)}</td><td>${(()=>{const sg=e.stage||(e.note!==undefined?autoStage(e.note):'');return sg?`<span class="jr-st" style="--c:${col(sg)}">${esc(sg)}</span>`:''})()}</td><td>${e.note!==undefined?esc(e.note):'<span class="none">(단계만 변경)</span>'}</td></tr>`).join('');
     const ops=(m.ops[w]||[]).map(([d,t])=>`<p><b>${d.slice(5).replace('-','.')}</b>${esc(t)}</p>`).join('');
-    return hdr(w)+`<article class="jr-c jr-wide wide${w===myId?' me':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(w)}<small>${esc(gn)}</small></div><span class="jr-cnt">${rows.length}건 · ${Object.keys(m.per[w]||{}).length}일</span></div>
+    return hdr(w)+`<article class="jr-c jr-wide wide${w===myId?' me':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(nm(w))}<small>${esc(gn)}</small></div><span class="jr-cnt">${rows.length}건 · ${Object.keys(m.per[w]||{}).length}일</span></div>
+      ${(()=>{const a=m.att[w];const t=a?[...FLAGS,...LEAVES].filter(f=>a[f]).map(f=>`${f} ${a[f]}일`).join(' · '):'';return t?`<div class="jr-sum">근태: ${esc(t)}</div>`:''})()}
       <div class="jr-b">${rows.length?`<table class="jr-mt"><thead><tr><th style="width:84px">날짜</th><th style="width:30%">도서</th><th style="width:76px">단계</th><th>진행 내용</th></tr></thead><tbody>${body}</tbody></table>`:'<div class="jr-none">이 달에 기록된 진행 내용이 없습니다.</div>'}</div>
       ${ops?`<div class="jr-mo"><h4>의견·메모</h4>${ops}</div>`:''}</article>`}).join('')
     :'<div class="jr-empty">이 달에 표시할 기록이 없습니다.</div>';
@@ -1177,6 +1221,26 @@ $('#jrMMon').onclick=()=>{jr.mode='month';jr.who='';if(jr.month===iso(TODAY).sli
 $('#jrMonth').onchange=e=>{if(e.target.value&&e.target.value<=iso(TODAY).slice(0,7)){jr.month=e.target.value;jr.who='';jrRender()}};
 $('#jrBrk').onchange=jrChrome;
 window.addEventListener('beforeprint',()=>{if(jr.on)jrChrome()});
+function rkDraw(){
+  const names=[...new Set([...ORG.flatMap(g=>g[1]),...jrPeopleAll()])];
+  $('#rkBody').innerHTML=`<p class="tip">업무일지에 "이름 직급" 형태로 표시됩니다 (예: 신보용 차장). 비워 두면 이름만 나옵니다. 저장하면 모든 사람 화면에 바로 반영됩니다.</p>
+  <table><tbody>${names.map(n=>`<tr><td style="width:150px"><b>${esc(n)}</b> <span class="cnt">${esc(deptOf(n))}</span></td><td><input type="text" maxlength="12" data-rk="${esc(n)}" value="${esc(rankOf(n))}" placeholder="직급"></td></tr>`).join('')}</tbody></table>`}
+function rkOpen(){if(!isAdmin())return;$('#rkBack').classList.add('on');rkDraw()}
+function rkClose(){$('#rkBack').classList.remove('on')}
+$('#jrRk').onclick=rkOpen;$('#rkClose').onclick=rkClose;$('#rkBack').addEventListener('click',e=>{if(e.target.id==='rkBack')rkClose()});
+$('#rkSave').onclick=async()=>{if(!isAdmin())return;const map={};
+  document.querySelectorAll('#rkBody [data-rk]').forEach(i=>{const n=i.dataset.rk,v=i.value.trim();if(v||RANK_DEFAULT[n])map[n]=v});
+  try{await db.doc('meta/ranks').set({map});RANK_SAVED=map;toast('직급을 저장했습니다');rkClose();requestRender(true);jrRender()}
+  catch(e){toast(e&&e.code==='forbidden'?'관리자만 직급을 바꿀 수 있습니다':'직급을 저장하지 못했습니다')}};
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#jr button.jr-tg');if(!t)return;
+  const w=t.dataset.jw;if(!w||!(canWrite&&(isAdmin()||w===myId)))return;
+  if(t.dataset.jsh!==undefined){const old=SHIFTS.get(w)||'',v=old===t.dataset.jsh?'':t.dataset.jsh;SHIFTS.set(w,v);jrRender();
+    db.doc('meta/shift_'+w).set({v}).catch(()=>{SHIFTS.set(w,old);jrRender();toast('근무시간을 저장하지 못했습니다')});return}
+  const f=t.dataset.jf,D=jr.date,cur=jrFl(D,w);let arr=cur.includes(f)?cur.filter(x=>x!==f):[...cur,f];
+  if(!cur.includes(f)&&LEAVES.includes(f))arr=arr.filter(x=>x===f||!LEAVES.includes(x));
+  arr=[...FLAGS,...LEAVES].filter(x=>arr.includes(x));
+  const c0=LOGS.get(D);const nd=Object.assign({},c0||{});nd['lf_'+w]=arr;LOGS.set(D,nd);jrRender();
+  db.doc('meta/log_'+D).update({['lf_'+w]:arr}).catch(()=>{if(c0)LOGS.set(D,c0);else LOGS.delete(D);jrRender();toast('근태 체크를 저장하지 못했습니다')})});
 const jrTimers={};
 function jrSaveNow(D,w,text){const key=D+'|'+w;clearTimeout(jrTimers[key]);delete jrTimers[key];
   const sv=()=>document.querySelector(`.jr-sv[data-k="${CSS.escape(key)}"]`);
