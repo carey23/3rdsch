@@ -622,7 +622,7 @@ function rolesOf(r){
   const ws=r.workers||[],arr=k=>Array.isArray(r[k])?r[k].filter(n=>ws.includes(n)):[];
   const fin=(e,i,c)=>({editors:e,inner:i,cover:c,designers:uniq([...i,...c])});
   if(Array.isArray(r.inner)||Array.isArray(r.cover)){
-    const i=arr('inner'),c=arr('cover').filter(n=>!i.includes(n)),e=arr('editors').filter(n=>!i.includes(n)&&!c.includes(n));
+    const i=arr('inner'),c=arr('cover'),e=arr('editors');
     return fin([...e,...ws.filter(n=>!e.includes(n)&&!i.includes(n)&&!c.includes(n))],i,c)}
   if(Array.isArray(r.editors)||Array.isArray(r.designers)){
     const d=arr('designers'),e=arr('editors').filter(n=>!d.includes(n));
@@ -912,7 +912,7 @@ function commitRoles(el){
   const ro=rolesOf(r);if(JSON.stringify(ro[f])===JSON.stringify(names))return;
   if(!mayBook(r)){toast('담당자가 아니어서 수정할 수 없습니다');requestRender(true);return}
   const next={editors:ro.editors,inner:ro.inner,cover:ro.cover};
-  next[f]=names;ROLE_KEYS.forEach(k=>{if(k!==f)next[k]=next[k].filter(n=>!names.includes(n))});
+  next[f]=names;   /* 같은 사람이 담당자·내지·표지에 중복으로 들어갈 수 있음 */
   const ws=uniq([...next.editors,...next.inner,...next.cover]);
   if(!isAdmin()&&myId&&(r.workers||[]).includes(myId)&&ws.length&&!ws.includes(myId)&&!confirm('작업자에서 본인 이름을 빼면 이 도서를 더 이상 수정할 수 없습니다. 계속할까요?')){requestRender(true);return}
   r.editors=next.editors;r.inner=next.inner;r.cover=next.cover;r.designers=uniq([...next.inner,...next.cover]);r.workers=ws;
@@ -1026,7 +1026,7 @@ $('#histBody').addEventListener('click',async e=>{
   try{const d=db.doc(h.coll+'/'+h.doc_id);
     if(h.field==='__delete')await d.set({...h.old_val,by:myId,at:Date.now()});
     else if(ROLE_KEYS.includes(h.field)){const r=M.books.get(h.doc_id),ro=rolesOf(r),f=h.field,nx={editors:ro.editors,inner:ro.inner,cover:ro.cover};
-      nx[f]=h.old_val||[];ROLE_KEYS.forEach(k=>{if(k!==f)nx[k]=nx[k].filter(n=>!nx[f].includes(n))});
+      nx[f]=h.old_val||[];
       await d.update({editors:nx.editors,inner:nx.inner,cover:nx.cover,designers:uniq([...nx.inner,...nx.cover]),workers:uniq([...nx.editors,...nx.inner,...nx.cover]),by:myId,at:Date.now()})}
     else await d.update({[h.field]:h.old_val,by:myId,at:Date.now()});
     toast('되돌렸습니다');loadHist(true)}
