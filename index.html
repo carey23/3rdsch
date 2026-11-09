@@ -242,6 +242,19 @@ body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr{display:none!important}
 .ad-quick{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:900px){.ad-grid{grid-template-columns:1fr}.ad-kpis{grid-template-columns:repeat(2,1fr)}.ad-hero h2{font-size:24px}}
 @media print{body.ad-open>#ad{display:block}.ad-top,.ad-quick{display:none!important}.ad-hero{background:none!important;color:#111;border-bottom:2px solid #111;border-radius:0;padding:0 0 6px}.ad-k{border-color:#bbb;color:#111;background:none}.ad-sec{break-inside:avoid}}
+/* 직원 관리 */
+.st-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.st-bar input,.st-bar select,.ad-t input.stn,.ad-t select.std{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.ad-t input.stn{width:92px;text-align:center}
+.ad-t td .mv{display:inline-flex;gap:2px}.ad-t td .mv .chip{padding:0 7px}
+.ad-t td.nmc{font-weight:700;white-space:nowrap;cursor:default;text-decoration:none!important}
+.ad-t .tag{font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--sub);white-space:nowrap}
+.ad-t .tag.ok{color:var(--ok);border-color:var(--ok)}.ad-t .tag.un{color:var(--warn);border-color:var(--warn)}
+.ad-t tr.unreg td{background:color-mix(in srgb,var(--warn) 5%,var(--card))}
+.ad-panel{background:var(--card);border:1px solid var(--warn);border-radius:14px;padding:12px 14px;margin:0 0 10px;font-size:13px}
+.ad-panel.info{border-color:var(--accent)}
+.ad-panel b.pw{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--bg);padding:1px 8px;border-radius:6px}
+.ad-panel .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
 /* ===== 오늘의 업무일지 ===== */
 .jrbtn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:700;color:#fff;border:0;cursor:pointer;padding:8px 16px 8px 13px;border-radius:99px;
  background:linear-gradient(135deg,#27389a 0%,#2f6fd0 55%,#17a2a2 100%);box-shadow:0 3px 12px rgba(39,56,154,.35);transition:transform .15s,box-shadow .15s}
@@ -459,6 +472,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="ad-sec"><h3>팀원 관리 바로가기</h3><div class="ad-quick no-print" id="adQuick"></div></div>
   <div class="ad-sec" id="adAlerts"></div>
   <div class="ad-sec" id="adToday"></div>
+  <div class="ad-sec" id="adStaff"></div>
   <div class="ad-sec"><h3>팀원별 업무 현황 <small id="adTNote"></small></h3><div class="ad-tbox"><table class="ad-t" id="adT"></table></div></div>
 </div>
 <div id="jr" hidden>
@@ -650,7 +664,7 @@ const dlCap={async save({filename,data}){const b=new Blob([data],{type:/\.csv$/.
 
 let started=null;
 function start(){if(!started){started=(async()=>{await ensureLogin();addAccountButtons();poll()})()}return started}
-window.JPX={hist:(limit,before)=>rpc('jp_hist',{...cred(),p_limit:limit||200,p_before:before||null}),
+window.JPX={adm:(fn,a)=>rpc(fn,{...cred(),...(a||{})}),hist:(limit,before)=>rpc('jp_hist',{...cred(),p_limit:limit||200,p_before:before||null}),
   noHist:x=>NOFN(x),
   cached:(c,id)=>{const v=C[c]&&C[c].get(id);return v&&!v.deleted?v.data:null},
   get me(){return ME}};
@@ -800,6 +814,7 @@ function subscribe(){
   db.collection('meta').onSnapshot(snap=>{let ch=false;snap.docChanges().forEach(c=>{const id=c.doc.id;if(id.startsWith('shift_')){ch=true;if(c.type==='removed')SHIFTS.delete(id.slice(6));else SHIFTS.set(id.slice(6),c.doc.data().v||'');return}
     if(!id.startsWith('log_'))return;ch=true;
     if(c.type==='removed')LOGS.delete(id.slice(4));else LOGS.set(id.slice(4),c.doc.data())});if(ch&&jr.on&&!document.activeElement.matches('.jr-op'))jrRender()},()=>{});
+  db.doc('meta/staff').onSnapshot(s=>{const l=s.exists&&s.data().list;STAFF=Array.isArray(l)?l.filter(x=>x&&x.n):null;applyStaff(STAFF||DEFAULT_STAFF);requestRender(true);if(ad.on&&!ad.busy)adRender()},()=>{});
   db.doc('meta/ranks').onSnapshot(s=>{RANK_SAVED=s.exists&&s.data().map&&typeof s.data().map==='object'?s.data().map:null;requestRender()},()=>{});
   db.doc('meta/sections').onSnapshot(s=>{SEC_LIST=s.exists&&Array.isArray(s.data().list)?s.data().list:null;requestRender()},()=>{});
   db.doc('meta/main').onSnapshot(s=>{if(s.exists){const d=s.data();if(!M.meta)M.meta={id:'main',_d:new Set()};if(!M.meta._t)M.meta.title=d.title;M.meta.source=d.source}loaded.meta=true;requestRender()},()=>{});
@@ -811,7 +826,7 @@ let dragId=null;
 const typing=()=>{if(dragId)return true;const a=document.activeElement;return st.edit&&a&&a.matches&&a.matches('[contenteditable],input,select')};
 function requestRender(force){
   if(!force&&typing()){pending=true;return}
-  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle();if(jr.on&&!document.activeElement.matches('.jr-op'))jrRender();if(ad.on)adRender()})}
+  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle();if(jr.on&&!document.activeElement.matches('.jr-op'))jrRender();if(ad.on&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#adStaff')))adRender()})}
 document.addEventListener('focusout',()=>{if(pending)setTimeout(()=>{if(pending&&!typing())requestRender(true)},250)});
 
 /* ---------- 탭/컨트롤 ---------- */
@@ -1142,8 +1157,103 @@ $('#bAdd').onclick=()=>addBook([]);
 $('#bAddTop').onclick=()=>addBook([]);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-addfor]');if(b)addBook([b.dataset.addfor])});
 
+/* ---------- 직원 명부 (관리자가 대시보드에서 편집, meta/staff {list:[{n,d,r}]} — 없으면 기본 명단) ---------- */
+const DEPT_OTHER='기타 · 외주';
+const DEFAULT_STAFF=ORG.flatMap(([d,m])=>m.map(n=>({n,d,r:({'차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리'})[n]||''})));
+function applyStaff(list){
+  ORG.forEach(g=>{g[1].length=0;list.filter(x=>x.d===g[0]).forEach(x=>{if(!g[1].includes(x.n))g[1].push(x.n)})});
+  STAFF_RANK={};list.forEach(x=>{STAFF_RANK[x.n]=x.r||''});
+  [ORG_KNOWN,DESIGN_SET,INNER_SET,COVER_SET].forEach(t=>t.clear());
+  ORG.forEach(g=>g[1].forEach(n=>{ORG_KNOWN.add(n);if(g[2]==='g2'||g[2]==='g4')DESIGN_SET.add(n);if(g[2]==='g2')INNER_SET.add(n);if(g[2]==='g4')COVER_SET.add(n)}));}
+const staffBase=()=>(STAFF||DEFAULT_STAFF.map(x=>({...x,r:rankOf(x.n)}))).map(x=>({n:x.n,d:x.d,r:x.r||''}));
+const DEPT_NAMES=[...ORG.map(g=>g[0]),DEPT_OTHER];
+const ACC=new Map();let ACC_OK=false;
+async function adLoadAcc(){try{const rows=await window.JPX.adm('jp_admin_users',{});ACC.clear();(rows||[]).forEach(r=>ACC.set(r.name,r));ACC_OK=true}catch(e){ACC_OK=false}if(ad.on&&!ad.busy)adRender()}
+async function staffSave(list){await db.doc('meta/staff').set({list});STAFF=list;applyStaff(list);requestRender(true)}
+const randPw=()=>{const c='abcdefghjkmnpqrstuvwxyz23456789';let o='';for(let i=0;i<8;i++)o+=c[Math.floor(Math.random()*c.length)];return o};
+const PERSONAL_KEYS=w=>['pn_','ps_','pd_','pm_','wo_'].map(p=>p+w);
+const bookHas=(r,w)=>(r.workers||[]).includes(w)||['editors','inner','cover','designers'].some(k=>Array.isArray(r[k])&&r[k].includes(w));
+function bookPatchRemove(r,w){const pt={},fix=k=>{if(Array.isArray(r[k])&&r[k].includes(w))pt[k]=r[k].filter(n=>n!==w)};['workers','editors','inner','cover','designers'].forEach(fix);return pt}
+function bookPatchRename(r,o,n){const pt={},fix=k=>{if(Array.isArray(r[k])&&r[k].includes(o))pt[k]=uniq(r[k].map(x=>x===o?n:x))};['workers','editors','inner','cover','designers'].forEach(fix);
+  ['n','s','d','m'].forEach(f=>{const ok='p'+f+'_'+o;if(r[ok]!==undefined){pt['p'+f+'_'+n]=r[ok];pt[ok]=null}});if(r['wo_'+o]!==undefined){pt['wo_'+n]=r['wo_'+o];pt['wo_'+o]=null}return pt}
+async function applyBookPatches(items){let ok=0;for(let i=0;i<items.length;i+=6){await Promise.all(items.slice(i,i+6).map(async([r,pt])=>{await db.doc('books/'+r.id).update(pt);Object.assign(r,pt);ok++}))}return ok}
+function adStaffRender(){
+  const el=$('#adStaff');if(!el||!ad.on)return;
+  const base=staffBase(),reg=new Set(base.map(x=>x.n));
+  const unreg=jrPeopleAll().filter(n=>!reg.has(n));
+  const rows=[];DEPT_NAMES.forEach(d=>{const m=base.filter(x=>x.d===d);if(m.length)rows.push({g:d,n:m.length});m.forEach(x=>rows.push({...x,reg:true,dm:m}))});
+  if(unreg.length){rows.push({g:'미등록 (도서에만 이름이 있음)',n:unreg.length,unreg:true});unreg.forEach(n=>rows.push({n,d:DEPT_OTHER,r:'',reg:false}))}
+  const bc=n=>recs().filter(r=>bookHas(r,n)).length;
+  const acc=n=>!ACC_OK?'<span class="tag">확인 중</span>':ACC.has(n)?`<span class="tag ok">계정 있음${ACC.get(n).must_change?' · 초기비번':''}</span>`:'<span class="tag">계정 없음</span>';
+  const pn=ad.panel;
+  let panel='';
+  if(pn&&pn.type==='del'){const n=pn.name,all=recs().filter(r=>bookHas(r,n)),solo=all.filter(r=>(r.workers||[]).length===1&&(r.workers||[])[0]===n),act=all.filter(r=>AG(r).stage!=='인쇄완료');
+    panel=`<div class="ad-panel"><b>${esc(n)}</b> 님을 삭제합니다.<div style="margin-top:6px;color:var(--sub)">· 직원 명부에서 빼고${ACC.has(n)?', 로그인 계정도 삭제합니다.':' (로그인 계정은 없습니다).'}<br>· 이름이 들어 있는 도서: ${all.length}권 (진행 중 ${act.length}권). 이 중 ${solo.length}권은 이 사람이 유일한 작업자라 제거하면 "작업자 미지정"이 됩니다.</div>
+      <label class="lbl" style="display:block;margin-top:8px"><input type="checkbox" id="stDelBooks" ${all.length?'checked':''}> 도서의 작업자 칸에서도 이름 제거 (${all.length}권) <span style="color:var(--sub)">— 끄면 이름이 도서에 남고 "기타"로 계속 보입니다</span></label>
+      <div class="row"><button class="btn" style="border-color:var(--warn);color:var(--warn)" data-stgo="delok">삭제 확정</button><button class="btn" data-stgo="cancel">취소</button></div></div>`}
+  else if(pn&&pn.type==='pw')panel=`<div class="ad-panel info"><b>${esc(pn.name)}</b> 님 임시 비밀번호: <b class="pw">${esc(pn.pw)}</b> <button class="btn" data-stgo="copy">복사</button><div style="margin-top:6px;color:var(--sub)">한 번만 표시됩니다. 본인에게 전달하세요. 처음 로그인할 때 새 비밀번호를 정하게 됩니다.</div><div class="row"><button class="btn" data-stgo="cancel">닫기</button></div></div>`;
+  else if(pn&&pn.type==='msg')panel=`<div class="ad-panel info">${esc(pn.text)}<div class="row"><button class="btn" data-stgo="cancel">닫기</button></div></div>`;
+  const opts=sel=>DEPT_NAMES.map(d=>`<option${d===sel?' selected':''}>${esc(d)}</option>`).join('');
+  el.innerHTML=`<h3>직원 관리 <small>추가 · 부서/직급 수정 · 이름 변경 · 삭제 (모든 사람 화면에 바로 반영, 순서는 직급순으로 두세요)</small></h3>${panel}
+  <div class="st-bar no-print"><b style="font-size:13px">직원 추가</b><input id="stNewName" placeholder="이름" maxlength="20" style="width:120px"><select id="stNewDept">${opts('')}</select><input id="stNewRank" placeholder="직급 (예: 대리)" maxlength="12" style="width:120px"><label class="lbl"><input type="checkbox" id="stNewAcc" checked> 로그인 계정도 만들기</label><button class="btn primary" data-stgo="add">추가</button></div>
+  <div class="ad-tbox"><table class="ad-t" style="min-width:860px"><thead><tr><th>이름</th><th>부서</th><th>직급</th><th>순서</th><th>도서</th><th>계정</th><th>관리자</th><th class="no-print">계정 작업</th><th class="no-print">수정·삭제</th></tr></thead><tbody>${rows.map(x=>{
+    if(x.g)return `<tr class="g" style="--gc:var(--${deptCls(x.g)})"><td colspan="9">${esc(x.g)} <small style="font-weight:500">${x.n}명</small></td></tr>`;
+    const w=esc(x.n),i=x.reg?x.dm.findIndex(y=>y.n===x.n):0;
+    return `<tr class="${x.reg?'':'unreg'}"><td class="nmc">${w}</td>
+      <td>${x.reg?`<select class="std" data-stdept="${w}">${opts(x.d)}</select>`:`<span style="color:var(--sub)">${esc(DEPT_OTHER)}</span>`}</td>
+      <td>${x.reg?`<input class="stn" data-strank="${w}" value="${esc(x.r)}" placeholder="직급" maxlength="12">`:'<span class="z">–</span>'}</td>
+      <td>${x.reg?`<span class="mv"><button class="chip" data-stmv="${w}|-1" ${i?'':'disabled'} aria-label="위로">▲</button><button class="chip" data-stmv="${w}|1" ${i<x.dm.length-1?'':'disabled'} aria-label="아래로">▼</button></span>`:''}</td>
+      <td>${bc(x.n)||'<span class="z">–</span>'}</td><td>${acc(x.n)}</td>
+      <td>${ACC.has(x.n)?`<input type="checkbox" data-stadm="${w}" ${ACC.get(x.n).is_admin?'checked':''} ${x.n===myId?'disabled title="본인 권한은 바꿀 수 없습니다"':''} aria-label="관리자">`:'<span class="z">–</span>'}</td>
+      <td class="no-print">${ACC.has(x.n)?`<button class="chip" data-stpw="${w}">비밀번호 초기화</button>`:`<button class="chip" data-stmk="${w}">계정 만들기</button>`}</td>
+      <td class="no-print">${x.reg?`<button class="chip" data-strn="${w}">이름 변경</button> `:`<button class="chip" data-streg="${w}">직원으로 등록</button> `}<button class="chip" style="color:var(--warn)" data-stdel="${w}">삭제</button></td></tr>`}).join('')}</tbody></table></div>`;
+}
+document.addEventListener('click',async e=>{
+  if(!ad.on||!isAdmin())return;const t=e.target.closest('#adStaff [data-stgo],#adStaff [data-stmv],#adStaff [data-stpw],#adStaff [data-stmk],#adStaff [data-strn],#adStaff [data-streg],#adStaff [data-stdel]');if(!t)return;
+  const D=t.dataset,err=x=>{ad.panel={type:'msg',text:x};adStaffRender()};
+  const msgOf=x=>{const m=(x&&x.message)||'';return /name_exists/.test(m)?'이미 같은 이름의 계정이 있습니다.':/self_delete/.test(m)?'본인 계정은 삭제할 수 없습니다.':/last_admin/.test(m)?'마지막 관리자는 삭제할 수 없습니다.':/Could not find|PGRST202|404/.test(m)||x&&x.code==='error'&&!m?'서버에 새 함수가 아직 없습니다. "supabase_직원관리_추가.sql"을 Supabase SQL Editor에서 한 번 실행해 주세요.':(m||'실패했습니다')};
+  try{ad.busy=true;
+  if(D.stgo==='cancel'){ad.panel=null;ad.busy=false;adStaffRender();return}
+  if(D.stgo==='copy'){try{await navigator.clipboard.writeText(ad.panel.pw);toast('복사했습니다')}catch(x){toast('복사하지 못했습니다')}ad.busy=false;return}
+  if(D.stgo==='add'){const n=($('#stNewName').value||'').trim(),d=$('#stNewDept').value,r=($('#stNewRank').value||'').trim();
+    if(!n){err('이름을 입력하세요.');return}
+    const base=staffBase();if(base.some(x=>x.n===n)){err('이미 등록된 직원입니다.');return}
+    let at=-1;base.forEach((x,i)=>{if(x.d===d)at=i});const list=[...base];list.splice(at<0?list.length:at+1,0,{n,d,r});await staffSave(list);
+    let pn=null;if($('#stNewAcc').checked&&!ACC.has(n)){const pw=randPw();try{await window.JPX.adm('jp_admin_set_password',{p_target:n,p_new:pw});pn={type:'pw',name:n,pw}}catch(x){pn={type:'msg',text:'직원은 추가했지만 계정은 만들지 못했습니다: '+msgOf(x)}}await adLoadAcc()}
+    ad.panel=pn||{type:'msg',text:n+' 님을 추가했습니다.'};toast('추가했습니다');ad.busy=false;adRender();return}
+  if(D.stmv){const [n,dir]=D.stmv.split('|'),list=staffBase(),i=list.findIndex(x=>x.n===n),j=(()=>{let k=i+(+dir);while(k>=0&&k<list.length&&list[k].d!==list[i].d)k+=(+dir);return k})();
+    if(i<0||j<0||j>=list.length){ad.busy=false;return}[list[i],list[j]]=[list[j],list[i]];await staffSave(list);ad.busy=false;adRender();return}
+  if(D.streg){const list=staffBase();list.push({n:D.streg,d:DEPT_OTHER,r:''});await staffSave(list);ad.busy=false;adRender();return}
+  if(D.stmk||D.stpw){const n=D.stmk||D.stpw;if(D.stpw&&!confirm(n+' 님의 비밀번호를 초기화할까요? 임시 비밀번호가 새로 만들어집니다.')){ad.busy=false;return}
+    const pw=randPw();await window.JPX.adm('jp_admin_set_password',{p_target:n,p_new:pw});ad.panel={type:'pw',name:n,pw};await adLoadAcc();ad.busy=false;adRender();return}
+  if(D.stdel){ad.panel={type:'del',name:D.stdel};ad.busy=false;adStaffRender();return}
+  if(D.stgo==='delok'){const n=ad.panel.name,rm=$('#stDelBooks')&&$('#stDelBooks').checked;let note=[];
+    if(ACC.has(n)){try{await window.JPX.adm('jp_admin_delete_user',{p_target:n});note.push('계정 삭제')}catch(x){ad.panel={type:'msg',text:'계정을 삭제하지 못해 중단했습니다: '+msgOf(x)};ad.busy=false;adStaffRender();return}}
+    let list=staffBase().filter(x=>x.n!==n);if(STAFF||rm||true)await staffSave(list);note.push('명부에서 제거');
+    if(rm){const items=recs().filter(r=>bookHas(r,n)).map(r=>[r,bookPatchRemove(r,n)]);const k=await applyBookPatches(items);note.push('도서 '+k+'권에서 이름 제거')}
+    try{await db.doc('meta/shift_'+n).delete()}catch(x){}
+    await adLoadAcc();ad.panel={type:'msg',text:n+' 님 삭제 완료 ('+note.join(' · ')+')'};ad.busy=false;adRender();return}
+  if(D.strn){const o=D.strn;if(o===myId){err('본인 이름은 직접 바꿀 수 없습니다. 다른 관리자에게 부탁하세요. (이름이 바뀌면 로그인 정보도 바뀌기 때문입니다)');return}
+    const nn=(prompt(o+' 님의 새 이름을 입력하세요.\n도서의 작업자 이름과 계정 이름이 함께 바뀝니다.',o)||'').trim();if(!nn||nn===o){ad.busy=false;return}
+    if(staffBase().some(x=>x.n===nn)||jrPeopleAll().includes(nn)){err('이미 같은 이름이 있습니다.');return}
+    if(ACC.has(o)){try{await window.JPX.adm('jp_admin_rename_user',{p_target:o,p_new:nn})}catch(x){err('계정 이름을 바꾸지 못해 중단했습니다: '+msgOf(x));return}}
+    const list=staffBase().map(x=>x.n===o?{...x,n:nn}:x);await staffSave(list);
+    const items=recs().filter(r=>bookHas(r,o)||PERSONAL_KEYS(o).some(k=>r[k]!==undefined)).map(r=>[r,bookPatchRename(r,o,nn)]).filter(([r,pt])=>Object.keys(pt).length);const k=await applyBookPatches(items);
+    let lg=0;for(const [d,v] of [...LOGS]){const pt={};if(v['lg_'+o]!==undefined){pt['lg_'+nn]=v['lg_'+o];pt['lg_'+o]=null}if(v['lf_'+o]!==undefined){pt['lf_'+nn]=v['lf_'+o];pt['lf_'+o]=null}if(Object.keys(pt).length){await db.doc('meta/log_'+d).update(pt);lg++}}
+    const sv=SHIFTS.get(o);if(sv){await db.doc('meta/shift_'+nn).set({v:sv});await db.doc('meta/shift_'+o).set({v:''});SHIFTS.set(nn,sv);SHIFTS.delete(o)}
+    await adLoadAcc();ad.panel={type:'msg',text:`${o} → ${nn} 이름 변경 완료 (도서 ${k}권 · 업무일지 ${lg}일치 · 계정${ACC.has(nn)?' 포함':' 없음'})`};ad.busy=false;adRender();return}
+  ad.busy=false}catch(x){ad.busy=false;err('실패했습니다: '+msgOf(x))}});
+document.addEventListener('change',async e=>{
+  if(!ad.on||!isAdmin())return;const t=e.target;
+  try{
+  if(t.dataset&&t.dataset.stdept){const list=staffBase(),i=list.findIndex(x=>x.n===t.dataset.stdept);if(i<0)return;const x=list.splice(i,1)[0];x.d=t.value;let at=-1;list.forEach((y,k)=>{if(y.d===x.d)at=k});list.splice(at<0?list.length:at+1,0,x);await staffSave(list);adRender()}
+  else if(t.dataset&&t.dataset.strank!==undefined){const list=staffBase(),x=list.find(y=>y.n===t.dataset.strank);if(!x||x.r===t.value.trim())return;x.r=t.value.trim();await staffSave(list);adRender();toast('직급을 저장했습니다')}
+  else if(t.dataset&&t.dataset.stadm){const n=t.dataset.stadm;if(n===myId){t.checked=!t.checked;return}
+    if(!confirm(n+' 님에게 '+(t.checked?'관리자(전체 수정) 권한을 줄까요?':'관리자 권한을 뺄까요?'))){t.checked=!t.checked;return}
+    await window.JPX.adm('jp_admin_set_role',{p_target:n,p_admin:t.checked});await adLoadAcc();toast('권한을 바꿨습니다')}
+  }catch(x){toast('저장하지 못했습니다: '+((x&&x.message)||''));adRender()}});
 /* ---------- 관리자 대시보드 (관리자만): 이미 있는 자료로 팀 전체 현황 · 주의 대상 · 오늘 근태 ---------- */
-const ad={on:false,scroll:0,sort:'dept',dir:1};
+const ad={on:false,scroll:0,sort:'dept',dir:1,panel:null,busy:false};
 const AD_STG=['진행중','대기','단계완료','재고대기','보류'];
 function adCalc(){
   const D=iso(TODAY),rows=jrCalc(D).rows;
@@ -1167,7 +1277,7 @@ function adRender(){
   const leave=per.filter(x=>x.fl.some(f=>LEAVES.includes(f)));
   const noLog=per.filter(x=>!x.fl.includes('연차')&&!x.op);
   $('#adK').innerHTML=[[c.act.length,'작업 중 도서',''],[c.staleBooks.length,'정체 도서 ('+st.thr+'일+)',c.staleBooks.length?'warn':''],[c.noWorker.length,'작업자 미지정 도서',c.noWorker.length?'warn':''],[per.filter(x=>x.fl.length).length,'오늘 근태 표시 인원',''],[noLog.length,'오늘 의견 미작성 인원','']].map(([n,l,k])=>`<div class="ad-k ${k}"><b>${n}</b><span>${l}</span></div>`).join('');
-  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-rank','직급 설정'],['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
+  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-staff','직원 추가·수정·삭제 (직급·부서)'],['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
   /* 주의 대상 */
   const li=(b,r)=>`<div class="ad-li"><b data-adgo="${esc(b.title)}">${esc(b.title)}${b.rev?' '+revT(b.rev):''}</b><span>${r}</span></div>`;
   const oldest=c.act.map(r=>[r,AG(r)]).filter(([r,v])=>v.age!=null&&['진행중','대기','단계완료'].includes(v.stage)).sort((a,b)=>b[1].age-a[1].age).slice(0,8);
@@ -1200,9 +1310,10 @@ function adRender(){
     let g='';if(grouped&&x.dept!==lastD){lastD=x.dept;g=`<tr class="g" style="--gc:var(--${deptCls(x.dept)})"><td colspan="${AD_STG.length+9}">${esc(x.dept)}</td></tr>`}
     const fl=x.fl.map(f=>`<span class="jr-tg on ${FLAGS.includes(f)?'f'+FLAGS.indexOf(f):'l'}">${f}</span>`).join('');
     return g+`<tr><td data-adw="${esc(x.w)}">${esc(nm(x.w))}</td><td style="color:var(--sub);font-size:12px">${esc(x.dept)}</td><td><b>${x.n}</b></td><td>${x.n?bar(x):'<span class="z">–</span>'}</td>${AD_STG.map(k=>`<td>${x.cnt[k]||'<span class="z">–</span>'}</td>`).join('')}<td>${x.stale?`<span class="stl">${x.stale}</span>`:'<span class="z">–</span>'}</td><td>${x.last?x.last.slice(5).replace('-','.')+` <small style="color:var(--sub)">(${x.lastAge}일 전)</small>`:'<span class="z">–</span>'}</td><td>${x.done?`<b>${x.done}</b>`:'<span class="z">–</span>'}</td><td><div class="att">${fl||'<span class="z">–</span>'}</div></td><td>${x.op?'✓':'<span class="z">–</span>'}</td></tr>`}).join('')}</tbody>`;
+  adStaffRender();
   $('#adTNote').textContent='이름을 누르면 그 사람의 도서 목록으로 이동 · 제목 칸을 누르면 정렬';
 }
-function adOpen(){if(!isAdmin())return;if(jr.on)jrClose();ad.scroll=window.scrollY;ad.on=true;document.body.classList.add('ad-open');$('#ad').hidden=false;window.scrollTo(0,0);adRender()}
+function adOpen(){if(!isAdmin())return;if(jr.on)jrClose();adLoadAcc();ad.scroll=window.scrollY;ad.on=true;document.body.classList.add('ad-open');$('#ad').hidden=false;window.scrollTo(0,0);adRender()}
 function adClose(){ad.on=false;document.body.classList.remove('ad-open');$('#ad').hidden=true;window.scrollTo(0,ad.scroll||0)}
 const adShow=()=>{const b=$('#bAdm');if(b)b.hidden=!isAdmin()};adShow();setInterval(adShow,1000);
 $('#bAdm').onclick=adOpen;$('#adBack').onclick=adClose;$('#adPrint').onclick=()=>window.print();
@@ -1214,7 +1325,7 @@ document.addEventListener('click',e=>{
   const g=e.target.closest('[data-adgo]');if(g){adClose();resetFilters();st.q=g.dataset.adgo;$('#q').value=st.q;showTab('list');render();return}
   const q=e.target.closest('#adQuick .btn');if(q){const id=q.id;
     if(id==='adq-acc'){const b=document.getElementById('jpAdm');if(b)b.click()}
-    else if(id==='adq-rank')rkOpen();else if(id==='adq-sec')openSecs();else if(id==='adq-hist')openHist('');
+    else if(id==='adq-staff'){const el=$('#adStaff');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}else if(id==='adq-sec')openSecs();else if(id==='adq-hist')openHist('');
     else if(id==='adq-log'){adClose();jrOpen()}}});
 /* ---------- 오늘의 업무일지: 도서 자료에서 자동 정리 + 본인 의견(meta/log_날짜 문서의 lg_이름 칸) ---------- */
 const SHIFTS=new Map(); /* 이름 → '0800'|'0900' (근무시간 확인용 표시, 날짜와 무관하게 유지) */
@@ -1225,7 +1336,8 @@ const jr={on:false,date:iso(TODAY),who:'',all:false,scroll:0,dept:'',mode:'day',
 const DEPTS=[...ORG.map(g=>g[0]),'기타 · 외주'];
 const RANK_DEFAULT={'차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리'};
 let RANK_SAVED=null; /* 관리자가 저장한 직급 (meta/ranks → {map:{이름:직급}}) */
-const rankOf=w=>{const m=RANK_SAVED&&Object.prototype.hasOwnProperty.call(RANK_SAVED,w)?RANK_SAVED[w]:RANK_DEFAULT[w];return m||''};
+let STAFF=null,STAFF_RANK={};
+const rankOf=w=>{if(STAFF)return STAFF_RANK[w]||'';const m=RANK_SAVED&&Object.prototype.hasOwnProperty.call(RANK_SAVED,w)?RANK_SAVED[w]:RANK_DEFAULT[w];return m||''};
 const nm=w=>w+(rankOf(w)?' '+rankOf(w):'');
 const deptOf=w=>{const g=ORG.find(o=>o[1].includes(w));return g?g[0]:'기타 · 외주'};
 const deptCls=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
@@ -1266,7 +1378,7 @@ function jrChrome(){
   $('#jrDate').hidden=m;$('#jrMonth').hidden=!m;$('#jrAllL').hidden=m;$('#jrToday').textContent=m?'이번 달':'오늘';
   $('#jrKick').textContent=(m?'월간 업무일지 · MONTHLY LOG':'오늘의 업무일지 · DAILY LOG')+(jr.dept?' · '+jr.dept:'');
   $('#jrDept').innerHTML=['',...DEPTS].map(d=>`<button type="button" class="jr-chip${jr.dept===d?' on':''}" style="--gc:var(--${d?deptCls(d):'accent'})" data-d="${esc(d)}">${d||'전체'}</button>`).join('');
-  $('#jrRk').hidden=!isAdmin();
+  $('#jrRk').hidden=true;
   $('#jr').classList.toggle('brk',$('#jrBrk').checked)}
 function jrRender(){
   if(!jr.on)return;
