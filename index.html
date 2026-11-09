@@ -194,6 +194,54 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   .stbtn::before{content:''}
   .wgroup{break-inside:auto}
 }
+/* ===== 관리자 대시보드 ===== */
+.hl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.admbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;font-weight:700;color:#fff;border:0;cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;background:linear-gradient(135deg,#0f2a3d,#14506a 60%,#1c8a7a);box-shadow:0 2px 10px rgba(15,42,61,.35);transition:transform .15s}
+.admbtn:hover{transform:translateY(-1px)}
+.admbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr{display:none!important}
+#ad{max-width:1240px;margin:0 auto;padding:14px 0 40px}
+.ad-hero{border-radius:22px;color:#fff;padding:18px 26px 22px;background:radial-gradient(800px 260px at 100% -30%,rgba(120,220,190,.35),transparent 60%),linear-gradient(135deg,#0c2233,#134a63 60%,#1b7f73)}
+.ad-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ad-hero h2{margin:14px 0 2px;font-size:30px;font-weight:800;letter-spacing:-.01em}
+.ad-hero p{margin:0;opacity:.8;font-size:13px}
+.ad-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px}
+.ad-k{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 14px}
+.ad-k b{display:block;font-size:26px;line-height:1.1;font-weight:800}.ad-k span{font-size:12px;opacity:.85}
+.ad-k.warn b{color:#ffd48a}
+.ad-sec{margin-top:18px}
+.ad-sec>h3{margin:0 0 8px 2px;font-size:16px;display:flex;align-items:baseline;gap:10px}
+.ad-sec>h3 small{font-weight:500;color:var(--sub);font-size:12px}
+.ad-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+.ad-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.ad-card h4{margin:0 0 8px;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.ad-card h4 em{font-style:normal;font-weight:800;color:var(--warn)}
+.ad-card.ok h4 em{color:var(--ok)}
+.ad-li{display:flex;gap:8px;align-items:baseline;justify-content:space-between;padding:5px 0;border-top:1px dashed var(--line);font-size:12.5px}
+.ad-li:first-of-type{border-top:0}
+.ad-li b{font-weight:700;cursor:pointer}.ad-li b:hover{text-decoration:underline}
+.ad-li span{color:var(--sub);font-size:11.5px;text-align:right}
+.ad-li .old{color:var(--warn);font-weight:700}
+.ad-none{color:var(--sub);font-size:12.5px;padding:4px 0}
+.ad-chips{display:flex;gap:5px;flex-wrap:wrap}
+.ad-cp{font-size:12px;padding:2px 9px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.ad-tbox{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:auto}
+.ad-t{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+.ad-t th{position:sticky;top:0;text-align:center;font-size:12px;color:var(--sub);font-weight:700;padding:8px 6px;background:var(--bg);border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+.ad-t th:first-child,.ad-t td:first-child{text-align:left;padding-left:14px}
+.ad-t td{text-align:center;padding:7px 6px;border-top:1px dashed var(--line);vertical-align:middle}
+.ad-t td:first-child{font-weight:700;white-space:nowrap;cursor:pointer}
+.ad-t td:first-child:hover{text-decoration:underline}
+.ad-t tr.g td{background:color-mix(in srgb,var(--gc) 10%,var(--card));color:var(--gc);font-weight:800;text-align:left;padding:5px 14px;border-top:1px solid var(--line);cursor:default;text-decoration:none!important}
+.ad-t .z{color:var(--line)}
+.ad-t .sbar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--bg);min-width:90px}
+.ad-t .sbar i{display:block;height:100%}
+.ad-t .stl{font-weight:800;color:var(--warn)}
+.ad-t .att{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
+.ad-t .att .jr-tg{padding:0 7px;font-size:11px}.ad-t .att .jr-tg::before{display:none}
+.ad-quick{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:900px){.ad-grid{grid-template-columns:1fr}.ad-kpis{grid-template-columns:repeat(2,1fr)}.ad-hero h2{font-size:24px}}
+@media print{body.ad-open>#ad{display:block}.ad-top,.ad-quick{display:none!important}.ad-hero{background:none!important;color:#111;border-bottom:2px solid #111;border-radius:0;padding:0 0 6px}.ad-k{border-color:#bbb;color:#111;background:none}.ad-sec{break-inside:avoid}}
 /* ===== 오늘의 업무일지 ===== */
 .jrbtn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:700;color:#fff;border:0;cursor:pointer;padding:8px 16px 8px 13px;border-radius:99px;
  background:linear-gradient(135deg,#27389a 0%,#2f6fd0 55%,#17a2a2 100%);box-shadow:0 3px 12px rgba(39,56,154,.35);transition:transform .15s,box-shadow .15s}
@@ -346,8 +394,9 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 
 <header class="no-print">
-  <div>
+  <div class="hl">
     <h1><button type="button" id="bHome" class="home" title="홈으로 (처음 화면)" aria-label="홈으로 (처음 화면)"><span class="hico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5a.5.5 0 0 0 .5.5h4v-6h4v6h4a.5.5 0 0 0 .5-.5V10"/></svg></span><span id="ttl">주간계획서</span><span class="hlbl">홈</span></button></h1>
+    <button type="button" class="admbtn" id="bAdm" hidden title="관리자 전용 대시보드"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span>관리자 대시보드</span></button>
   </div>
   <div class="tools">
     <button type="button" class="jrbtn" id="bJr" title="오늘의 업무일지 열기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/></svg><span>오늘의 업무일지</span><b id="jrN">0</b></button>
@@ -400,6 +449,17 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <thead><tr><th>입고(예정)일</th><th>도서명</th><th>저자</th><th>현재 진행</th><th>차수</th><th class="act">삭제</th></tr></thead><tbody id="inc"></tbody></table></div></section>
   <section class="panel" id="p-hold"><div class="memo-grid" id="hold"></div></section>
 
+</div>
+<div id="ad" hidden>
+  <div class="ad-hero">
+    <div class="ad-top no-print"><button type="button" class="jr-hbtn" id="adBack">← 현황판으로</button><button type="button" class="jr-hbtn solid" id="adPrint">인쇄</button></div>
+    <h2>관리자 대시보드</h2><p id="adSub"></p>
+    <div class="ad-kpis" id="adK"></div>
+  </div>
+  <div class="ad-sec"><h3>팀원 관리 바로가기</h3><div class="ad-quick no-print" id="adQuick"></div></div>
+  <div class="ad-sec" id="adAlerts"></div>
+  <div class="ad-sec" id="adToday"></div>
+  <div class="ad-sec"><h3>팀원별 업무 현황 <small id="adTNote"></small></h3><div class="ad-tbox"><table class="ad-t" id="adT"></table></div></div>
 </div>
 <div id="jr" hidden>
   <div class="jr-hero">
@@ -751,7 +811,7 @@ let dragId=null;
 const typing=()=>{if(dragId)return true;const a=document.activeElement;return st.edit&&a&&a.matches&&a.matches('[contenteditable],input,select')};
 function requestRender(force){
   if(!force&&typing()){pending=true;return}
-  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle();if(jr.on&&!document.activeElement.matches('.jr-op'))jrRender()})}
+  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle();if(jr.on&&!document.activeElement.matches('.jr-op'))jrRender();if(ad.on)adRender()})}
 document.addEventListener('focusout',()=>{if(pending)setTimeout(()=>{if(pending&&!typing())requestRender(true)},250)});
 
 /* ---------- 탭/컨트롤 ---------- */
@@ -850,7 +910,7 @@ function render(){
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
   if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
   $('#pMeta').textContent='인쇄일 '+iso(new Date())+' · 표시 '+a.length+'건'+(f.length?' · 조건: '+f.join(', '):'');
-  renderKpis();renderRecent();drawTabs();fillBy();jrBadge();
+  renderKpis();renderRecent();drawTabs();fillBy();jrBadge();{const b=$('#bAdm');if(b)b.hidden=!isAdmin()}
 }
 
 /* ---------- 최근 수정 3건 ---------- */
@@ -1082,6 +1142,80 @@ $('#bAdd').onclick=()=>addBook([]);
 $('#bAddTop').onclick=()=>addBook([]);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-addfor]');if(b)addBook([b.dataset.addfor])});
 
+/* ---------- 관리자 대시보드 (관리자만): 이미 있는 자료로 팀 전체 현황 · 주의 대상 · 오늘 근태 ---------- */
+const ad={on:false,scroll:0,sort:'dept',dir:1};
+const AD_STG=['진행중','대기','단계완료','재고대기','보류'];
+function adCalc(){
+  const D=iso(TODAY),rows=jrCalc(D).rows;
+  const per=rows.map(x=>{const w=x.w;const mine=recs().filter(r=>(r.workers||[]).includes(w));
+    const act=mine.map(r=>[r,eff(r,w)]).filter(([r,v])=>v.stage!=='인쇄완료');
+    const cnt={};AD_STG.forEach(k=>cnt[k]=0);act.forEach(([r,v])=>{if(cnt[v.stage]!==undefined)cnt[v.stage]++});
+    const stale=act.filter(([r,v])=>isStale(v));
+    const last=mine.map(r=>eff(r,w).date||'').sort().pop()||'';
+    return {w,dept:deptOf(w),n:act.length,cnt,stale:stale.length,staleList:stale,last,lastAge:last?ageOf(last):null,fl:x.fl,done:x.done.length,op:x.op.trim()}});
+  const act=recs().filter(r=>AG(r).stage!=='인쇄완료');
+  const staleBooks=act.filter(r=>isStale(AG(r)));
+  const noWorker=act.filter(r=>!(r.workers||[]).length);
+  const noEditor=act.filter(r=>(r.workers||[]).length&&!rolesOf(r).editors.length);
+  const noDesign=act.filter(r=>(r.workers||[]).length&&!rolesOf(r).inner.length&&!rolesOf(r).cover.length);
+  return {D,per,act,staleBooks,noWorker,noEditor,noDesign};
+}
+function adRender(){
+  if(!ad.on)return;
+  const c=adCalc(),per=c.per,now=new Date();
+  $('#adSub').textContent=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일(${WD[now.getDay()]}) 기준 · 관리자 ${myId||''} · 정체 기준 ${st.thr}일`;
+  const leave=per.filter(x=>x.fl.some(f=>LEAVES.includes(f)));
+  const noLog=per.filter(x=>!x.fl.includes('연차')&&!x.op);
+  $('#adK').innerHTML=[[c.act.length,'작업 중 도서',''],[c.staleBooks.length,'정체 도서 ('+st.thr+'일+)',c.staleBooks.length?'warn':''],[c.noWorker.length,'작업자 미지정 도서',c.noWorker.length?'warn':''],[per.filter(x=>x.fl.length).length,'오늘 근태 표시 인원',''],[noLog.length,'오늘 의견 미작성 인원','']].map(([n,l,k])=>`<div class="ad-k ${k}"><b>${n}</b><span>${l}</span></div>`).join('');
+  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-rank','직급 설정'],['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
+  /* 주의 대상 */
+  const li=(b,r)=>`<div class="ad-li"><b data-adgo="${esc(b.title)}">${esc(b.title)}${b.rev?' '+revT(b.rev):''}</b><span>${r}</span></div>`;
+  const oldest=c.act.map(r=>[r,AG(r)]).filter(([r,v])=>v.age!=null&&['진행중','대기','단계완료'].includes(v.stage)).sort((a,b)=>b[1].age-a[1].age).slice(0,8);
+  const heavy=per.filter(x=>x.stale>=1).sort((a,b)=>b.stale-a.stale||b.n-a.n).slice(0,8);
+  const rgap=(arr,l)=>`<details><summary class="ad-none" style="cursor:pointer">${l} ${arr.length}건 보기</summary>${arr.slice(0,40).map(b=>li(b,esc((b.workers||[]).join(', ')))).join('')}</details>`;
+  $('#adAlerts').innerHTML=`<h3>주의 대상 <small>제목을 누르면 도서 목록에서 해당 도서를 찾아 줍니다</small></h3><div class="ad-grid">
+    <div class="ad-card${heavy.length?'':' ok'}"><h4>정체 도서가 많은 사람<em>${heavy.length?heavy.length+'명':'없음'}</em></h4>${heavy.map(x=>`<div class="ad-li"><b data-adw="${esc(x.w)}">${esc(nm(x.w))}</b><span><span class="old">정체 ${x.stale}건</span> / 작업 ${x.n}건</span></div>`).join('')||'<div class="ad-none">정체 도서가 없습니다.</div>'}</div>
+    <div class="ad-card${oldest.length?'':' ok'}"><h4>오래 갱신되지 않은 도서 TOP ${oldest.length}<em>${oldest.length?'최장 '+oldest[0][1].age+'일':''}</em></h4>${oldest.map(([r,v])=>li(r,`<span class="${v.age>=st.thr?'old':''}">${v.age}일 전</span> · ${esc((r.workers||[]).join(', ')||'미지정')}`)).join('')||'<div class="ad-none">해당 없음</div>'}</div>
+    <div class="ad-card${c.noWorker.length||c.noEditor.length?'':' ok'}"><h4>담당 정보 점검<em>${c.noWorker.length+c.noEditor.length+c.noDesign.length?'확인 필요':'이상 없음'}</em></h4>
+      ${c.noWorker.length?`<div class="ad-none"><b>작업자 미지정</b> ${c.noWorker.length}건</div>${c.noWorker.slice(0,6).map(b=>li(b,'')).join('')}`:'<div class="ad-none">작업자 미지정 도서 없음</div>'}
+      ${rgap(c.noEditor,'담당자 칸이 빈 도서')}${rgap(c.noDesign,'내지·표지 칸이 모두 빈 도서')}</div></div>`;
+  /* 오늘 근태·일지 */
+  const grp=f=>per.filter(x=>x.fl.includes(f)).map(x=>nm(x.w));
+  const nolog2=per.filter(x=>!x.fl.includes('연차')&&!x.done&&!x.op);
+  const sh8=[...SHIFTS].filter(([,v])=>v==='0800').length,sh9=[...SHIFTS].filter(([,v])=>v==='0900').length;
+  const chips=a=>a.length?`<div class="ad-chips">${a.map(n=>`<span class="ad-cp">${esc(n)}</span>`).join('')}</div>`:'<div class="ad-none">없음</div>';
+  $('#adToday').innerHTML=`<h3>오늘의 근태·업무일지 <small>${c.D.slice(5).replace('-','.')} · 근무시간 표시: 08–17 ${sh8}명 / 09–18 ${sh9}명</small></h3><div class="ad-grid">
+    <div class="ad-card"><h4>연차·반차<em>${grp('연차').length+grp('오전반차').length+grp('오후반차').length}명</em></h4>${['연차','오전반차','오후반차'].map(f=>`<div class="ad-none"><b>${f}</b> ${grp(f).length}명</div>${chips(grp(f))}`).join('')}</div>
+    <div class="ad-card"><h4>잔업·야근<em>${grp('잔업').length+grp('야근').length}명</em></h4>${['잔업','야근'].map(f=>`<div class="ad-none"><b>${f}</b> ${grp(f).length}명</div>${chips(grp(f))}`).join('')}</div>
+    <div class="ad-card"><h4>업무일지 작성 현황<em>의견 ${per.filter(x=>x.op).length}명 작성</em></h4><div class="ad-none"><b>오늘 갱신·의견 모두 없음 (연차 제외)</b> ${nolog2.length}명</div>${chips(nolog2.map(x=>nm(x.w)))}</div></div>`;
+  /* 팀원별 표 */
+  const sorters={dept:null,name:(a,b)=>a.w.localeCompare(b.w,'ko'),n:(a,b)=>a.n-b.n,stale:(a,b)=>a.stale-b.stale,last:(a,b)=>(a.last||'').localeCompare(b.last||''),done:(a,b)=>a.done-b.done};
+  let list=[...per];const order=ORG.flatMap(g=>g[1]);
+  list.sort((a,b)=>DEPTS.indexOf(a.dept)-DEPTS.indexOf(b.dept)||((order.indexOf(a.w)+1)||999)-((order.indexOf(b.w)+1)||999));
+  if(sorters[ad.sort])list.sort((a,b)=>sorters[ad.sort](a,b)*ad.dir);
+  const grouped=ad.sort==='dept';let lastD=null;
+  const maxN=Math.max(1,...list.map(x=>x.n));
+  const bar=x=>`<div class="sbar" title="${AD_STG.map(k=>k+' '+x.cnt[k]).join(' / ')}" style="width:${Math.max(18,Math.round(x.n/maxN*100))}%">${AD_STG.map(k=>x.cnt[k]?`<i style="flex:${x.cnt[k]};background:${col(k)}"></i>`:'').join('')}</div>`;
+  $('#adT').innerHTML=`<thead><tr><th data-adsort="name">이름</th><th>부서</th><th data-adsort="n">작업 중</th><th>단계 분포</th>${AD_STG.map(k=>`<th>${k}</th>`).join('')}<th data-adsort="stale">정체</th><th data-adsort="last">최근 갱신</th><th data-adsort="done">오늘 갱신</th><th>오늘 근태</th><th>일지 의견</th></tr></thead><tbody>${list.map(x=>{
+    let g='';if(grouped&&x.dept!==lastD){lastD=x.dept;g=`<tr class="g" style="--gc:var(--${deptCls(x.dept)})"><td colspan="${AD_STG.length+9}">${esc(x.dept)}</td></tr>`}
+    const fl=x.fl.map(f=>`<span class="jr-tg on ${FLAGS.includes(f)?'f'+FLAGS.indexOf(f):'l'}">${f}</span>`).join('');
+    return g+`<tr><td data-adw="${esc(x.w)}">${esc(nm(x.w))}</td><td style="color:var(--sub);font-size:12px">${esc(x.dept)}</td><td><b>${x.n}</b></td><td>${x.n?bar(x):'<span class="z">–</span>'}</td>${AD_STG.map(k=>`<td>${x.cnt[k]||'<span class="z">–</span>'}</td>`).join('')}<td>${x.stale?`<span class="stl">${x.stale}</span>`:'<span class="z">–</span>'}</td><td>${x.last?x.last.slice(5).replace('-','.')+` <small style="color:var(--sub)">(${x.lastAge}일 전)</small>`:'<span class="z">–</span>'}</td><td>${x.done?`<b>${x.done}</b>`:'<span class="z">–</span>'}</td><td><div class="att">${fl||'<span class="z">–</span>'}</div></td><td>${x.op?'✓':'<span class="z">–</span>'}</td></tr>`}).join('')}</tbody>`;
+  $('#adTNote').textContent='이름을 누르면 그 사람의 도서 목록으로 이동 · 제목 칸을 누르면 정렬';
+}
+function adOpen(){if(!isAdmin())return;if(jr.on)jrClose();ad.scroll=window.scrollY;ad.on=true;document.body.classList.add('ad-open');$('#ad').hidden=false;window.scrollTo(0,0);adRender()}
+function adClose(){ad.on=false;document.body.classList.remove('ad-open');$('#ad').hidden=true;window.scrollTo(0,ad.scroll||0)}
+const adShow=()=>{const b=$('#bAdm');if(b)b.hidden=!isAdmin()};adShow();setInterval(adShow,1000);
+$('#bAdm').onclick=adOpen;$('#adBack').onclick=adClose;$('#adPrint').onclick=()=>window.print();
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ad.on&&!document.querySelector('.on#secBack,.on#rkBack,.on#histBack'))adClose()});
+document.addEventListener('click',e=>{
+  if(!ad.on)return;
+  const sort=e.target.closest('[data-adsort]');if(sort){const k=sort.dataset.adsort;ad.dir=ad.sort===k?-ad.dir:(k==='name'?1:-1);ad.sort=k;adRender();return}
+  const w=e.target.closest('[data-adw]');if(w&&!w.closest('tr.g')){st.worker=w.dataset.adw;lsSet('jp-worker',st.worker);adClose();drawSelects();$('#fWorker').value=st.worker;showTab('list');render();return}
+  const g=e.target.closest('[data-adgo]');if(g){adClose();resetFilters();st.q=g.dataset.adgo;$('#q').value=st.q;showTab('list');render();return}
+  const q=e.target.closest('#adQuick .btn');if(q){const id=q.id;
+    if(id==='adq-acc'){const b=document.getElementById('jpAdm');if(b)b.click()}
+    else if(id==='adq-rank')rkOpen();else if(id==='adq-sec')openSecs();else if(id==='adq-hist')openHist('');
+    else if(id==='adq-log'){adClose();jrOpen()}}});
 /* ---------- 오늘의 업무일지: 도서 자료에서 자동 정리 + 본인 의견(meta/log_날짜 문서의 lg_이름 칸) ---------- */
 const SHIFTS=new Map(); /* 이름 → '0800'|'0900' (근무시간 확인용 표시, 날짜와 무관하게 유지) */
 const FLAGS=['잔업','야근'],LEAVES=['오전반차','오후반차','연차'];
