@@ -265,8 +265,10 @@ body.jr-open>header,body.jr-open>.wrap{display:none!important}
 .jr-tt em{font-style:normal;color:var(--sub);font-weight:500;font-size:12px;margin-left:4px}
 .jr-nt{grid-column:2;color:var(--ink);font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:keep-all}
 .jr-co{grid-column:2;font-size:11px;color:var(--sub)}
-.jr-att{display:flex;gap:5px 5px;flex-wrap:wrap;align-items:center;padding:8px 14px;border-top:1px solid var(--line);background:var(--card)}
-.jr-att i{width:1px;height:16px;background:var(--line);margin:0 4px}
+.jr-att{padding:8px 14px;border-top:1px solid var(--line);background:var(--card)}
+.jr-ar{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.jr-ar+.jr-ar{margin-top:6px}
+.jr-ar i{width:1px;height:16px;background:var(--line);margin:0 4px}
 .jr-att .jr-shl{font-size:11px;color:var(--sub);font-weight:600}
 .jr-tg{--c:var(--sub);display:inline-flex;align-items:center;font:inherit;font-size:11.5px;font-weight:600;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:2px 9px 2px 6px;cursor:pointer;white-space:nowrap}
 .jr-tg::before{content:'';width:13px;height:13px;border:1.5px solid currentColor;border-radius:4px;margin-right:6px;flex:none;box-sizing:border-box}
@@ -279,6 +281,20 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .jr-asum{display:flex;gap:6px 14px;flex-wrap:wrap;margin:0 2px 12px;font-size:12.5px}
 .jr-asum span b{margin-right:5px}
 .jr-asum:empty{display:none}
+.jr-abox{width:100%;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.jr-abox h3{margin:0;padding:12px 16px;font-size:15px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 12%,var(--card)),var(--card));border-bottom:1px solid var(--line)}
+.jr-abox h3 small{font-weight:500;color:var(--sub);font-size:12px;margin-left:8px}
+.jr-at{width:100%;border-collapse:collapse;font-size:13px}
+.jr-at th{text-align:center;font-size:12px;color:var(--sub);font-weight:700;padding:8px 6px;border-bottom:1px solid var(--line);background:var(--bg)}
+.jr-at th:first-child,.jr-at td:first-child{text-align:left;padding-left:16px}
+.jr-at td{text-align:center;padding:7px 6px;border-top:1px dashed var(--line);vertical-align:top}
+.jr-at td:first-child{font-weight:700;white-space:nowrap}
+.jr-at tr.g td{background:color-mix(in srgb,var(--gc) 10%,var(--card));color:var(--gc);font-weight:800;text-align:left;border-top:1px solid var(--line);padding:5px 16px}
+.jr-at td .z{color:var(--line)}
+.jr-at td .n{display:inline-block;min-width:22px;padding:0 7px;border-radius:99px;font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--card))}
+.jr-at td small{display:block;color:var(--sub);font-size:10.5px;line-height:1.3;margin-top:2px;word-break:keep-all}
+.jr-at td.sh{font-size:12px;color:var(--sub);white-space:nowrap}
+.jr-at tfoot td{font-weight:800;border-top:2px solid var(--line);background:var(--bg)}
 .jr-sum{padding:6px 16px 0;font-size:12px;color:var(--sub)}
 .jr-none{color:var(--sub);font-size:13px;padding:8px 0}
 .jr-on{margin-top:4px;border-top:1px dashed var(--line);padding-top:8px}
@@ -315,6 +331,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
  .jr-tt{font-size:12.5px}.jr-tt em{font-size:10.5px}.jr-nt{font-size:11.5px;line-height:1.45}.jr-co{font-size:10px}.jr-st{font-size:10px}
  .jr-nm{font-size:14px}.jr-nm small{font-size:10px}.jr-cnt{font-size:10.5px}
  .jr-c.idle{display:none!important}
+ .jr-ar:not(:has(.on)){display:none}.jr-abox{border-radius:6px;border-color:#999;break-inside:avoid;margin-bottom:8px}.jr-abox h3{background:#f1f3f7!important;padding:6px 10px;font-size:12px}.jr-at{font-size:10.5px}.jr-at th{background:#fafafa!important;padding:4px}.jr-at td{padding:3px 4px}.jr-at td small{font-size:9px}.jr-at tr{break-inside:avoid}.jr-at tr.g td{padding:3px 10px}
  .jr-tg:not(.on){display:none!important}.jr-att i{display:none}.jr-att .jr-shl{display:none}.jr-att{padding:4px 10px;background:#fafafa!important}.jr-att:not(:has(.on)){display:none}
  .jr-tg{font-size:10.5px;padding:1px 8px 1px 5px}.jr-asum{font-size:11px;margin-bottom:6px}
  #jr.brk .jr-gh.pb{break-before:page}
@@ -1095,9 +1112,11 @@ function jrAttHtml(w,fl,can){
   const sh=SHIFTS.get(w)||'',W=esc(w);
   const tg=(f,cls)=>{const on=fl.includes(f);return can?`<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${cls}${on?' on':''}" data-jf="${f}" data-jw="${W}">${f}</button>`:(on?`<span class="jr-tg ${cls} on">${f}</span>`:'')};
   const SH=[['0800','08–17'],['0900','09–18']];
-  if(can)return `<div class="jr-att">${FLAGS.map((f,i)=>tg(f,'f'+i)).join('')}<i></i>${LEAVES.map(f=>tg(f,'l')).join('')}<i></i><span class="jr-shl">근무</span>${SH.map(([v,l])=>`<button type="button" role="checkbox" aria-checked="${sh===v}" class="jr-tg sh${sh===v?' on':''}" data-jsh="${v}" data-jw="${W}">${l}</button>`).join('')}</div>`;
-  const parts=[...FLAGS.map((f,i)=>tg(f,'f'+i)),...LEAVES.map(f=>tg(f,'l')),sh?`<span class="jr-tg sh on">근무 ${sh==='0800'?'08–17':'09–18'}</span>`:''].filter(Boolean);
-  return parts.length?`<div class="jr-att">${parts.join('')}</div>`:''}
+  if(can)return `<div class="jr-att"><div class="jr-ar"><span class="jr-shl">근무</span>${SH.map(([v,l])=>`<button type="button" role="checkbox" aria-checked="${sh===v}" class="jr-tg sh${sh===v?' on':''}" data-jsh="${v}" data-jw="${W}">${l}</button>`).join('')}</div>
+    <div class="jr-ar">${FLAGS.map((f,i)=>tg(f,'f'+i)).join('')}<i></i>${LEAVES.map(f=>tg(f,'l')).join('')}</div></div>`;
+  const r1=sh?`<span class="jr-tg sh on">근무 ${sh==='0800'?'08–17':'09–18'}</span>`:'';
+  const r2=[...FLAGS.map((f,i)=>tg(f,'f'+i)),...LEAVES.map(f=>tg(f,'l'))].join('');
+  return (r1||r2)?`<div class="jr-att">${r1?`<div class="jr-ar">${r1}</div>`:''}${r2?`<div class="jr-ar">${r2}</div>`:''}</div>`:''}
 function jrChrome(){
   const m=jr.mode==='month';
   $('#jrMDay').classList.toggle('on',!m);$('#jrMMon').classList.toggle('on',m);
@@ -1176,20 +1195,40 @@ function jrMonthCalc(ym){
     if(e[k]===undefined)e[k]=h.new_val});   /* 이력은 최신순 → 먼저 만난 값이 그날의 마지막 값 */
   const ops={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lg_')&&typeof v[k]==='string'&&v[k].trim())(ops[k.slice(3)]=ops[k.slice(3)]||[]).push([d,v[k]])})});
   Object.values(ops).forEach(a=>a.sort((x,y)=>x[0]<y[0]?-1:1));
-  const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])&&v[k].length){const w=k.slice(3);const a=att[w]=att[w]||{};v[k].forEach(f=>a[f]=(a[f]||0)+1)}})});
+  const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])&&v[k].length){const w=k.slice(3);const a=att[w]=att[w]||{};v[k].forEach(f=>(a[f]=a[f]||[]).push(d))}})});
   const people=[...new Set([...Object.keys(per),...Object.keys(ops),...Object.keys(att)])];
   return {per,ops,att,people};
 }
+function jrAttTable(ym){
+  const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])){const w=k.slice(3);v[k].forEach(f=>{((att[w]=att[w]||{})[f]=att[w][f]||[]).push(d)})}})});
+  const order=ORG.flatMap(g=>g[1]);
+  let ppl=[...new Set([...jrPeopleAll(),...order.filter(n=>jrPeopleAll().includes(n)),...Object.keys(att)])].filter(w=>(!jr.dept||deptOf(w)===jr.dept)&&(!jr.who||w===jr.who));
+  ppl.sort((a,b)=>DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||((order.indexOf(a)+1)||999)-((order.indexOf(b)+1)||999)||a.localeCompare(b,'ko'));
+  if(!ppl.length)return '';
+  const cls={'잔업':'var(--c-wait)','야근':'var(--c-stock)','오전반차':'var(--c-step)','오후반차':'var(--c-step)','연차':'var(--c-done)'};
+  const ALL=[...FLAGS,...LEAVES];const tot={};ALL.forEach(f=>tot[f]=0);let totLeave=0;
+  const dd=a=>[...a].sort().map(d=>String(+d.slice(8))).join('·');
+  let last=null;
+  const rows=ppl.map(w=>{const a=att[w]||{};
+    const leave=(a['연차']||[]).length+((a['오전반차']||[]).length+(a['오후반차']||[]).length)/2;totLeave+=leave;
+    ALL.forEach(f=>tot[f]+=(a[f]||[]).length);
+    const d=deptOf(w);let g='';if(d!==last){last=d;g=`<tr class="g" style="--gc:var(--${deptCls(d)})"><td colspan="8">${esc(d)}</td></tr>`}
+    const sh=SHIFTS.get(w);
+    return g+`<tr><td>${esc(nm(w))}</td><td class="sh">${sh==='0800'?'08–17':sh==='0900'?'09–18':'<span class="z">–</span>'}</td>${ALL.map(f=>{const n=(a[f]||[]).length;return `<td>${n?`<span class="n" style="--c:${cls[f]}">${n}</span><small>${dd(a[f])}일</small>`:'<span class="z">–</span>'}</td>`}).join('')}<td>${leave?`<b>${leave%1?leave.toFixed(1):leave}</b>`:'<span class="z">–</span>'}</td></tr>`}).join('');
+  const [Y,Mo]=ym.split('-');
+  return `<div class="jr-abox"><h3>${+Mo}월 근태 현황 <small>잔업·야근·반차·연차를 쓴 날 수 (칸 아래 숫자는 날짜) · 휴가 합계는 연차 1일, 반차 0.5일 기준</small></h3>
+  <table class="jr-at"><thead><tr><th>직원</th><th>근무</th>${ALL.map(f=>`<th>${f}</th>`).join('')}<th>휴가 합계(일)</th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td>합계</td><td></td>${ALL.map(f=>`<td>${tot[f]||'<span class="z">–</span>'}</td>`).join('')}<td>${totLeave?(totLeave%1?totLeave.toFixed(1):totLeave):'<span class="z">–</span>'}</td></tr></tfoot></table></div>`}
 function jrRenderMonth(){
   const ym=jr.month,[Y,Mo]=ym.split('-').map(Number);
   $('#jrTitle').innerHTML=`${Y}년 ${Mo}월<span>월간 업무일지</span>`;
   $('#jrMonth').value=ym;$('#jrMonth').max=iso(TODAY).slice(0,7);
   $('#jrHint').textContent='변경 이력에 남은 진행 내용·단계 수정을 사람·날짜별로 모았습니다. 같은 날 같은 도서를 여러 번 고쳤다면 마지막 내용만 나옵니다.';
+  $('#jrAtt').innerHTML=jrAttTable(ym);
   const c=jr.hc[ym];
   if(!c||(!c.rows&&!c.err)){$('#jrK').innerHTML='';$('#jrGrid').innerHTML='<div class="jr-load">변경 이력을 불러오는 중…</div>';jrLoadHist(ym);return}
   if(c.err){$('#jrK').innerHTML='';$('#jrGrid').innerHTML=`<div class="jr-empty">변경 이력을 불러오지 못했습니다 (${esc(c.err)}). <button type="button" class="btn" id="jrRetry">다시 시도</button></div>`;return}
   const m=jrMonthCalc(ym);
-  $('#jrAtt').innerHTML='';
   const inD=w=>!jr.dept||deptOf(w)===jr.dept;
   const list=m.people.filter(inD).sort((a,b)=>DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||(ORG.flatMap(g=>g[1]).indexOf(a)+1||999)-(ORG.flatMap(g=>g[1]).indexOf(b)+1||999)||a.localeCompare(b,'ko'));
   const whoSel=$('#jrWho');whoSel.innerHTML='<option value="">전체</option>'+list.map(n=>`<option value="${esc(n)}">${esc(nm(n))}</option>`).join('');
@@ -1206,7 +1245,7 @@ function jrRenderMonth(){
     const body=rows.map(([d,dt,t,e])=>`<tr><td class="d">${d.slice(5).replace('-','.')} (${WD[dt.getDay()]})</td><td class="t">${esc(t)}</td><td>${(()=>{const sg=e.stage||(e.note!==undefined?autoStage(e.note):'');return sg?`<span class="jr-st" style="--c:${col(sg)}">${esc(sg)}</span>`:''})()}</td><td>${e.note!==undefined?esc(e.note):'<span class="none">(단계만 변경)</span>'}</td></tr>`).join('');
     const ops=(m.ops[w]||[]).map(([d,t])=>`<p><b>${d.slice(5).replace('-','.')}</b>${esc(t)}</p>`).join('');
     return hdr(w)+`<article class="jr-c jr-wide wide${w===myId?' me':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(nm(w))}<small>${esc(gn)}</small></div><span class="jr-cnt">${rows.length}건 · ${Object.keys(m.per[w]||{}).length}일</span></div>
-      ${(()=>{const a=m.att[w];const t=a?[...FLAGS,...LEAVES].filter(f=>a[f]).map(f=>`${f} ${a[f]}일`).join(' · '):'';return t?`<div class="jr-sum">근태: ${esc(t)}</div>`:''})()}
+      ${(()=>{const a=m.att[w];const t=a?[...FLAGS,...LEAVES].filter(f=>a[f]).map(f=>`${f} ${a[f].length}일`).join(' · '):'';return t?`<div class="jr-sum">근태: ${esc(t)}</div>`:''})()}
       <div class="jr-b">${rows.length?`<table class="jr-mt"><thead><tr><th style="width:84px">날짜</th><th style="width:30%">도서</th><th style="width:76px">단계</th><th>진행 내용</th></tr></thead><tbody>${body}</tbody></table>`:'<div class="jr-none">이 달에 기록된 진행 내용이 없습니다.</div>'}</div>
       ${ops?`<div class="jr-mo"><h4>의견·메모</h4>${ops}</div>`:''}</article>`}).join('')
     :'<div class="jr-empty">이 달에 표시할 기록이 없습니다.</div>';
