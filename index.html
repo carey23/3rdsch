@@ -305,6 +305,7 @@ body.jr-open>header,body.jr-open>.wrap{display:none!important}
 .jr-mt td.d{white-space:nowrap;color:var(--sub);font-variant-numeric:tabular-nums}
 .jr-mt td.t{font-weight:700}
 .jr-mt .none{color:var(--sub)}
+.jr-mt tr.mop td{background:color-mix(in srgb,var(--gc) 7%,var(--card));border-top:0}.jr-mt tr.mop .mop-l{display:inline-block;font-size:11px;font-weight:700;color:var(--gc);margin-right:8px}.jr-mt tr.mop .mop-t{white-space:pre-wrap;line-height:1.5;margin-top:2px}
 .jr-mo{border-top:1px solid var(--line);background:color-mix(in srgb,var(--gc) 5%,var(--card));padding:10px 16px}
 .jr-mo h4{margin:0 0 6px;font-size:12px;color:var(--gc)}
 .jr-mo p{margin:0 0 6px;font-size:13px;white-space:pre-wrap;line-height:1.5}.jr-mo p b{color:var(--sub);font-weight:600;margin-right:6px}
@@ -1525,13 +1526,18 @@ function jrRenderMonth(){
   const hdr=w=>{const d=deptOf(w);if(d===lastD)return '';const first=lastD===null;lastD=d;const mem=shown.filter(y=>deptOf(y)===d);return `<div class="jr-gh${first?'':' pb'}" style="--gc:var(--${deptCls(d)})"><b>${esc(d)}</b><span>${mem.length}명</span></div>`};
   $('#jrGrid').innerHTML=shown.length?shown.map(w=>{
     const g=ORG.find(o=>o[1].includes(w)),gc=g?g[2]:'gx',gn=g?g[0]:'기타 · 외주';
-    const rows=[];Object.keys(m.per[w]||{}).sort().forEach(d=>{const dt=new Date(d+'T00:00:00');Object.entries(m.per[w][d]).forEach(([t,e])=>rows.push([d,dt,t,e]))});
-    const body=rows.map(([d,dt,t,e])=>`<tr><td class="d">${d.slice(5).replace('-','.')} (${WD[dt.getDay()]})</td><td class="t">${esc(t)}</td><td>${(()=>{const sg=e.stage||(e.note!==undefined?autoStage(e.note):'');return sg?`<span class="jr-st" style="--c:${col(sg)}">${esc(sg)}</span>`:''})()}</td><td>${e.note!==undefined?esc(e.note):'<span class="none">(단계만 변경)</span>'}</td></tr>`).join('');
-    const ops=(m.ops[w]||[]).map(([d,t])=>`<p><b>${d.slice(5).replace('-','.')}</b>${esc(t)}</p>`).join('');
+    const per=m.per[w]||{},opd={};(m.ops[w]||[]).forEach(([d,t])=>{(opd[d]=opd[d]||[]).push(t)});
+    const dd=d=>d.slice(5).replace('-','.')+' ('+WD[new Date(d+'T00:00:00').getDay()]+')';
+    let nRows=0;
+    /* 날짜별로: 그날의 도서 진행 내용 → 바로 아래에 그날의 의견·메모 */
+    const body=[...new Set([...Object.keys(per),...Object.keys(opd)])].sort().map(d=>{
+      const bk=Object.entries(per[d]||{}).map(([t,e])=>{nRows++;return `<tr><td class="d">${dd(d)}</td><td class="t">${esc(t)}</td><td>${(()=>{const sg=e.stage||(e.note!==undefined?autoStage(e.note):'');return sg?`<span class="jr-st" style="--c:${col(sg)}">${esc(sg)}</span>`:''})()}</td><td>${e.note!==undefined?esc(e.note):'<span class="none">(단계만 변경)</span>'}</td></tr>`}).join('');
+      const op=(opd[d]||[]).map(t=>`<tr class="mop"><td class="d">${Object.keys(per[d]||{}).length?'':dd(d)}</td><td colspan="3"><span class="mop-l">의견·메모</span><div class="mop-t">${esc(t)}</div></td></tr>`).join('');
+      return bk+op}).join('');
+    const rows={length:nRows};
     return hdr(w)+`<article class="jr-c jr-wide wide${w===myId?' me':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(nm(w))}<small>${esc(gn)}</small></div><span class="jr-cnt">${rows.length}건 · ${Object.keys(m.per[w]||{}).length}일</span></div>
       ${(()=>{const a=m.att[w];const t=a?[...FLAGS,...LEAVES].filter(f=>a[f]).map(f=>`${f} ${a[f].length}일`).join(' · '):'';return t?`<div class="jr-sum">근태: ${esc(t)}</div>`:''})()}
-      <div class="jr-b">${rows.length?`<table class="jr-mt"><thead><tr><th style="width:84px">날짜</th><th style="width:30%">도서</th><th style="width:76px">단계</th><th>진행 내용</th></tr></thead><tbody>${body}</tbody></table>`:'<div class="jr-none">이 달에 기록된 진행 내용이 없습니다.</div>'}</div>
-      ${ops?`<div class="jr-mo"><h4>의견·메모</h4>${ops}</div>`:''}</article>`}).join('')
+      <div class="jr-b">${body?`<table class="jr-mt"><thead><tr><th style="width:84px">날짜</th><th style="width:30%">도서</th><th style="width:76px">단계</th><th>진행 내용</th></tr></thead><tbody>${body}</tbody></table>`:'<div class="jr-none">이 달에 기록된 진행 내용이 없습니다.</div>'}</div></article>`}).join('')
     :'<div class="jr-empty">이 달에 표시할 기록이 없습니다.</div>';
   const now=new Date();
   $('#jrFoot').textContent=`${Y}년 ${Mo}월 월간 업무일지${jr.dept?' · '+jr.dept:''} · 출력 ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${myId?' · 출력자 '+myId:''}`;
