@@ -692,7 +692,7 @@ window.claude={use:async n=>{await start();return n==='db'?db:n==='user'?userCap
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
-const STEPS=['기획','원고 집필','원고 개발','내지 디자인','표지 디자인','조판','초교','재교','삼교','마감(발주)']; /* 작업 단계 — 도서당 여러 개 동시 체크 (상태 '진행중/대기…'와 별개) */
+const STEPS=['기획','원고 집필','원고 개발','원고 입고','내지 디자인','표지 디자인','조판','초교','재교','삼교','마감(발주)']; /* 작업 단계 — 도서당 여러 개 동시 체크 (상태 '진행중/대기…'와 별개) */
 const stepsOf=r=>Array.isArray(r.steps)?STEPS.filter(x=>r.steps.includes(x)):[];
 const stepTags=r=>stepsOf(r).map(x=>`<span class="sp">${esc(x)}</span>`).join('');
 const stepsLine=(r,eb)=>{const t=stepTags(r);if(!eb)return t?`<div class="stp">${t}</div>`:'';return `<div class="stp">${t}<button type="button" class="sp-add no-print" data-stepfor="${esc(r.id)}">${t?'✎ 단계':'+ 작업 단계'}</button></div>`};
