@@ -1372,6 +1372,8 @@ const jrPeopleAll=()=>{const n=new Set();recs().forEach(r=>(r.workers||[]).forEa
   return [...ORG.flatMap(g=>g[1]),...[...n].filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>a.localeCompare(b,'ko'))]};
 const jrFl=(D,w)=>{const d=LOGS.get(D);const a=d&&d['lf_'+w];return Array.isArray(a)?a:[]};
 const jrOp=(D,w)=>{const d=LOGS.get(D);return d&&typeof d['lg_'+w]==='string'?d['lg_'+w]:''};
+/* 오늘 이 사람이 직접 저장한 도서(진행일자를 안 바꿔도 내용·상태·비고를 고쳤다면 '오늘 갱신'으로 본다) */
+const jrTouched=(r,w,D)=>!!(r.by===w&&r.at&&iso(new Date(r.at))===D&&D===iso(TODAY));
 function jrCalc(D){
   const isNow=D===iso(TODAY);
   const people=jrPeopleAll();
@@ -1380,7 +1382,7 @@ function jrCalc(D){
   const rows=people.map(w=>{
     const done=[],going=[];
     recs().filter(r=>(r.workers||[]).includes(w)).forEach(r=>{const v=eff(r,w);
-      if(v.date===D)done.push([r,v]);else if(isNow&&GO_ACT.includes(v.stage))going.push([r,v])});
+      if(v.date===D||jrTouched(r,w,D))done.push([r,v]);else if(isNow&&GO_ACT.includes(v.stage))going.push([r,v])});
     done.sort((a,b)=>ORDER.indexOf(a[1].stage)-ORDER.indexOf(b[1].stage)||(a[0].title||'').localeCompare(b[0].title||'','ko'));
     going.sort((a,b)=>(b[1].age??0)-(a[1].age??0));
     return {w,done,going,op:jrOp(D,w),fl:jrFl(D,w)}});
@@ -1388,7 +1390,7 @@ function jrCalc(D){
   return {isNow,rows};
 }
 const jrTitleOf=D=>{const d=new Date(D+'T00:00:00');return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일<span>${WD[d.getDay()]}요일</span>`};
-function jrTodayCount(){const D=iso(TODAY),ids=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>{if(eff(r,w).date===D)ids.add(r.id)}));return ids.size}
+function jrTodayCount(){const D=iso(TODAY),ids=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>{if(eff(r,w).date===D||jrTouched(r,w,D))ids.add(r.id)}));return ids.size}
 function jrBadge(){const el=$('#jrN');if(el)el.textContent=loaded.books?jrTodayCount():'…'}
 function jrAttHtml(w,fl,can){
   const sh=SHIFTS.get(w)||'',W=esc(w);
