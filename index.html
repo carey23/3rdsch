@@ -1339,6 +1339,11 @@ let RANK_SAVED=null; /* 관리자가 저장한 직급 (meta/ranks → {map:{이�
 let STAFF=null,STAFF_RANK={};
 const rankOf=w=>{if(STAFF)return STAFF_RANK[w]||'';const m=RANK_SAVED&&Object.prototype.hasOwnProperty.call(RANK_SAVED,w)?RANK_SAVED[w]:RANK_DEFAULT[w];return m||''};
 const nm=w=>w+(rankOf(w)?' '+rankOf(w):'');
+const RANK_ORDER=['대표이사','대표','사장','부사장','전무','상무','이사','본부장','실장','부장','차장','과장','대리','주임','사원','인턴'];
+const rankNo=w=>{const r=rankOf(w);if(!r)return 999;const i=RANK_ORDER.indexOf(r);return i<0?500:i};
+/* 부서 → 직급(높은 순) → 직원 명단 순서 → 가나다 */
+const byRank=(a,b)=>{const o=ORG.flatMap(g=>g[1]),oi=w=>{const i=o.indexOf(w);return i<0?9999:i};
+  return DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||rankNo(a)-rankNo(b)||oi(a)-oi(b)||a.localeCompare(b,'ko')};
 const deptOf=w=>{const g=ORG.find(o=>o[1].includes(w));return g?g[0]:'기타 · 외주'};
 const deptCls=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
 const GO_ACT=['진행중','대기','단계완료','재고대기'];
@@ -1358,6 +1363,7 @@ function jrCalc(D){
     done.sort((a,b)=>ORDER.indexOf(a[1].stage)-ORDER.indexOf(b[1].stage)||(a[0].title||'').localeCompare(b[0].title||'','ko'));
     going.sort((a,b)=>(b[1].age??0)-(a[1].age??0));
     return {w,done,going,op:jrOp(D,w),fl:jrFl(D,w)}});
+  rows.sort((x,y)=>byRank(x.w,y.w));
   return {isNow,rows};
 }
 const jrTitleOf=D=>{const d=new Date(D+'T00:00:00');return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일<span>${WD[d.getDay()]}요일</span>`};
@@ -1397,7 +1403,7 @@ function jrRender(){
   whoSel.value=names.includes(jr.who)||jr.who===myId?jr.who:'';jr.who=whoSel.value;
   $('#jrAll').checked=jr.all;
   $('#jrHint').textContent=isNow?'작업자로 지정된 도서의 오늘 진행 내용이 자동으로 모입니다. 카드 아래 칸에 본인 의견을 적으면 자동 저장됩니다.':'지난 날짜는 그날 마지막으로 갱신된 업무 기준입니다.';
-  const shown=rows.filter(x=>jr.who?x.w===jr.who:(x.done.length||x.op.trim()||x.fl.length||x.w===myId||jr.all)).sort((a,b)=>DEPTS.indexOf(deptOf(a.w))-DEPTS.indexOf(deptOf(b.w))||(!!b.done.length-!!a.done.length)||(a.w===myId?-1:b.w===myId?1:0));
+  const shown=rows.filter(x=>jr.who?x.w===jr.who:(x.done.length||x.op.trim()||x.fl.length||x.w===myId||jr.all)).sort((a,b)=>byRank(a.w,b.w));
   let lastD=null;const hdr=x=>{const d=deptOf(x.w);if(d===lastD)return '';const first=lastD===null;lastD=d;const m=shown.filter(y=>deptOf(y.w)===d);return `<div class="jr-gh${first?'':' pb'}" style="--gc:var(--${deptCls(d)})"><b>${esc(d)}</b><span>${m.length}명 · ${m.reduce((t,y)=>t+y.done.length,0)}건 갱신</span></div>`};
   const ae=document.activeElement,keepFocus=ae&&ae.classList&&ae.classList.contains('jr-op')?{w:ae.dataset.w,s:ae.selectionStart,e:ae.selectionEnd}:null;
   $('#jrGrid').innerHTML=shown.length?shown.map(x=>{
@@ -1458,7 +1464,7 @@ function jrAttTable(ym){
   const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])){const w=k.slice(3);v[k].forEach(f=>{((att[w]=att[w]||{})[f]=att[w][f]||[]).push(d)})}})});
   const order=ORG.flatMap(g=>g[1]);
   let ppl=[...new Set([...jrPeopleAll(),...order.filter(n=>jrPeopleAll().includes(n)),...Object.keys(att)])].filter(w=>(!jr.dept||deptOf(w)===jr.dept)&&(!jr.who||w===jr.who));
-  ppl.sort((a,b)=>DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||((order.indexOf(a)+1)||999)-((order.indexOf(b)+1)||999)||a.localeCompare(b,'ko'));
+  ppl.sort(byRank);
   if(!ppl.length)return '';
   const cls={'잔업':'var(--c-wait)','야근':'var(--c-stock)','오전반차':'var(--c-step)','오후반차':'var(--c-step)','연차':'var(--c-done)'};
   const ALL=[...FLAGS,...LEAVES];const tot={};ALL.forEach(f=>tot[f]=0);let totLeave=0;
