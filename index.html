@@ -209,6 +209,16 @@ body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr{display:none!important}
 .ad-k{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 14px}
 .ad-k b{display:block;font-size:26px;line-height:1.1;font-weight:800}.ad-k span{font-size:12px;opacity:.85}
 .ad-k.warn b{color:#ffd48a}
+.stp{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}.item .stp{display:inline-flex;margin:0 0 0 6px;vertical-align:middle}
+.sp{font-size:10.5px;font-weight:600;line-height:1.5;padding:0 7px;border-radius:99px;color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);white-space:nowrap}
+.sp-add{font:inherit;font-size:10.5px;padding:0 7px;border-radius:99px;border:1px dashed var(--line);background:transparent;color:var(--sub);cursor:pointer}.sp-add:hover{border-color:var(--accent);color:var(--accent)}
+.golink{cursor:pointer;border-bottom:1px dotted var(--sub)}.golink:hover,.golink:focus-visible{color:var(--accent);border-bottom-color:var(--accent);outline:none}
+@keyframes rowflash{0%,55%{background:color-mix(in srgb,var(--accent) 24%,transparent)}100%{background:transparent}}tr.flash>td{animation:rowflash 2.4s ease-out}
+#pk{position:fixed;z-index:70;background:var(--card);color:var(--fg,inherit);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px 12px;max-height:min(340px,60vh);overflow:auto;width:min(360px,92vw);font-size:12.5px}
+#pk h5{margin:8px 0 4px;font-size:11px;color:var(--sub);font-weight:700}#pk h5:first-child{margin-top:0}
+#pk .pkg{display:flex;flex-wrap:wrap;gap:4px 10px}#pk label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;padding:2px 0}
+#pk .pkh{font-size:11px;color:var(--sub);margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+@media print{#pk{display:none!important}.sp-add{display:none!important}}
 .ad-sec{margin-top:18px}
 .att-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px;font-size:13px}.att-bar input{font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg,inherit)}
 .att-t td{vertical-align:middle;white-space:nowrap}.att-t td .jr-tg{margin:2px 4px 2px 0}.att-t tr.g td{font-weight:700;font-size:12px;color:var(--gc);background:color-mix(in srgb,var(--gc) 8%,var(--card))}
@@ -446,6 +456,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <button class="btn primary" id="bAdd" hidden>+ 도서 추가</button>
     </div>
     <div class="bar" style="padding:6px 10px"><span class="lbl">단계</span><div class="chips" id="stageChips"></div></div>
+    <div class="bar" style="padding:6px 10px"><span class="lbl">작업 단계</span><div class="chips" id="stepChips"></div></div>
     <div class="count"><span id="count"></span> <button type="button" class="chip no-print" id="bMyOrder" hidden>내 순서로 보기</button></div>
     <div class="tbl-wrap"><table class="list"><colgroup><col style="width:8%"><col style="width:13%"><col style="width:5%"><col style="width:6%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:12%"><col style="width:18%"><col class="act" style="width:4%"></colgroup>
       <thead><tr>
@@ -681,6 +692,10 @@ window.claude={use:async n=>{await start();return n==='db'?db:n==='user'?userCap
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
+const STEPS=['기획','원고 집필','원고 개발','내지 디자인','표지 디자인','조판','초교','재교','삼교','마감(발주)']; /* 작업 단계 — 도서당 여러 개 동시 체크 (상태 '진행중/대기…'와 별개) */
+const stepsOf=r=>Array.isArray(r.steps)?STEPS.filter(x=>r.steps.includes(x)):[];
+const stepTags=r=>stepsOf(r).map(x=>`<span class="sp">${esc(x)}</span>`).join('');
+const stepsLine=(r,eb)=>{const t=stepTags(r);if(!eb)return t?`<div class="stp">${t}</div>`:'';return `<div class="stp">${t}<button type="button" class="sp-add no-print" data-stepfor="${esc(r.id)}">${t?'✎ 단계':'+ 작업 단계'}</button></div>`};
 const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
 const ORG=[
  ['출판1부',['차인태','신보용','권윤주','김지혜','김진영','박온누리','윤소연','백혜림','정지연','임한나','김예민'],'g1'],
@@ -732,7 +747,7 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let db=null,userCap=null,dlCap=null,myId=null,canWrite=false;
 const M={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:null};
 const loaded={books:false,incoming:false,memo:false,hold:false,meta:false};
-const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),sort:{k:'date',dir:-1},sortTouched:false,myOrder:false};
+const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),steps:new Set(),sort:{k:'date',dir:-1},sortTouched:false,myOrder:false};
 let curTab='list';
 const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
@@ -859,6 +874,8 @@ function drawSelects(){
   if(st.worker&&!wnames.includes(st.worker)&&rs.length)st.worker='';
   $('#fWorker').value=st.worker}
 $('#stageChips').innerHTML=ORDER.map(s=>`<button class="chip" data-s="${s}">${s}</button>`).join('');
+$('#stepChips').innerHTML=STEPS.map(s=>`<button class="chip" data-s="${s}">${s}</button>`).join('');
+$('#stepChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const s=b.dataset.s;st.steps.has(s)?st.steps.delete(s):st.steps.add(s);render()};
 $('#stageChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const s=b.dataset.s;st.stages.has(s)?st.stages.delete(s):st.stages.add(s);render()};
 $('#q').oninput=e=>{st.q=e.target.value.trim().toLowerCase();render()};
 $('#fSec').onchange=e=>{st.sec=e.target.value;render()};
@@ -867,7 +884,7 @@ $('#fWorker').onchange=e=>{st.worker=e.target.value;lsSet('jp-worker',st.worker)
 $('#thr').onchange=e=>{st.thr=+e.target.value;render()};
 $('#hidePrint').onchange=e=>{st.hidePrint=e.target.checked;render()};
 $('#onlyStale').onchange=e=>{st.onlyStale=e.target.checked;render()};
-function resetFilters(){Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false,sortTouched:false,myOrder:false});st.stages.clear();lsSet('jp-worker','');
+function resetFilters(){Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:true,onlyStale:false,sortTouched:false,myOrder:false});st.stages.clear();st.steps.clear();lsSet('jp-worker','');
   $('#q').value='';$('#fSec').value='';$('#fKind').value='';$('#fWorker').value='';$('#hidePrint').checked=true;$('#onlyStale').checked=false}
 $('#reset').onclick=()=>{resetFilters();render()};
 document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;st.sort=st.sort.k===k?{k,dir:-st.sort.dir}:{k,dir:1};st.sortTouched=true;st.myOrder=false;render()});
@@ -877,6 +894,7 @@ function filtered(){
   let a=recs().filter(r=>{const vw=V(r);
     if(st.hidePrint&&vw.stage==='인쇄완료'&&!st.stages.has('인쇄완료')&&!r._new)return false;
     if(st.stages.size&&!st.stages.has(vw.stage))return false;
+    if(st.steps.size&&!stepsOf(r).some(x=>st.steps.has(x)))return false;
     if(st.sec&&r.sec!==st.sec)return false;
     if(st.kind&&r.kind!==st.kind)return false;
     if(st.worker&&!(r.workers||[]).includes(st.worker))return false;
@@ -917,7 +935,7 @@ function rowHtml(r,plain){
   const grip=(!plain&&canDrag())?`<span class="grip" draggable="true" data-grip="${esc(id)}" title="끌어서 내 순서 바꾸기">⋮⋮</span>`:'';
   return `<tr class="r${st.edit&&!mb?' locked':''}" data-id="${esc(id)}" style="--c:${c}"${st.edit&&!mb?' title="담당자가 아니어서 수정할 수 없습니다"':''}>
     <td>${grip}${secCell}${st.edit&&!mb&&!plain?'<div class="sec">보기 전용 (담당 아님)</div>':''}${!st.edit&&r.extra?`<div class="sec">${esc(r.extra.split('|')[0])}</div>`:''}</td>
-    <td class="t">${ed('title',id,r.title,'',mb)}</td><td class="nw">${eb?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author,'',mb)}</td>
+    <td class="t">${ed('title',id,r.title,'',mb)}${stepsLine(r,eb)}</td><td class="nw">${eb?ed('rev',id,r.rev,/\((?:신|新)\)/.test(r.rev||'')?'ed-sin':''):`<span data-f="rev" data-id="${esc(id)}">${revH(r.rev)}</span>`}</td><td class="nw">${ed('author',id,r.author,'',mb)}</td>
     ${wk}<td class="prog" colspan="3">${prow}${by||(!st.edit&&r.extra&&r.extra.includes('|'))?`<div class="pfoot">${by}${!st.edit&&r.extra&&r.extra.includes('|')?`<div class="sec">${esc(r.extra.split('|')[1])}</div>`:''}</div>`:''}</td>
     <td class="act">${mb?`<button class="chip" data-del="${esc(id)}">삭제</button>`:''}</td></tr>`}
 function render(){
@@ -929,8 +947,9 @@ function render(){
     :`<tr><td colspan="11" class="empty">${all?'조건에 맞는 도서가 없습니다':'아직 등록된 도서가 없습니다'}</td></tr>`;
   {const b=$('#bMyOrder');b.hidden=!st.worker;b.textContent=personalOn()?'최근 갱신순으로 보기':'내 순서로 정렬·편집 (끌어서 이동)';b.classList.toggle('on',personalOn())}
   document.querySelectorAll('#stageChips .chip').forEach(c=>c.classList.toggle('on',st.stages.has(c.dataset.s)));
+  document.querySelectorAll('#stepChips .chip').forEach(c=>c.classList.toggle('on',st.steps.has(c.dataset.s)));
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
-  if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
+  if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.steps.size)f.push('작업 단계 '+[...st.steps].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
   $('#pMeta').textContent='인쇄일 '+iso(new Date())+' · 표시 '+a.length+'건'+(f.length?' · 조건: '+f.join(', '):'');
   renderKpis();renderRecent();drawTabs();fillBy();jrBadge();{const b=$('#bAdm');if(b)b.hidden=!isAdmin()}
 }
@@ -999,7 +1018,50 @@ function commitRoles(el){
   if(!isAdmin()&&myId&&(r.workers||[]).includes(myId)&&ws.length&&!ws.includes(myId)&&!confirm('작업자에서 본인 이름을 빼면 이 도서를 더 이상 수정할 수 없습니다. 계속할까요?')){requestRender(true);return}
   r.editors=next.editors;r.inner=next.inner;r.cover=next.cover;r.designers=uniq([...next.inner,...next.cover]);r.workers=ws;
   mark('books',r,['editors','inner','cover','designers','workers']);requestRender(true)}
-tb.addEventListener('focusout',e=>{const el=e.target.closest&&e.target.closest('[data-f=editors],[data-f=inner],[data-f=cover]');if(el)commitRoles(el)});
+tb.addEventListener('focusout',e=>{const el=e.target.closest&&e.target.closest('[data-f=editors],[data-f=inner],[data-f=cover]');if(el){commitRoles(el);if(PK&&PK.kind==='roles')pkClose()}});
+/* ---------- 선택 패널: 담당자·내지·표지는 체크로 여러 명, 작업 단계는 중복 체크 ---------- */
+let PK=null;
+const pkEl=()=>{let el=document.getElementById('pk');if(!el){el=document.createElement('div');el.id='pk';el.hidden=true;document.body.appendChild(el);
+  el.addEventListener('mousedown',e=>{if(PK&&PK.kind==='roles'&&!e.target.closest('input'))e.preventDefault();else if(PK&&PK.kind==='roles')e.preventDefault()});
+  el.addEventListener('click',pkClick)}return el};
+const pkNames=el=>uniq(el.textContent.split(/[\/,]/).map(x=>x.trim()).filter(Boolean));
+function pkDraw(){if(!PK)return;const p=pkEl(),top=p.scrollTop;
+  if(PK.kind==='roles'){const cur=pkNames(PK.el),known=new Set(ORG.flatMap(g=>g[1]));
+    const grp=([d,m])=>`<h5>${esc(d)}</h5><div class="pkg">${[...m].sort(byRank).map(n=>`<label><input type="checkbox" data-pkn="${esc(n)}"${cur.includes(n)?' checked':''}>${esc(nm(n))}</label>`).join('')}</div>`;
+    const ex=cur.filter(n=>!known.has(n));
+    p.innerHTML=`<h5 style="margin-top:0">${PK.label} — 여러 명 체크 가능</h5>`+ORG.map(grp).join('')+(ex.length?`<h5>기타 · 외주</h5><div class="pkg">${ex.map(n=>`<label><input type="checkbox" data-pkn="${esc(n)}" checked>${esc(n)}</label>`).join('')}</div>`:'')+`<div class="pkh">명단에 없는 이름은 칸에 직접 입력(여러 명은 / 로 구분)하세요.</div>`}
+  else{const r=M.books.get(PK.id);const cur=r?stepsOf(r):[];
+    p.innerHTML=`<h5 style="margin-top:0">작업 단계 — 해당하는 것을 모두 체크</h5><div class="pkg" style="gap:6px 14px">${STEPS.map(x=>`<label><input type="checkbox" data-pks="${esc(x)}"${cur.includes(x)?' checked':''}>${esc(x)}</label>`).join('')}</div>`}
+  p.scrollTop=top}
+function pkPlace(){if(!PK)return;const p=pkEl(),anchor=PK.kind==='roles'?PK.el:document.querySelector(`#tb tr[data-id="${CSS.escape(PK.id)}"] .stp`)||PK.el;if(!anchor||!anchor.isConnected){pkClose();return}
+  const r=anchor.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;let x=Math.min(Math.max(8,r.left),innerWidth-w-8),y=r.bottom+6;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-6);p.style.left=x+'px';p.style.top=y+'px'}
+function pkOpen(o){PK=o;const p=pkEl();p.hidden=false;pkDraw();pkPlace()}
+function pkClose(){PK=null;const p=document.getElementById('pk');if(p)p.hidden=true}
+function pkClick(e){if(!PK)return;const c=e.target.closest('input[type=checkbox]');if(!c)return;
+  if(PK.kind==='roles'){const cur=pkNames(PK.el),n=c.dataset.pkn;const nx=c.checked?uniq([...cur,n]):cur.filter(x=>x!==n);PK.el.textContent=nx.join(' / ');pkDraw()}
+  else{const r=M.books.get(PK.id);if(!r||!mayBook(r)){toast('담당자가 아니어서 수정할 수 없습니다');pkClose();return}
+    const cur=stepsOf(r),x=c.dataset.pks,nx=STEPS.filter(k=>k===x?c.checked:cur.includes(k));r.steps=nx;mark('books',r,['steps']);
+    const line=document.querySelector(`#tb tr[data-id="${CSS.escape(PK.id)}"] .stp`);if(line)line.outerHTML=stepsLine(r,true);renderKpis();pkPlace()}}
+tb.addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('[data-f=editors],[data-f=inner],[data-f=cover]');if(!el||!st.edit)return;
+  const r=M.books.get(el.dataset.id);if(!r||!mayBook(r))return;pkOpen({kind:'roles',el,id:el.dataset.id,label:{editors:'담당자',inner:'내지 디자이너',cover:'표지 디자이너'}[el.dataset.f]})});
+tb.addEventListener('input',e=>{if(PK&&PK.kind==='roles'&&e.target===PK.el){pkDraw();pkPlace()}});
+tb.addEventListener('click',e=>{const b=e.target.closest('[data-stepfor]');if(!b)return;const r=M.books.get(b.dataset.stepfor);
+  if(!r||!mayBook(r)){toast('담당자가 아니어서 수정할 수 없습니다');return}
+  if(PK&&PK.kind==='steps'&&PK.id===r.id){pkClose();return}pkOpen({kind:'steps',id:r.id,el:b})});
+document.addEventListener('mousedown',e=>{if(!PK||PK.kind!=='steps')return;if(e.target.closest('#pk,[data-stepfor]'))return;pkClose()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&PK){const k=PK.kind,el=PK.el;pkClose();if(k==='roles')el.blur()}});
+window.addEventListener('scroll',()=>{if(PK)pkPlace()},{passive:true});window.addEventListener('resize',()=>{if(PK)pkPlace()});
+/* ---------- 작업자별 화면의 도서명 → 도서 목록의 해당 행으로 이동 ---------- */
+function goBook(id){
+  Object.assign(st,{q:'',sec:'',kind:'',worker:'',hidePrint:false,onlyStale:false,sortTouched:false,myOrder:false});st.stages.clear();st.steps.clear();lsSet('jp-worker','');
+  $('#q').value='';$('#fSec').value='';$('#fKind').value='';$('#fWorker').value='';$('#hidePrint').checked=false;$('#onlyStale').checked=false;
+  if(jr.on&&typeof jrClose==='function')jrClose();
+  showTab('list');render();
+  setTimeout(()=>{const tr=document.querySelector(`#tb tr[data-id="${CSS.escape(id)}"]`);
+    if(!tr){toast('목록에서 이 도서를 찾지 못했습니다');return}
+    tr.scrollIntoView({block:'center',behavior:'smooth'});tr.classList.remove('flash');void tr.offsetWidth;tr.classList.add('flash');setTimeout(()=>tr.classList.remove('flash'),2600)},60)}
+document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-goto]');if(g)goBook(g.dataset.goto)});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('[data-goto]'))goBook(e.target.dataset.goto)});
 tb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[contenteditable]')){e.preventDefault();e.target.blur()}});
 tb.addEventListener('change',e=>{
   const t=e.target,id=t.dataset.id;if(!id)return;const r=M.books.get(id);if(!r)return;let fields=[];
@@ -1039,7 +1101,7 @@ function moveMine(id,tid,after){
   requestRender(true);if(n)toast(w+' 담당 도서 순서를 바꿨습니다')}
 
 /* ---------- 변경 이력 (누가·언제·어떤 칸을·무엇에서 무엇으로) ---------- */
-const HF={title:'도서명',rev:'차수',author:'저자',workers:'작업자(전체)',editors:'담당자',designers:'디자이너(내지+표지)',inner:'내지 디자이너',cover:'표지 디자이너',sec:'구분',note:'진행 내용',stage:'단계',date:'갱신일',progress:'현재 진행',items:'내용'};
+const HF={steps:'작업 단계',title:'도서명',rev:'차수',author:'저자',workers:'작업자(전체)',editors:'담당자',designers:'디자이너(내지+표지)',inner:'내지 디자이너',cover:'표지 디자이너',sec:'구분',note:'진행 내용',stage:'단계',date:'갱신일',progress:'현재 진행',items:'내용'};
 function fieldLabel(f){
   if(f==='__create')return '추가';if(f==='__delete')return '삭제';if(f==='__restore')return '복원';
   const m=/^p([nsd])_(.+)$/.exec(f);if(m)return {n:'진행 내용',s:'단계',d:'갱신일'}[m[1]]+' ('+m[2]+')';
@@ -1433,7 +1495,7 @@ function jrRender(){
   $('#jrGrid').innerHTML=shown.length?shown.map(x=>{
     const w=x.w,g=ORG.find(o=>o[1].includes(w)),gc=g?g[2]:'gx',gn=g?g[0]:'기타 · 외주',can=canWrite&&(isAdmin()||w===myId);
     const items=x.done.map(([r,v])=>{const co=(r.workers||[]).filter(n=>n!==w);
-      return `<div class="jr-it"><span class="jr-st" style="--c:${col(v.stage)}">${esc(v.stage)}</span><div class="jr-tt">${esc(r.title)}${r.rev?`<em>${revH(r.rev)}</em>`:''}</div>
+      return `<div class="jr-it"><span class="jr-st" style="--c:${col(v.stage)}">${esc(v.stage)}</span><div class="jr-tt">${esc(r.title)}${r.rev?`<em>${revH(r.rev)}</em>`:''}${stepsLine(r,false)}</div>
        ${v.note?`<div class="jr-nt">${esc(v.note)}</div>`:''}${co.length?`<div class="jr-co">함께: ${esc(co.join(', '))}</div>`:''}</div>`}).join('');
     const going=x.going.length?`<details class="jr-on"><summary>계속 진행 중인 도서 ${x.going.length}건</summary>${x.going.map(([r,v])=>`<div class="o" style="--c:${col(v.stage)}"><i></i><b>${esc(r.title)}</b><span>${esc(v.stage)} · ${v.age==null?'상시':v.age+'일 전'}</span></div>`).join('')}</details>`:'';
     const op=can?`<label for="op-${esc(w)}">${w===myId?'내 의견·메모':esc(nm(w))+' 의견·메모 (관리자 수정)'}<span class="jr-sv" data-k="${esc(D+'|'+w)}"></span></label><textarea class="jr-op" id="op-${esc(w)}" data-jw="${esc(w)}" rows="2" placeholder="오늘 업무에 대한 의견, 이슈, 내일 계획을 남겨 보세요" maxlength="3000">${esc(x.op)}</textarea><div class="op-p">${esc(x.op)}</div>`
@@ -1610,7 +1672,7 @@ function htmlWorkers(all){
     const open=x=>all||openSet.has(w+'|'+x);
     return `<div class="card"><h3><span class="w" data-w="${esc(w)}">${esc(w)}</span><span class="hr"><small>작업 ${mine.length}건</small> ${(!all&&canWrite&&(isAdmin()||w===myId))?`<button type="button" class="chip no-print" data-addfor="${esc(w)}">+ 도서</button>`:''}</span></h3>
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
-      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(eff(a,w).date||'')<(eff(b,w).date||'')?1:-1).map(r=>{const v=eff(r,w);return `<div class="item"><b>${esc(r.title)}</b> ${revH(r.rev)}
+      ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(eff(a,w).date||'')<(eff(b,w).date||'')?1:-1).map(r=>{const v=eff(r,w);return `<div class="item"><b class="golink" role="link" tabindex="0" data-goto="${esc(r.id)}" title="도서 목록에서 이 도서로 이동">${esc(r.title)}</b> ${revH(r.rev)}${stepsLine(r,false)}
         <div class="n">${esc(v.note)} · ${ageTxt(v)}</div></div>`}).join('')}</div>`).join('')}</div>`};
   const html=groups.map(([n,members,gc])=>{
     if(!members.length)return '';
