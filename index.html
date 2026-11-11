@@ -210,6 +210,9 @@ body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr{display:none!important}
 .ad-k b{display:block;font-size:26px;line-height:1.1;font-weight:800}.ad-k span{font-size:12px;opacity:.85}
 .ad-k.warn b{color:#ffd48a}
 .ad-sec{margin-top:18px}
+.att-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px;font-size:13px}.att-bar input{font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg,inherit)}
+.att-t td{vertical-align:middle;white-space:nowrap}.att-t td .jr-tg{margin:2px 4px 2px 0}.att-t tr.g td{font-weight:700;font-size:12px;color:var(--gc);background:color-mix(in srgb,var(--gc) 8%,var(--card))}
+@media print{#adAtt{display:none}}
 .ad-sec>h3{margin:0 0 8px 2px;font-size:16px;display:flex;align-items:baseline;gap:10px}
 .ad-sec>h3 small{font-weight:500;color:var(--sub);font-size:12px}
 .ad-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
@@ -472,6 +475,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="ad-sec"><h3>팀원 관리 바로가기</h3><div class="ad-quick no-print" id="adQuick"></div></div>
   <div class="ad-sec" id="adAlerts"></div>
   <div class="ad-sec" id="adToday"></div>
+  <div class="ad-sec" id="adAtt"></div>
   <div class="ad-sec" id="adStaff"></div>
   <div class="ad-sec"><h3>팀원별 업무 현황 <small id="adTNote"></small></h3><div class="ad-tbox"><table class="ad-t" id="adT"></table></div></div>
 </div>
@@ -734,6 +738,8 @@ const recs=()=>list('books');
 const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','단계완료'].includes(v.stage);
 /* 담당자별 진행 상황: 진행내용(pn_)·단계(ps_)·갱신일(pd_)·단계수동(pm_) 을 이름별로 따로 저장. 없으면 도서 공통값(note/stage/date)을 씀 */
 const isAdmin=()=>!!(window.JPX&&window.JPX.me&&window.JPX.me.is_admin);
+const SUPER_ID='차인태'; /* 다른 사람의 근태(잔업·야근·반차·연차·근무시간)를 고칠 수 있는 유일한 사람 — 서버(jp_patch)에서도 같은 규칙으로 막음 */
+const isSuper=()=>isAdmin()&&!!myId&&myId===SUPER_ID;
 const mayBook=r=>canWrite&&(isAdmin()||!(r.workers||[]).length||(r.workers||[]).includes(myId));
 const mayWorker=(r,w)=>canWrite&&(isAdmin()||(w?w===myId:mayBook(r)));
 const pk=(w,f)=>'p'+f+'_'+w;
@@ -826,7 +832,7 @@ let dragId=null;
 const typing=()=>{if(dragId)return true;const a=document.activeElement;return st.edit&&a&&a.matches&&a.matches('[contenteditable],input,select')};
 function requestRender(force){
   if(!force&&typing()){pending=true;return}
-  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle();if(jr.on&&!document.activeElement.matches('.jr-op'))jrRender();if(ad.on&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#adStaff')))adRender()})}
+  cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{pending=false;drawSelects();render();renderMisc();if(curTab==='worker')renderWorkers();drawTitle();if(jr.on&&!document.activeElement.matches('.jr-op'))jrRender();if(ad.on&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#adStaff,#adAtt')))adRender()})}
 document.addEventListener('focusout',()=>{if(pending)setTimeout(()=>{if(pending&&!typing())requestRender(true)},250)});
 
 /* ---------- 탭/컨트롤 ---------- */
@@ -1239,8 +1245,8 @@ document.addEventListener('click',async e=>{
     if(ACC.has(o)){try{await window.JPX.adm('jp_admin_rename_user',{p_target:o,p_new:nn})}catch(x){err('계정 이름을 바꾸지 못해 중단했습니다: '+msgOf(x));return}}
     const list=staffBase().map(x=>x.n===o?{...x,n:nn}:x);await staffSave(list);
     const items=recs().filter(r=>bookHas(r,o)||PERSONAL_KEYS(o).some(k=>r[k]!==undefined)).map(r=>[r,bookPatchRename(r,o,nn)]).filter(([r,pt])=>Object.keys(pt).length);const k=await applyBookPatches(items);
-    let lg=0;for(const [d,v] of [...LOGS]){const pt={};if(v['lg_'+o]!==undefined){pt['lg_'+nn]=v['lg_'+o];pt['lg_'+o]=null}if(v['lf_'+o]!==undefined){pt['lf_'+nn]=v['lf_'+o];pt['lf_'+o]=null}if(Object.keys(pt).length){await db.doc('meta/log_'+d).update(pt);lg++}}
-    const sv=SHIFTS.get(o);if(sv){await db.doc('meta/shift_'+nn).set({v:sv});await db.doc('meta/shift_'+o).set({v:''});SHIFTS.set(nn,sv);SHIFTS.delete(o)}
+    let lg=0;for(const [d,v] of [...LOGS]){const pt={};if(v['lg_'+o]!==undefined){pt['lg_'+nn]=v['lg_'+o];pt['lg_'+o]=null}if(isSuper()&&v['lf_'+o]!==undefined){pt['lf_'+nn]=v['lf_'+o];pt['lf_'+o]=null}if(Object.keys(pt).length){await db.doc('meta/log_'+d).update(pt);lg++}}
+    const sv=SHIFTS.get(o);if(sv&&isSuper()){await db.doc('meta/shift_'+nn).set({v:sv});await db.doc('meta/shift_'+o).set({v:''});SHIFTS.set(nn,sv);SHIFTS.delete(o)}
     await adLoadAcc();ad.panel={type:'msg',text:`${o} → ${nn} 이름 변경 완료 (도서 ${k}권 · 업무일지 ${lg}일치 · 계정${ACC.has(nn)?' 포함':' 없음'})`};ad.busy=false;adRender();return}
   ad.busy=false}catch(x){ad.busy=false;err('실패했습니다: '+msgOf(x))}});
 document.addEventListener('change',async e=>{
@@ -1253,7 +1259,7 @@ document.addEventListener('change',async e=>{
     await window.JPX.adm('jp_admin_set_role',{p_target:n,p_admin:t.checked});await adLoadAcc();toast('권한을 바꿨습니다')}
   }catch(x){toast('저장하지 못했습니다: '+((x&&x.message)||''));adRender()}});
 /* ---------- 관리자 대시보드 (관리자만): 이미 있는 자료로 팀 전체 현황 · 주의 대상 · 오늘 근태 ---------- */
-const ad={on:false,scroll:0,sort:'dept',dir:1,panel:null,busy:false};
+const ad={on:false,scroll:0,sort:'dept',dir:1,panel:null,busy:false,attD:iso(TODAY)};
 const AD_STG=['진행중','대기','단계완료','재고대기','보류'];
 function adCalc(){
   const D=iso(TODAY),rows=jrCalc(D).rows;
@@ -1270,6 +1276,20 @@ function adCalc(){
   const noDesign=act.filter(r=>(r.workers||[]).length&&!rolesOf(r).inner.length&&!rolesOf(r).cover.length);
   return {D,per,act,staleBooks,noWorker,noEditor,noDesign};
 }
+function adAttRender(){
+  const el=$('#adAtt');if(!el)return;
+  if(!ad.on||!isSuper()){el.innerHTML='';return}
+  const D=ad.attD||iso(TODAY),names=[...new Set([...ORG.flatMap(g=>g[1]),...jrPeopleAll()])].sort(byRank);
+  const SH=[['0800','08–17'],['0900','09–18']];
+  let last=null,rows='';
+  names.forEach(w=>{const d=deptOf(w),fl=jrFl(D,w),sh=SHIFTS.get(w)||'',W=esc(w);
+    if(d!==last){last=d;rows+=`<tr class="g" style="--gc:var(--${deptCls(d)})"><td colspan="4">${esc(d)}</td></tr>`}
+    const tg=(f,c)=>{const on=fl.includes(f);return `<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${c}${on?' on':''}" data-atw="${W}" data-atf="${f}">${f}</button>`};
+    rows+=`<tr><td><b>${esc(nm(w))}</b></td><td>${SH.map(([v,l])=>`<button type="button" role="checkbox" aria-checked="${sh===v}" class="jr-tg sh${sh===v?' on':''}" data-atw="${W}" data-atsh="${v}">${l}</button>`).join(' ')}</td><td>${FLAGS.map((f,i)=>tg(f,'f'+i)).join(' ')}</td><td>${LEAVES.map(f=>tg(f,'l')).join(' ')}</td></tr>`});
+  el.innerHTML=`<h3>근태 관리 <small>차인태 전용 · 잔업·야근·반차·연차는 선택한 날짜 기준, 근무시간은 날짜와 관계없이 유지됩니다</small></h3>
+  <div class="ad-card att-ed"><div class="att-bar"><label>날짜 <input type="date" id="adAttD" value="${D}"></label>${D!==iso(TODAY)?'<button type="button" class="btn" id="adAttToday">오늘로</button>':''}</div>
+  <div class="ad-tbox"><table class="ad-t att-t"><thead><tr><th>이름</th><th>근무시간</th><th>잔업 · 야근</th><th>반차 · 연차</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  const b=$('#adAttToday');if(b)b.onclick=()=>{ad.attD=iso(TODAY);adAttRender()}}
 function adRender(){
   if(!ad.on)return;
   const c=adCalc(),per=c.per,now=new Date();
@@ -1277,7 +1297,7 @@ function adRender(){
   const leave=per.filter(x=>x.fl.some(f=>LEAVES.includes(f)));
   const noLog=per.filter(x=>!x.fl.includes('연차')&&!x.op);
   $('#adK').innerHTML=[[c.act.length,'작업 중 도서',''],[c.staleBooks.length,'정체 도서 ('+st.thr+'일+)',c.staleBooks.length?'warn':''],[c.noWorker.length,'작업자 미지정 도서',c.noWorker.length?'warn':''],[per.filter(x=>x.fl.length).length,'오늘 근태 표시 인원',''],[noLog.length,'오늘 의견 미작성 인원','']].map(([n,l,k])=>`<div class="ad-k ${k}"><b>${n}</b><span>${l}</span></div>`).join('');
-  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-staff','직원 추가·수정·삭제 (직급·부서)'],['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
+  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-staff','직원 추가·수정·삭제 (직급·부서)'],...(isSuper()?[['adq-att','근태 수정 (잔업·야근·반차·연차)']]:[]),['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
   /* 주의 대상 */
   const li=(b,r)=>`<div class="ad-li"><b data-adgo="${esc(b.title)}">${esc(b.title)}${b.rev?' '+revT(b.rev):''}</b><span>${r}</span></div>`;
   const oldest=c.act.map(r=>[r,AG(r)]).filter(([r,v])=>v.age!=null&&['진행중','대기','단계완료'].includes(v.stage)).sort((a,b)=>b[1].age-a[1].age).slice(0,8);
@@ -1310,6 +1330,7 @@ function adRender(){
     let g='';if(grouped&&x.dept!==lastD){lastD=x.dept;g=`<tr class="g" style="--gc:var(--${deptCls(x.dept)})"><td colspan="${AD_STG.length+9}">${esc(x.dept)}</td></tr>`}
     const fl=x.fl.map(f=>`<span class="jr-tg on ${FLAGS.includes(f)?'f'+FLAGS.indexOf(f):'l'}">${f}</span>`).join('');
     return g+`<tr><td data-adw="${esc(x.w)}">${esc(nm(x.w))}</td><td style="color:var(--sub);font-size:12px">${esc(x.dept)}</td><td><b>${x.n}</b></td><td>${x.n?bar(x):'<span class="z">–</span>'}</td>${AD_STG.map(k=>`<td>${x.cnt[k]||'<span class="z">–</span>'}</td>`).join('')}<td>${x.stale?`<span class="stl">${x.stale}</span>`:'<span class="z">–</span>'}</td><td>${x.last?x.last.slice(5).replace('-','.')+` <small style="color:var(--sub)">(${x.lastAge}일 전)</small>`:'<span class="z">–</span>'}</td><td>${x.done?`<b>${x.done}</b>`:'<span class="z">–</span>'}</td><td><div class="att">${fl||'<span class="z">–</span>'}</div></td><td>${x.op?'✓':'<span class="z">–</span>'}</td></tr>`}).join('')}</tbody>`;
+  adAttRender();
   adStaffRender();
   $('#adTNote').textContent='이름을 누르면 그 사람의 도서 목록으로 이동 · 제목 칸을 누르면 정렬';
 }
@@ -1325,7 +1346,7 @@ document.addEventListener('click',e=>{
   const g=e.target.closest('[data-adgo]');if(g){adClose();resetFilters();st.q=g.dataset.adgo;$('#q').value=st.q;showTab('list');render();return}
   const q=e.target.closest('#adQuick .btn');if(q){const id=q.id;
     if(id==='adq-acc'){const b=document.getElementById('jpAdm');if(b)b.click()}
-    else if(id==='adq-staff'){const el=$('#adStaff');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}else if(id==='adq-sec')openSecs();else if(id==='adq-hist')openHist('');
+    else if(id==='adq-att'){const el=$('#adAtt');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}else if(id==='adq-staff'){const el=$('#adStaff');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}else if(id==='adq-sec')openSecs();else if(id==='adq-hist')openHist('');
     else if(id==='adq-log'){adClose();jrOpen()}}});
 /* ---------- 오늘의 업무일지: 도서 자료에서 자동 정리 + 본인 의견(meta/log_날짜 문서의 lg_이름 칸) ---------- */
 const SHIFTS=new Map(); /* 이름 → '0800'|'0900' (근무시간 확인용 표시, 날짜와 무관하게 유지) */
@@ -1348,7 +1369,7 @@ const deptOf=w=>{const g=ORG.find(o=>o[1].includes(w));return g?g[0]:'기타 · 
 const deptCls=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
 const GO_ACT=['진행중','대기','단계완료','재고대기'];
 const jrPeopleAll=()=>{const n=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>n.add(w)));
-  return [...ORG.flatMap(g=>g[1]).filter(w=>n.has(w)),...[...n].filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>a.localeCompare(b,'ko'))]};
+  return [...ORG.flatMap(g=>g[1]),...[...n].filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>a.localeCompare(b,'ko'))]};
 const jrFl=(D,w)=>{const d=LOGS.get(D);const a=d&&d['lf_'+w];return Array.isArray(a)?a:[]};
 const jrOp=(D,w)=>{const d=LOGS.get(D);return d&&typeof d['lg_'+w]==='string'?d['lg_'+w]:''};
 function jrCalc(D){
@@ -1381,7 +1402,7 @@ function jrAttHtml(w,fl,can){
 function jrChrome(){
   const m=jr.mode==='month';
   $('#jrMDay').classList.toggle('on',!m);$('#jrMMon').classList.toggle('on',m);
-  $('#jrDate').hidden=m;$('#jrMonth').hidden=!m;$('#jrAllL').hidden=m;$('#jrToday').textContent=m?'이번 달':'오늘';
+  $('#jrDate').hidden=m;$('#jrMonth').hidden=!m;$('#jrAllL').hidden=true;$('#jrToday').textContent=m?'이번 달':'오늘';
   $('#jrKick').textContent=(m?'월간 업무일지 · MONTHLY LOG':'오늘의 업무일지 · DAILY LOG')+(jr.dept?' · '+jr.dept:'');
   $('#jrDept').innerHTML=['',...DEPTS].map(d=>`<button type="button" class="jr-chip${jr.dept===d?' on':''}" style="--gc:var(--${d?deptCls(d):'accent'})" data-d="${esc(d)}">${d||'전체'}</button>`).join('');
   $('#jrRk').hidden=true;
@@ -1398,12 +1419,12 @@ function jrRender(){
   $('#jrK').innerHTML=[[ids.size,'갱신된 도서'],[active,'업무 기록한 사람'],[stepN,'단계 완료'],[prN,'인쇄 넘김'],[opN,'의견 작성']].map(([n,l])=>`<div class="jr-k"><b>${n}</b><span>${l}</span></div>`).join('');
   {const g={};[...FLAGS,...LEAVES].forEach(f=>g[f]=[]);rows.forEach(x=>x.fl.forEach(f=>g[f]&&g[f].push(nm(x.w))));
    $('#jrAtt').innerHTML=[...FLAGS,...LEAVES].filter(f=>g[f].length).map(f=>`<span class="jr-tg on ${FLAGS.includes(f)?'f'+FLAGS.indexOf(f):'l'}"><b>${f} ${g[f].length}</b>${esc(g[f].join(', '))}</span>`).join('')}
-  const whoSel=$('#jrWho');const names=rows.filter(x=>x.done.length||x.going.length||x.op||x.w===myId).map(x=>x.w);
+  const whoSel=$('#jrWho');const names=rows.map(x=>x.w);
   whoSel.innerHTML='<option value="">전체</option>'+(myId&&names.includes(myId)?`<option value="${esc(myId)}">나 (${esc(nm(myId))})</option>`:'')+names.filter(n=>n!==myId).map(n=>`<option value="${esc(n)}">${esc(nm(n))}</option>`).join('');
   whoSel.value=names.includes(jr.who)||jr.who===myId?jr.who:'';jr.who=whoSel.value;
   $('#jrAll').checked=jr.all;
   $('#jrHint').textContent=isNow?'작업자로 지정된 도서의 오늘 진행 내용이 자동으로 모입니다. 카드 아래 칸에 본인 의견을 적으면 자동 저장됩니다.':'지난 날짜는 그날 마지막으로 갱신된 업무 기준입니다.';
-  const shown=rows.filter(x=>jr.who?x.w===jr.who:(x.done.length||x.op.trim()||x.fl.length||x.w===myId||jr.all)).sort((a,b)=>byRank(a.w,b.w));
+  const shown=rows.filter(x=>jr.who?x.w===jr.who:true).sort((a,b)=>byRank(a.w,b.w));
   let lastD=null;const hdr=x=>{const d=deptOf(x.w);if(d===lastD)return '';const first=lastD===null;lastD=d;const m=shown.filter(y=>deptOf(y.w)===d);return `<div class="jr-gh${first?'':' pb'}" style="--gc:var(--${deptCls(d)})"><b>${esc(d)}</b><span>${m.length}명 · ${m.reduce((t,y)=>t+y.done.length,0)}건 갱신</span></div>`};
   const ae=document.activeElement,keepFocus=ae&&ae.classList&&ae.classList.contains('jr-op')?{w:ae.dataset.w,s:ae.selectionStart,e:ae.selectionEnd}:null;
   $('#jrGrid').innerHTML=shown.length?shown.map(x=>{
@@ -1415,7 +1436,7 @@ function jrRender(){
     const op=can?`<label for="op-${esc(w)}">${w===myId?'내 의견·메모':esc(nm(w))+' 의견·메모 (관리자 수정)'}<span class="jr-sv" data-k="${esc(D+'|'+w)}"></span></label><textarea class="jr-op" id="op-${esc(w)}" data-jw="${esc(w)}" rows="2" placeholder="오늘 업무에 대한 의견, 이슈, 내일 계획을 남겨 보세요" maxlength="3000">${esc(x.op)}</textarea><div class="op-p">${esc(x.op)}</div>`
       :(x.op.trim()?`<label>${esc(nm(w))}의 의견·메모</label><div class="jr-ro op-p2">${esc(x.op)}</div><div class="op-p">${esc(x.op)}</div>`:'');
     return hdr(x)+`<article class="jr-c${w===myId?' me':''}${(!x.done.length&&!x.op.trim()&&!x.fl.length)?' idle':''}" style="--gc:var(--${gc})"><div class="jr-ch"><span class="jr-av">${esc(w.slice(0,1))}</span><div class="jr-nm">${esc(nm(w))}<small>${esc(gn)}</small></div><span class="jr-cnt${x.done.length?'':' z'}">${x.done.length?x.done.length+'건 갱신':'갱신 없음'}</span></div>
-      ${jrAttHtml(w,x.fl,can)}
+      ${jrAttHtml(w,x.fl,canWrite&&(isSuper()||w===myId))}
       <div class="jr-b">${items||'<div class="jr-none">'+(isNow?'오늘 갱신한 업무가 없습니다.':'이 날 갱신한 업무가 없습니다.')+'</div>'}${going}</div>
       ${op?`<div class="jr-opw${x.op.trim()?'':' empty'}">${op}</div>`:''}</article>`}).join('')
     :'<div class="jr-empty">표시할 내용이 없습니다. 위에서 “갱신 없는 사람도 보기”를 켜 보세요.</div>';
@@ -1532,15 +1553,24 @@ $('#rkSave').onclick=async()=>{if(!isAdmin())return;const map={};
   document.querySelectorAll('#rkBody [data-rk]').forEach(i=>{const n=i.dataset.rk,v=i.value.trim();if(v||RANK_DEFAULT[n])map[n]=v});
   try{await db.doc('meta/ranks').set({map});RANK_SAVED=map;toast('직급을 저장했습니다');rkClose();requestRender(true);jrRender()}
   catch(e){toast(e&&e.code==='forbidden'?'관리자만 직급을 바꿀 수 있습니다':'직급을 저장하지 못했습니다')}};
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#jr button.jr-tg');if(!t)return;
-  const w=t.dataset.jw;if(!w||!(canWrite&&(isAdmin()||w===myId)))return;
-  if(t.dataset.jsh!==undefined){const old=SHIFTS.get(w)||'',v=old===t.dataset.jsh?'':t.dataset.jsh;SHIFTS.set(w,v);jrRender();
-    db.doc('meta/shift_'+w).set({v}).catch(()=>{SHIFTS.set(w,old);jrRender();toast('근무시간을 저장하지 못했습니다')});return}
-  const f=t.dataset.jf,D=jr.date,cur=jrFl(D,w);let arr=cur.includes(f)?cur.filter(x=>x!==f):[...cur,f];
+function attShift(w,v0){const old=SHIFTS.get(w)||'',v=old===v0?'':v0;SHIFTS.set(w,v);jrRender();if(ad.on)adRender();
+  db.doc('meta/shift_'+w).set({v}).catch(()=>{SHIFTS.set(w,old);jrRender();if(ad.on)adRender();toast('근무시간을 저장하지 못했습니다')})}
+function attFlag(D,w,f){const cur=jrFl(D,w);let arr=cur.includes(f)?cur.filter(x=>x!==f):[...cur,f];
   if(!cur.includes(f)&&LEAVES.includes(f))arr=arr.filter(x=>x===f||!LEAVES.includes(x));
   arr=[...FLAGS,...LEAVES].filter(x=>arr.includes(x));
-  const c0=LOGS.get(D);const nd=Object.assign({},c0||{});nd['lf_'+w]=arr;LOGS.set(D,nd);jrRender();
-  db.doc('meta/log_'+D).update({['lf_'+w]:arr}).catch(()=>{if(c0)LOGS.set(D,c0);else LOGS.delete(D);jrRender();toast('근태 체크를 저장하지 못했습니다')})});
+  const c0=LOGS.get(D);const nd=Object.assign({},c0||{});nd['lf_'+w]=arr;LOGS.set(D,nd);jrRender();if(ad.on)adRender();
+  db.doc('meta/log_'+D).update({['lf_'+w]:arr}).catch(()=>{if(c0)LOGS.set(D,c0);else LOGS.delete(D);jrRender();if(ad.on)adRender();toast('근태 체크를 저장하지 못했습니다'+(isSuper()||w===myId?'':' (권한 없음)'))})}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#jr button.jr-tg');if(!t)return;
+  const w=t.dataset.jw;if(!w||!(canWrite&&(isSuper()||w===myId)))return;
+  if(t.dataset.jsh!==undefined){attShift(w,t.dataset.jsh);return}
+  attFlag(jr.date,w,t.dataset.jf)});
+/* 관리자 대시보드 > 근태 관리 (차인태 전용) */
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#adAtt button[data-atw]');if(!t||!canWrite||!isSuper())return;
+  const w=t.dataset.atw,k=t.dataset.atf!==undefined?'f:'+t.dataset.atf:'s:'+t.dataset.atsh;
+  if(t.dataset.atf!==undefined)attFlag(ad.attD,w,t.dataset.atf);else attShift(w,t.dataset.atsh);
+  const sel=`#adAtt button[data-atw="${CSS.escape(w)}"]${t.dataset.atf!==undefined?`[data-atf="${CSS.escape(t.dataset.atf)}"]`:`[data-atsh="${t.dataset.atsh}"]`}`;
+  const n=document.querySelector(sel);if(n)n.focus()});
+document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!=='adAttD')return;if(t.value)ad.attD=t.value;adAttRender()});
 const jrTimers={};
 function jrSaveNow(D,w,text){const key=D+'|'+w;clearTimeout(jrTimers[key]);delete jrTimers[key];
   const sv=()=>document.querySelector(`.jr-sv[data-k="${CSS.escape(key)}"]`);
