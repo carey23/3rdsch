@@ -197,9 +197,42 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 /* ===== 관리자 대시보드 ===== */
 .hl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .admbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;font-weight:700;color:#fff;border:0;cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;background:linear-gradient(135deg,#0f2a3d,#14506a 60%,#1c8a7a);box-shadow:0 2px 10px rgba(15,42,61,.35);transition:transform .15s}
+.lvbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:14px;font-weight:700;color:var(--ink,inherit);background:var(--card);border:1px solid var(--line);cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;transition:transform .15s,border-color .15s}
+.lvbtn:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}.lvbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+body.lv-open>header,body.lv-open>.wrap,body.lv-open>#jr,body.lv-open>#ad{display:none!important}
+#lv{max-width:1500px;margin:0 auto;padding:14px 0 40px}
+.lv-hero{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.lv-hero h2{margin:0 8px 0 0;font-size:22px}.lv-hero select,.lv-hero input,.lv-form select,.lv-form input{font:inherit;font-size:13.5px;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit}
+.lv-seg{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}.lv-seg button{font:inherit;font-size:13px;font-weight:600;padding:6px 14px;border:0;background:transparent;color:var(--sub);cursor:pointer}.lv-seg button.on{background:var(--accent);color:var(--on-accent,#fff)}
+.lv-btn{font:inherit;font-size:13px;font-weight:700;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:inherit;cursor:pointer}.lv-btn:hover{border-color:var(--accent);color:var(--accent)}.lv-btn.solid{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#fff)}.lv-btn.solid:hover{color:var(--on-accent,#fff);filter:brightness(1.08)}
+.lv-sp{flex:1}
+.lv-form{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 16px;font-size:13px}.lv-form label{display:inline-flex;align-items:center;gap:5px;color:var(--sub)}
+.lv-form .msg{flex-basis:100%;font-size:12px;color:var(--sub)}
+.lv-box{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:auto}
+.lv-t{border-collapse:collapse;width:100%;font-size:13.5px;min-width:1100px}.lv-t th{position:sticky;top:0;background:#3a4256;color:#fff;font-weight:600;font-size:12.5px;padding:9px 6px;white-space:nowrap}
+.lv-t td{border-top:1px solid var(--line);padding:7px 6px;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}.lv-t td.n{text-align:left;font-weight:700}.lv-t td.g{text-align:left;color:var(--sub);font-size:12px}
+.lv-t th button{all:unset;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.lv-t td.tot{background:color-mix(in srgb,#2aa7e6 18%,var(--card));font-weight:700}.lv-t td.rem{background:color-mix(in srgb,#e65a5a 14%,var(--card));font-weight:700}.lv-t td.rem.neg{color:#c0262d}
+.lv-t tr.gh td{text-align:left;font-weight:700;font-size:12px;color:var(--gc);background:color-mix(in srgb,var(--gc) 8%,var(--card))}
+.lv-t .z{color:var(--sub)}
+.lv-set{margin-top:14px;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:18px}.lv-set h3{margin:0 0 4px;font-size:15px}.lv-set p{margin:0 0 8px;font-size:12px;color:var(--sub);line-height:1.5}
+.lv-set table{border-collapse:collapse;width:100%;font-size:13px}.lv-set td,.lv-set th{padding:5px 8px;border-top:1px solid var(--line);text-align:left;white-space:nowrap}.lv-set th{font-size:11.5px;color:var(--sub);border-top:0}.lv-set input{font:inherit;font-size:13px;padding:4px 7px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:inherit;width:130px}.lv-set input[type=number]{width:84px}
+.lv-cal{width:100%;border-collapse:collapse;table-layout:fixed;min-width:760px}.lv-cal th{background:#c9ccd3;color:#222;font-size:13px;padding:6px;border:1px solid var(--line)}
+.lv-cal td{vertical-align:top;border:1px solid var(--line);height:112px;padding:0;cursor:pointer}.lv-cal td:hover{background:color-mix(in srgb,var(--accent) 5%,var(--card))}
+.lv-cal td.today{background:#d4f1f7}.lv-cal td.sel{outline:2px solid var(--accent);outline-offset:-2px}.lv-cal td.out{background:color-mix(in srgb,var(--line) 35%,var(--card));cursor:default}
+.lv-cal .dn{display:block;padding:2px 7px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--line) 70%,var(--card))}.lv-cal .sun .dn,.lv-cal .sun{color:#e02a2a}.lv-cal .sat .dn{color:#2a47e0}
+.lv-e{display:block;font-size:12.5px;padding:2px 7px;color:var(--ink,inherit);cursor:pointer}.lv-e.h{color:#2538d9}.lv-e:hover{text-decoration:line-through}.lv-e.ro:hover{text-decoration:none;cursor:default}
+.lv-leg{font-size:12px;color:var(--sub)}.lv-leg b{font-weight:600}
+@media(max-width:760px){.lv-hero h2{font-size:18px}}
+@media print{
+ body.lv-open{background:#fff!important;color:#111;padding:0}#lv{--card:#fff;--line:#c9ced8;--sub:#555;color:#111;padding:0;max-width:none}
+ #lv .no-print,.lv-form,.lv-set{display:none!important}.lv-hero{border:0;padding:0 0 6px}.lv-box{border-radius:0;overflow:visible;margin-top:6px}
+ .lv-t{min-width:0;font-size:10.5px}.lv-t th{position:static;background:#444!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.lv-t td{padding:3px 4px}.lv-t td.tot,.lv-t td.rem{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .lv-cal{min-width:0}.lv-cal td{height:90px}.lv-e{font-size:10.5px}
+}
 .admbtn:hover{transform:translateY(-1px)}
 .admbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr{display:none!important}
+body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr,body.ad-open>#lv{display:none!important}
 #ad{max-width:1240px;margin:0 auto;padding:14px 0 40px}
 .ad-hero{border-radius:22px;color:#fff;padding:18px 26px 22px;background:radial-gradient(800px 260px at 100% -30%,rgba(120,220,190,.35),transparent 60%),linear-gradient(135deg,#0c2233,#134a63 60%,#1b7f73)}
 .ad-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -426,6 +459,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <button type="button" class="admbtn" id="bAdm" hidden title="관리자 전용 대시보드"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span>관리자 대시보드</span></button>
   </div>
   <div class="tools">
+    <button type="button" class="lvbtn" id="bLv" title="연차관리표 열기"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>연차관리</span></button>
     <button type="button" class="jrbtn" id="bJr" title="오늘의 업무일지 열기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/></svg><span>오늘의 업무일지</span><b id="jrN">0</b></button>
     <div class="status"><span><i class="dot" id="dot"></i><span id="conn">연결 중…</span></span><span class="saved" id="saved"></span></div>
     <button class="btn primary" id="bAddTop" hidden>+ 도서 추가</button>
@@ -491,6 +525,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="ad-sec" id="adStaff"></div>
   <div class="ad-sec"><h3>팀원별 업무 현황 <small id="adTNote"></small></h3><div class="ad-tbox"><table class="ad-t" id="adT"></table></div></div>
 </div>
+<div id="lv" hidden></div>
 <div id="jr" hidden>
   <div class="jr-hero">
     <div class="jr-top no-print"><button type="button" class="jr-hbtn" id="jrBack">← 현황판으로</button><div class="jr-seg" role="tablist" aria-label="보기 단위"><button type="button" id="jrMDay" role="tab">일간</button><button type="button" id="jrMMon" role="tab">월간</button></div><button type="button" class="jr-hbtn solid" id="jrPrint">인쇄</button></div>
@@ -834,8 +869,10 @@ function subscribe(){
       requestRender()},
       err=>{setConn('err',err&&err.code==='revoked'?'접근 권한이 변경되었습니다':'연결 오류');toast('실시간 연결이 끊겼습니다. 페이지를 새로 열어 주세요.')})});
   db.collection('meta').onSnapshot(snap=>{let ch=false;snap.docChanges().forEach(c=>{const id=c.doc.id;if(id.startsWith('shift_')){ch=true;if(c.type==='removed')SHIFTS.delete(id.slice(6));else SHIFTS.set(id.slice(6),c.doc.data().v||'');return}
+    if(id==='leavecfg'){LCFG=c.type==='removed'?{}:c.doc.data();ch=true;return}
+    if(id.startsWith('leave_')){const y=id.slice(6);if(c.type==='removed')LEAVEY.delete(y);else LEAVEY.set(y,c.doc.data());leaveRebuild();ch=true;return}
     if(!id.startsWith('log_'))return;ch=true;
-    if(c.type==='removed')LOGS.delete(id.slice(4));else LOGS.set(id.slice(4),c.doc.data())});if(ch&&jr.on&&!document.activeElement.matches('.jr-op'))jrRender()},()=>{});
+    if(c.type==='removed')LOGS.delete(id.slice(4));else LOGS.set(id.slice(4),c.doc.data())});if(ch&&jr.on&&!document.activeElement.matches('.jr-op'))jrRender();if(ch&&lv.on&&!document.activeElement.matches('#lv input'))lvRender();if(ch&&ad.on&&!ad.busy&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#adStaff,#adAtt')))adRender()},()=>{});
   db.doc('meta/staff').onSnapshot(s=>{const l=s.exists&&s.data().list;STAFF=Array.isArray(l)?l.filter(x=>x&&x.n):null;applyStaff(STAFF||DEFAULT_STAFF);requestRender(true);if(ad.on&&!ad.busy)adRender()},()=>{});
   db.doc('meta/ranks').onSnapshot(s=>{RANK_SAVED=s.exists&&s.data().map&&typeof s.data().map==='object'?s.data().map:null;requestRender()},()=>{});
   db.doc('meta/sections').onSnapshot(s=>{SEC_LIST=s.exists&&Array.isArray(s.data().list)?s.data().list:null;requestRender()},()=>{});
@@ -1309,6 +1346,8 @@ document.addEventListener('click',async e=>{
     const list=staffBase().map(x=>x.n===o?{...x,n:nn}:x);await staffSave(list);
     const items=recs().filter(r=>bookHas(r,o)||PERSONAL_KEYS(o).some(k=>r[k]!==undefined)).map(r=>[r,bookPatchRename(r,o,nn)]).filter(([r,pt])=>Object.keys(pt).length);const k=await applyBookPatches(items);
     let lg=0;for(const [d,v] of [...LOGS]){const pt={};if(v['lg_'+o]!==undefined){pt['lg_'+nn]=v['lg_'+o];pt['lg_'+o]=null}if(isSuper()&&v['lf_'+o]!==undefined){pt['lf_'+nn]=v['lf_'+o];pt['lf_'+o]=null}if(Object.keys(pt).length){await db.doc('meta/log_'+d).update(pt);lg++}}
+    for(const [Y,doc] of [...LEAVEY]){const pt={};Object.keys(doc).forEach(k=>{if(k.startsWith('e_'+o+'_')&&k.length===o.length+13&&doc[k]&&typeof doc[k]==='object'){pt['e_'+nn+k.slice(2+o.length)]=doc[k];pt[k]=null}});if(Object.keys(pt).length)await db.doc('meta/leave_'+Y).update(pt)}
+    {const pt={};Object.keys(LCFG).forEach(k=>{if(k==='h_'+o||/^[po]_\d{4}_/.test(k)&&k.slice(7)===o){if(LCFG[k]!=null){pt[k.slice(0,k.length-o.length)+nn]=LCFG[k];pt[k]=null}}});if(Object.keys(pt).length)await db.doc('meta/leavecfg').update(pt)}
     const sv=SHIFTS.get(o);if(sv&&isSuper()){await db.doc('meta/shift_'+nn).set({v:sv});await db.doc('meta/shift_'+o).set({v:''});SHIFTS.set(nn,sv);SHIFTS.delete(o)}
     await adLoadAcc();ad.panel={type:'msg',text:`${o} → ${nn} 이름 변경 완료 (도서 ${k}권 · 업무일지 ${lg}일치 · 계정${ACC.has(nn)?' 포함':' 없음'})`};ad.busy=false;adRender();return}
   ad.busy=false}catch(x){ad.busy=false;err('실패했습니다: '+msgOf(x))}});
@@ -1347,11 +1386,11 @@ function adAttRender(){
   let last=null,rows='';
   names.forEach(w=>{const d=deptOf(w),fl=jrFl(D,w),sh=SHIFTS.get(w)||'',W=esc(w);
     if(d!==last){last=d;rows+=`<tr class="g" style="--gc:var(--${deptCls(d)})"><td colspan="4">${esc(d)}</td></tr>`}
-    const tg=(f,c)=>{const on=fl.includes(f);return `<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${c}${on?' on':''}" data-atw="${W}" data-atf="${f}">${f}</button>`};
+    const tg=(f,c)=>{const on=fl.includes(f);if(LEAVES.includes(f))return on?`<span class="jr-tg ${c} on">${f}</span>`:'<span class="z">–</span>';return `<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${c}${on?' on':''}" data-atw="${W}" data-atf="${f}">${f}</button>`};
     rows+=`<tr><td><b>${esc(nm(w))}</b></td><td>${SH.map(([v,l])=>`<button type="button" role="checkbox" aria-checked="${sh===v}" class="jr-tg sh${sh===v?' on':''}" data-atw="${W}" data-atsh="${v}">${l}</button>`).join(' ')}</td><td>${FLAGS.map((f,i)=>tg(f,'f'+i)).join(' ')}</td><td>${LEAVES.map(f=>tg(f,'l')).join(' ')}</td></tr>`});
   el.innerHTML=`<h3>근태 관리 <small>차인태 전용 · 잔업·야근·반차·연차는 선택한 날짜 기준, 근무시간은 날짜와 관계없이 유지됩니다</small></h3>
   <div class="ad-card att-ed"><div class="att-bar"><label>날짜 <input type="date" id="adAttD" value="${D}"></label>${D!==iso(TODAY)?'<button type="button" class="btn" id="adAttToday">오늘로</button>':''}</div>
-  <div class="ad-tbox"><table class="ad-t att-t"><thead><tr><th>이름</th><th>근무시간</th><th>잔업 · 야근</th><th>반차 · 연차</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="ad-tbox"><table class="ad-t att-t"><thead><tr><th>이름</th><th>근무시간</th><th>잔업 · 야근</th><th>반차 · 연차 <small style="font-weight:400">(연차관리표에서 등록)</small></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   const b=$('#adAttToday');if(b)b.onclick=()=>{ad.attD=iso(TODAY);adAttRender()}}
 function adRender(){
   if(!ad.on)return;
@@ -1360,7 +1399,7 @@ function adRender(){
   const leave=per.filter(x=>x.fl.some(f=>LEAVES.includes(f)));
   const noLog=per.filter(x=>!x.fl.includes('연차')&&!x.op);
   $('#adK').innerHTML=[[c.act.length,'작업 중 도서',''],[c.staleBooks.length,'정체 도서 ('+st.thr+'일+)',c.staleBooks.length?'warn':''],[c.noWorker.length,'작업자 미지정 도서',c.noWorker.length?'warn':''],[per.filter(x=>x.fl.length).length,'오늘 근태 표시 인원',''],[noLog.length,'오늘 의견 미작성 인원','']].map(([n,l,k])=>`<div class="ad-k ${k}"><b>${n}</b><span>${l}</span></div>`).join('');
-  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-staff','직원 추가·수정·삭제 (직급·부서)'],...(isSuper()?[['adq-att','근태 수정 (잔업·야근·반차·연차)']]:[]),['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
+  $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-staff','직원 추가·수정·삭제 (직급·부서)'],...(isSuper()?[['adq-att','근태 수정 (잔업·야근·반차·연차)']]:[]),['adq-lv','연차관리표 열기'],['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
   /* 주의 대상 */
   const li=(b,r)=>`<div class="ad-li"><b data-adgo="${esc(b.title)}">${esc(b.title)}${b.rev?' '+revT(b.rev):''}</b><span>${r}</span></div>`;
   const oldest=c.act.map(r=>[r,AG(r)]).filter(([r,v])=>v.age!=null&&['진행중','대기','단계완료'].includes(v.stage)).sort((a,b)=>b[1].age-a[1].age).slice(0,8);
@@ -1397,7 +1436,7 @@ function adRender(){
   adStaffRender();
   $('#adTNote').textContent='이름을 누르면 그 사람의 도서 목록으로 이동 · 제목 칸을 누르면 정렬';
 }
-function adOpen(){if(!isAdmin())return;if(jr.on)jrClose();adLoadAcc();ad.scroll=window.scrollY;ad.on=true;document.body.classList.add('ad-open');$('#ad').hidden=false;window.scrollTo(0,0);adRender()}
+function adOpen(){if(!isAdmin())return;if(jr.on)jrClose();if(lv.on)lvClose();adLoadAcc();ad.scroll=window.scrollY;ad.on=true;document.body.classList.add('ad-open');$('#ad').hidden=false;window.scrollTo(0,0);adRender()}
 function adClose(){ad.on=false;document.body.classList.remove('ad-open');$('#ad').hidden=true;window.scrollTo(0,ad.scroll||0)}
 const adShow=()=>{const b=$('#bAdm');if(b)b.hidden=!isAdmin()};adShow();setInterval(adShow,1000);
 $('#bAdm').onclick=adOpen;$('#adBack').onclick=adClose;$('#adPrint').onclick=()=>window.print();
@@ -1410,10 +1449,15 @@ document.addEventListener('click',e=>{
   const q=e.target.closest('#adQuick .btn');if(q){const id=q.id;
     if(id==='adq-acc'){const b=document.getElementById('jpAdm');if(b)b.click()}
     else if(id==='adq-att'){const el=$('#adAtt');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}else if(id==='adq-staff'){const el=$('#adStaff');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}else if(id==='adq-sec')openSecs();else if(id==='adq-hist')openHist('');
-    else if(id==='adq-log'){adClose();jrOpen()}}});
+    else if(id==='adq-lv'){adClose();lvOpen()}else if(id==='adq-log'){adClose();jrOpen()}}});
 /* ---------- 오늘의 업무일지: 도서 자료에서 자동 정리 + 본인 의견(meta/log_날짜 문서의 lg_이름 칸) ---------- */
 const SHIFTS=new Map(); /* 이름 → '0800'|'0900' (근무시간 확인용 표시, 날짜와 무관하게 유지) */
 const FLAGS=['잔업','야근'],LEAVES=['오전반차','오후반차','연차'];
+const LEAVEY=new Map(); /* 연도 → meta/leave_YYYY 문서 (키: e_이름_날짜 → {t:종류,r:사유,p:선사용,b:등록자}) */
+const LEAVE=new Map(); /* '이름|날짜' → {w,d,t,r,p,b} */
+let LCFG={}; /* meta/leavecfg: h_이름=입사일, p_연도_이름=선차감, o_연도_이름=연차수 직접입력 */
+function leaveRebuild(){LEAVE.clear();LEAVEY.forEach(doc=>{Object.keys(doc).forEach(k=>{const v=doc[k];if(k.length<14||k.slice(0,2)!=='e_'||!v||typeof v!=='object')return;
+  const d=k.slice(-10),w=k.slice(2,-11);if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!w)return;LEAVE.set(w+'|'+d,{w,d,t:v.t,r:v.r||'',p:!!v.p,b:v.b||''})})})}
 const LOGS=new Map(); /* 날짜 → {lg_이름: 의견} */
 const WD=['일','월','화','수','목','금','토'];
 const jr={on:false,date:iso(TODAY),who:'',all:false,scroll:0,dept:'',mode:'day',month:iso(TODAY).slice(0,7),hc:{}};
@@ -1433,7 +1477,9 @@ const deptCls=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
 const GO_ACT=['진행중','대기','단계완료','재고대기'];
 const jrPeopleAll=()=>{const n=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>n.add(w)));
   return [...ORG.flatMap(g=>g[1]),...[...n].filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>a.localeCompare(b,'ko'))]};
-const jrFl=(D,w)=>{const d=LOGS.get(D);const a=d&&d['lf_'+w];return Array.isArray(a)?a:[]};
+const jrFlRaw=(D,w)=>{const d=LOGS.get(D);const a=d&&d['lf_'+w];return Array.isArray(a)?a:[]};
+/* 연차·반차는 연차관리표가 기준 — 업무일지·대시보드에는 거기서 가져온 값을 합쳐서 보여준다(예전에 체크해 둔 값도 함께 표시) */
+const jrFl=(D,w)=>{const a=jrFlRaw(D,w),e=LEAVE.get(w+'|'+D);const s=new Set(a);if(e)s.add(e.t);return [...FLAGS,...LEAVES].filter(f=>s.has(f))};
 const jrOp=(D,w)=>{const d=LOGS.get(D);return d&&typeof d['lg_'+w]==='string'?d['lg_'+w]:''};
 /* 오늘 이 사람이 직접 저장한 도서(진행일자를 안 바꿔도 내용·상태·비고를 고쳤다면 '오늘 갱신'으로 본다) */
 const jrTouched=(r,w,D)=>!!(r.by===w&&r.at&&iso(new Date(r.at))===D&&D===iso(TODAY));
@@ -1457,10 +1503,10 @@ function jrTodayCount(){const D=iso(TODAY),ids=new Set();recs().forEach(r=>(r.wo
 function jrBadge(){const el=$('#jrN');if(el)el.textContent=loaded.books?jrTodayCount():'…'}
 function jrAttHtml(w,fl,can){
   const sh=SHIFTS.get(w)||'',W=esc(w);
-  const tg=(f,cls)=>{const on=fl.includes(f);return can?`<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${cls}${on?' on':''}" data-jf="${f}" data-jw="${W}">${f}</button>`:(on?`<span class="jr-tg ${cls} on">${f}</span>`:'')};
+  const tg=(f,cls)=>{const on=fl.includes(f);if(LEAVES.includes(f))return on?`<span class="jr-tg ${cls} on">${f}</span>`:'';return can?`<button type="button" role="checkbox" aria-checked="${on}" class="jr-tg ${cls}${on?' on':''}" data-jf="${f}" data-jw="${W}">${f}</button>`:(on?`<span class="jr-tg ${cls} on">${f}</span>`:'')};
   const SH=[['0800','08–17'],['0900','09–18']];
   if(can)return `<div class="jr-att"><div class="jr-ar"><span class="jr-shl">근무</span>${SH.map(([v,l])=>`<button type="button" role="checkbox" aria-checked="${sh===v}" class="jr-tg sh${sh===v?' on':''}" data-jsh="${v}" data-jw="${W}">${l}</button>`).join('')}</div>
-    <div class="jr-ar">${FLAGS.map((f,i)=>tg(f,'f'+i)).join('')}<i></i>${LEAVES.map(f=>tg(f,'l')).join('')}</div></div>`;
+    <div class="jr-ar">${FLAGS.map((f,i)=>tg(f,'f'+i)).join('')}<i></i>${LEAVES.map(f=>tg(f,'l')).join('')}${(canWrite&&(isAdmin()||w===myId))?`<button type="button" class="sp-add no-print" data-lvgo="${W}" title="연차·반차는 연차관리표에서 등록합니다">연차 등록 ▸</button>`:''}</div></div>`;
   const r1=sh?`<span class="jr-tg sh on">근무 ${sh==='0800'?'08–17':'09–18'}</span>`:'';
   const r2=[...FLAGS.map((f,i)=>tg(f,'f'+i)),...LEAVES.map(f=>tg(f,'l'))].join('');
   return (r1||r2)?`<div class="jr-att">${r1?`<div class="jr-ar">${r1}</div>`:''}${r2?`<div class="jr-ar">${r2}</div>`:''}</div>`:''}
@@ -1510,7 +1556,111 @@ function jrRender(){
   const now=new Date();
   $('#jrFoot').textContent=`${jrTitleOf(D).replace(/<[^>]+>/g,' ')} 업무일지 · 출력 ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${myId?' · 출력자 '+myId:''}`;
 }
-function jrOpen(){jr.scroll=window.scrollY;jr.on=true;jr.date=iso(TODAY);jr.mode='day';document.body.classList.add('jr-open');$('#jr').hidden=false;window.scrollTo(0,0);jrRender()}
+
+/* ---------- 연차관리표 ---------- */
+const lv={on:false,scroll:0,view:'table',y:TODAY.getFullYear(),m:TODAY.getMonth()+1,dept:'',who:'',date:iso(TODAY),end:'',target:'',list:false,msg:''};
+const LV_T=['연차','오전반차','오후반차'],lvAmt=t=>t==='연차'?1:0.5;
+const lvFmt=n=>n==null?'-':(Number.isInteger(n)?String(n):n.toFixed(1));
+const lvCan=w=>canWrite&&!!myId&&(isAdmin()||w===myId);
+/* 입사일 기준 연차 자동 계산 (근로기준법 제60조를 단순화): 해당 연도 1월 1일 기준 만 근속 1년 이상 → 15일 + 3년차부터 2년마다 1일 가산(최대 25일), 1년 미만 → 그해 12월 31일까지 채운 개월 수(최대 11일) */
+function lvGrant(h,Y){if(!h)return null;const H=new Date(h+'T00:00:00');if(isNaN(H))return null;if(H>new Date(Y,11,31))return 0;
+  const ref=new Date(Y,0,1);let ty=ref.getFullYear()-H.getFullYear();if(ref.getMonth()<H.getMonth()||(ref.getMonth()===H.getMonth()&&ref.getDate()<H.getDate()))ty--;
+  if(ty>=1)return Math.min(25,15+Math.floor((ty-1)/2));
+  const end=new Date(Y,11,31);let m=(end.getFullYear()-H.getFullYear())*12+end.getMonth()-H.getMonth();if(end.getDate()<H.getDate())m--;return Math.max(0,Math.min(11,m))}
+function lvInfo(w,Y){const ov=LCFG['o_'+Y+'_'+w],auto=lvGrant(LCFG['h_'+w],Y),pre0=+LCFG['p_'+Y+'_'+w]||0;
+  const m=Array(12).fill(0);let pre=0;LEAVE.forEach(e=>{if(e.w!==w||+e.d.slice(0,4)!==Y)return;if(e.p)pre+=lvAmt(e.t);else m[+e.d.slice(5,7)-1]+=lvAmt(e.t)});
+  const used=m.reduce((a,b)=>a+b,0),total=pre0+pre+used,grant=typeof ov==='number'?ov:auto;
+  return {m,used,pre0,pre,total,grant,auto,ov:typeof ov==='number'?ov:null,rem:grant==null?null:grant-total}}
+function lvPeople(){const base=[...new Set([...ORG.flatMap(g=>g[1]).filter(w=>deptOf(w)!==DEPT_OTHER_NAME),...[...LEAVE.values()].map(e=>e.w)])];
+  return base.filter(w=>(!lv.dept||deptOf(w)===lv.dept)&&(!lv.who||w===lv.who)).sort(byRank)}
+const DEPT_OTHER_NAME='기타 · 외주';
+const lvKey=(w,d)=>'e_'+w+'_'+d;
+async function lvWrite(byYear){ /* {연도:{키:값}} */
+  for(const [y,pt] of Object.entries(byYear)){const doc=Object.assign({},LEAVEY.get(y)||{});Object.keys(pt).forEach(k=>{pt[k]===null?delete doc[k]:doc[k]=pt[k]});LEAVEY.set(y,doc)}
+  leaveRebuild();lvRender();if(jr.on)jrRender();
+  try{for(const [y,pt] of Object.entries(byYear))await db.doc('meta/leave_'+y).update(pt)}
+  catch(e){toast('연차를 저장하지 못했습니다'+(e&&e.code==='forbidden'?' (권한 없음 — 서버 SQL을 적용했는지 확인하세요)':''));}}
+function lvOpen(o){if(jr.on)jrClose();if(ad.on)adClose();lv.scroll=window.scrollY;lv.on=true;
+  if(o&&o.who)lv.target=o.who;if(!lv.target||(!isAdmin()&&lv.target!==myId))lv.target=myId||'';
+  document.body.classList.add('lv-open');$('#lv').hidden=false;window.scrollTo(0,0);lvRender()}
+function lvClose(){lv.on=false;document.body.classList.remove('lv-open');$('#lv').hidden=true;window.scrollTo(0,lv.scroll||0)}
+function lvRender(){
+  if(!lv.on)return;const el=$('#lv'),Y=lv.y,people=lvPeople(),admin=isAdmin();
+  const fk=document.activeElement&&document.activeElement.id;
+  const yrs=[];for(let y=TODAY.getFullYear()+1;y>=2024;y--)yrs.push(y);
+  const all=[...new Set([...ORG.flatMap(g=>g[1])])].sort(byRank);
+  const tgt=(!admin?myId:lv.target)||myId;
+  const form=canWrite&&myId?`<form class="lv-form no-print" id="lvForm"><b>연차 등록</b>
+    ${admin?`<label>대상 <select id="lvTgt">${all.map(w=>`<option value="${esc(w)}"${w===tgt?' selected':''}>${esc(nm(w))}</option>`).join('')}</select></label>`:`<span>${esc(nm(myId))}</span>`}
+    <label>날짜 <input type="date" id="lvD" value="${lv.date}" required></label><label>~ <input type="date" id="lvE" value="${lv.end}" title="여러 날을 한 번에 등록할 때만 (주말 제외)"></label>
+    <label title="연초에 부여되기 전에 미리 사용한 연차 — '선 사용량'으로 따로 집계됩니다"><input type="checkbox" id="lvP"> 선사용</label>
+    <select id="lvT" aria-label="종류">${LV_T.map(t=>`<option>${t}</option>`).join('')}</select>
+    <input type="text" id="lvR" maxlength="30" placeholder="사유 (선택, 입력하면 달력에 사유로 표시)" style="min-width:230px">
+    <button class="lv-btn solid" type="submit">등록</button>${lv.msg?`<span class="msg">${esc(lv.msg)}</span>`:''}</form>`:`<div class="lv-form no-print"><span class="msg">로그인해야 연차를 등록할 수 있습니다.</span></div>`;
+  let body='';
+  if(lv.view==='table'){
+    const rows=[];let last=null;
+    people.forEach(w=>{const d=deptOf(w);if(d!==last){last=d;rows.push(`<tr class="gh" style="--gc:var(--${deptCls(d)})"><td colspan="20">${esc(d)}</td></tr>`)}
+      const I=lvInfo(w,Y),mc=I.m.map((v,i)=>`<td>${v?lvFmt(v):'<span class="z">-</span>'}</td>`).join('');
+      const remTxt=I.rem==null?'<span class="z" title="입사일 또는 연차수를 입력하세요">미입력</span>':(I.rem===0?'-':lvFmt(I.rem)+' 개');
+      rows.push(`<tr><td class="g">${esc(deptOf(w))}</td><td class="n">${esc(nm(w))}</td>${mc}<td>${I.pre0?lvFmt(I.pre0)+' 개':'<span class="z">-</span>'}</td><td>${I.pre?lvFmt(I.pre)+' 개':'<span class="z">-</span>'}</td><td>${lvFmt(I.used)} 개</td><td class="tot">${lvFmt(I.total)} 개</td><td>${I.grant==null?'<span class="z">미입력</span>':lvFmt(I.grant)+' 개'}</td><td class="rem${I.rem<0?' neg':''}">${remTxt}</td></tr>`)});
+    body=`<div class="lv-box"><table class="lv-t"><thead><tr><th>구분</th><th>이름</th>${[...Array(12)].map((_,i)=>`<th><button type="button" data-lvm="${i+1}" title="${i+1}월 달력 보기">${i+1}월</button></th>`).join('')}<th>선 차감용</th><th>선 사용량</th><th>연차 사용량</th><th>총 연차사용량</th><th>년 연차수</th><th>총 남은수량</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="20" class="z" style="padding:30px">표시할 직원이 없습니다</td></tr>'}</tbody></table></div>
+    <p class="lv-leg">연차 1일 = 1개, 반차 = 0.5개. 총 연차사용량 = 선 차감용 + 선 사용량 + 월별 사용 합계. 년 연차수는 입사일로 자동 계산(관리자가 직접 입력해 바꿀 수 있음).</p>`;
+    if(admin){body+=`<div class="lv-set no-print"><h3>연차수 설정 (관리자) — ${Y}년</h3><p>입사일을 넣으면 년 연차수가 자동 계산됩니다. 회사 규정과 다르면 '직접 입력'에 숫자를 넣으세요(비우면 자동값). 선 차감용은 이월·사전 처리분입니다.</p>
+      <table><thead><tr><th>이름</th><th>입사일</th><th>선 차감용(${Y})</th><th>자동 계산</th><th>직접 입력(${Y})</th></tr></thead><tbody>${all.map(w=>{const I=lvInfo(w,Y);return `<tr><td>${esc(nm(w))}</td><td><input type="date" data-lc="h_${esc(w)}" value="${esc(LCFG['h_'+w]||'')}"></td><td><input type="number" step="0.5" min="0" data-lc="p_${Y}_${esc(w)}" value="${I.pre0||''}"></td><td>${I.auto==null?'<span class="z">입사일 필요</span>':lvFmt(I.auto)+' 개'}</td><td><input type="number" step="0.5" min="0" data-lc="o_${Y}_${esc(w)}" value="${I.ov==null?'':I.ov}" placeholder="자동"></td></tr>`}).join('')}</tbody></table></div>`}
+  }else{
+    const first=new Date(Y,lv.m-1,1),days=new Date(Y,lv.m,0).getDate(),pad=first.getDay(),vis=new Set(people);
+    const ent={};LEAVE.forEach(e=>{if(e.d.slice(0,7)!==Y+'-'+String(lv.m).padStart(2,'0'))return;if(!vis.has(e.w)&&(lv.dept||lv.who))return;(ent[+e.d.slice(8)]=ent[+e.d.slice(8)]||[]).push(e)});
+    let cells='';for(let i=0;i<Math.ceil((pad+days)/7)*7;i++){const d=i-pad+1;if(i%7===0)cells+='<tr>';
+      if(d<1||d>days)cells+='<td class="out"></td>';else{const D=Y+'-'+String(lv.m).padStart(2,'0')+'-'+String(d).padStart(2,'0'),wd=i%7;
+        const es=(ent[d]||[]).sort((a,b)=>byRank(a.w,b.w)).map(e=>{const can=lvCan(e.w);return `<span class="lv-e${e.t==='연차'?'':' h'}${can?'':' ro'}" data-lvdel="${esc(e.w+'|'+e.d)}" title="${esc(nm(e.w)+' · '+e.t+(e.p?' · 선사용':'')+(e.r?' · '+e.r:''))}${can?' — 클릭하면 삭제':''}">${esc(e.w)} (${esc(e.r||e.t)})${e.p?' ·선':''}</span>`}).join('');
+        cells+=`<td class="${wd===0?'sun':wd===6?'sat':''}${D===iso(TODAY)?' today':''}${D===lv.date?' sel':''}" data-lvday="${D}"><span class="dn">${d} 일</span>${es}</td>`}
+      if(i%7===6)cells+='</tr>'}
+    body=`<div class="lv-box"><table class="lv-cal"><thead><tr>${['일','월','화','수','목','금','토'].map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${cells}</tbody></table></div><p class="lv-leg">연차 <b>검은색</b> / 반차 <span style="color:#2538d9"><b>파란색</b></span> · 날짜를 누르면 등록 날짜로 선택되고, 항목을 누르면 삭제(본인 것 또는 관리자)됩니다.</p>`}
+  let listHtml='';
+  if(lv.list){const rows=[...LEAVE.values()].filter(e=>+e.d.slice(0,4)===Y&&people.includes(e.w)).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:byRank(a.w,b.w));
+    listHtml=`<div class="lv-box"><table class="lv-t" style="min-width:0"><thead><tr><th>날짜</th><th>이름</th><th>종류</th><th>사유</th><th>구분</th><th>등록자</th><th class="no-print"></th></tr></thead><tbody>${rows.map(e=>`<tr><td>${e.d.slice(5).replace('-','.')} (${WD[new Date(e.d+'T00:00:00').getDay()]})</td><td class="n">${esc(nm(e.w))}</td><td>${esc(e.t)}</td><td>${esc(e.r)}</td><td>${e.p?'선사용':''}</td><td>${esc(e.b)}</td><td class="no-print">${lvCan(e.w)?`<button class="lv-btn" data-lvdel="${esc(e.w+'|'+e.d)}">삭제</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7" class="z" style="padding:24px">등록된 연차가 없습니다</td></tr>'}</tbody></table></div>`}
+  el.innerHTML=`<div class="lv-hero"><button type="button" class="lv-btn no-print" id="lvBack">← 현황판으로</button><h2>연차관리표</h2>
+    <div class="lv-seg no-print"><button type="button" data-lvv="table" class="${lv.view==='table'?'on':''}">연간 현황</button><button type="button" data-lvv="cal" class="${lv.view==='cal'?'on':''}">월간 달력</button></div>
+    <select id="lvY" aria-label="연도">${yrs.map(y=>`<option${y===Y?' selected':''}>${y}</option>`).join('')}</select>
+    ${lv.view==='cal'?`<select id="lvM" aria-label="월">${[...Array(12)].map((_,i)=>`<option value="${i+1}"${i+1===lv.m?' selected':''}>${i+1}월</option>`).join('')}</select>`:''}
+    <select id="lvDept" aria-label="부서"><option value="">- 부서 -</option>${DEPTS.map(d=>`<option${d===lv.dept?' selected':''}>${esc(d)}</option>`).join('')}</select>
+    <select id="lvWho" aria-label="이름"><option value="">- 이름 -</option>${all.filter(w=>!lv.dept||deptOf(w)===lv.dept).map(w=>`<option value="${esc(w)}"${w===lv.who?' selected':''}>${esc(nm(w))}</option>`).join('')}</select>
+    <span class="lv-sp"></span><button type="button" class="lv-btn no-print" id="lvList">${lv.list?'전체내역 닫기':'연차 전체내역보기'}</button><button type="button" class="lv-btn solid no-print" id="lvPrint">출력하기</button></div>
+    ${form}${body}${listHtml}`;
+  if(fk){const n=document.getElementById(fk);if(n&&n.focus)try{n.focus()}catch(e){}}}
+document.addEventListener('click',e=>{if(!lv.on)return;const t=e.target,c=t.closest&&t.closest.bind(t);if(!c)return;
+  if(c('#lvBack')){lvClose();return}
+  if(c('#lvPrint')){window.print();return}
+  if(c('#lvList')){lv.list=!lv.list;lvRender();return}
+  const v=c('[data-lvv]');if(v){lv.view=v.dataset.lvv;lvRender();return}
+  const mm=c('[data-lvm]');if(mm){lv.view='cal';lv.m=+mm.dataset.lvm;lvRender();return}
+  const del=c('[data-lvdel]');if(del){const [w,d]=del.dataset.lvdel.split('|'),en=LEAVE.get(w+'|'+d);if(!en)return;
+    if(!lvCan(w)){toast('본인 연차만 삭제할 수 있습니다');return}
+    if(confirm(`${nm(w)} ${d.slice(5).replace('-','/')} ${en.t}${en.r?' ('+en.r+')':''} 을(를) 삭제할까요?`))lvWrite({[d.slice(0,4)]:{[lvKey(w,d)]:null}});return}
+  const day=c('[data-lvday]');if(day&&!c('.lv-e')){lv.date=day.dataset.lvday;lv.end='';lvRender()}});
+document.addEventListener('change',e=>{if(!lv.on)return;const t=e.target;
+  if(t.id==='lvY'){lv.y=+t.value;lvRender()}else if(t.id==='lvM'){lv.m=+t.value;lvRender()}
+  else if(t.id==='lvDept'){lv.dept=t.value;if(lv.who&&lv.dept&&deptOf(lv.who)!==lv.dept)lv.who='';lvRender()}
+  else if(t.id==='lvWho'){lv.who=t.value;lvRender()}
+  else if(t.id==='lvTgt'){lv.target=t.value}
+  else if(t.id==='lvD'){lv.date=t.value;if(lv.end&&lv.end<lv.date)lv.end=''}
+  else if(t.id==='lvE'){lv.end=t.value}
+  else if(t.dataset&&t.dataset.lc){if(!isAdmin())return;const k=t.dataset.lc,v=t.type==='number'?(t.value===''?null:+t.value):(t.value||null);LCFG=Object.assign({},LCFG,{[k]:v});lvRender();
+    db.doc('meta/leavecfg').update({[k]:v}).catch(()=>toast('설정을 저장하지 못했습니다'))}});
+document.addEventListener('submit',e=>{if(e.target.id!=='lvForm')return;e.preventDefault();
+  if(!canWrite||!myId)return;const w=isAdmin()?($('#lvTgt').value||myId):myId,t=$('#lvT').value,r=$('#lvR').value.trim(),p=$('#lvP').checked,a=$('#lvD').value,b=$('#lvE').value||a;
+  const fail=x=>{lv.msg=x;lvRender()};
+  if(!a)return fail('날짜를 선택하세요.');if(b<a)return fail('종료일이 시작일보다 빠릅니다.');
+  const ds=[];for(let d=new Date(a+'T00:00:00');iso(d)<=b;d.setDate(d.getDate()+1)){const s=iso(d);if(a!==b&&[0,6].includes(d.getDay()))continue;ds.push(s)}
+  if(!ds.length)return fail('등록할 평일이 없습니다.');if(ds.length>60)return fail('한 번에 60일까지만 등록할 수 있습니다.');
+  const dup=ds.filter(d=>LEAVE.has(w+'|'+d));if(dup.length&&!confirm(`${nm(w)}은(는) ${dup.length}일이 이미 등록되어 있습니다. 새 내용으로 덮어쓸까요?`))return;
+  const by={};ds.forEach(d=>{const y=d.slice(0,4);(by[y]=by[y]||{})[lvKey(w,d)]=Object.assign({t,b:myId},r?{r}:{},p?{p:true}:{})});
+  lv.msg=`${nm(w)} ${ds.length}일 ${t} 등록했습니다.`;lv.end='';lvWrite(by);const rr=$('#lvR');if(rr)rr.value=''});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-lvgo]');if(b)lvOpen({who:b.dataset.lvgo})});
+$('#bLv').onclick=()=>lvOpen();
+
+function jrOpen(){if(lv.on)lvClose();jr.scroll=window.scrollY;jr.on=true;jr.date=iso(TODAY);jr.mode='day';document.body.classList.add('jr-open');$('#jr').hidden=false;window.scrollTo(0,0);jrRender()}
 function jrClose(){jr.on=false;document.body.classList.remove('jr-open');$('#jr').hidden=true;window.scrollTo(0,jr.scroll||0)}
 const jrShift=n=>{if(jr.mode==='month'){const [y,m]=jr.month.split('-').map(Number);const d=new Date(y,m-1+n,1);const nm=iso(d).slice(0,7);if(nm>iso(TODAY).slice(0,7))return;jr.month=nm;jr.who='';jrRender();return}
   const d=new Date(jr.date+'T00:00:00');d.setDate(d.getDate()+n);if(d>TODAY)return;jr.date=iso(d);jrRender()};
@@ -1543,11 +1693,13 @@ function jrMonthCalc(ym){
   const ops={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lg_')&&typeof v[k]==='string'&&v[k].trim())(ops[k.slice(3)]=ops[k.slice(3)]||[]).push([d,v[k]])})});
   Object.values(ops).forEach(a=>a.sort((x,y)=>x[0]<y[0]?-1:1));
   const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])&&v[k].length){const w=k.slice(3);const a=att[w]=att[w]||{};v[k].forEach(f=>(a[f]=a[f]||[]).push(d))}})});
+  LEAVE.forEach(e=>{if(e.d.slice(0,7)!==ym)return;const a=att[e.w]=att[e.w]||{};const l=a[e.t]=a[e.t]||[];if(!l.includes(e.d))l.push(e.d)});
   const people=[...new Set([...Object.keys(per),...Object.keys(ops),...Object.keys(att)])];
   return {per,ops,att,people};
 }
 function jrAttTable(ym){
   const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])){const w=k.slice(3);v[k].forEach(f=>{((att[w]=att[w]||{})[f]=att[w][f]||[]).push(d)})}})});
+  LEAVE.forEach(e=>{if(e.d.slice(0,7)!==ym)return;const a=att[e.w]=att[e.w]||{};const l=a[e.t]=a[e.t]||[];if(!l.includes(e.d))l.push(e.d)});
   const order=ORG.flatMap(g=>g[1]);
   let ppl=[...new Set([...jrPeopleAll(),...order.filter(n=>jrPeopleAll().includes(n)),...Object.keys(att)])].filter(w=>(!jr.dept||deptOf(w)===jr.dept)&&(!jr.who||w===jr.who));
   ppl.sort(byRank);
@@ -1625,7 +1777,7 @@ $('#rkSave').onclick=async()=>{if(!isAdmin())return;const map={};
   catch(e){toast(e&&e.code==='forbidden'?'관리자만 직급을 바꿀 수 있습니다':'직급을 저장하지 못했습니다')}};
 function attShift(w,v0){const old=SHIFTS.get(w)||'',v=old===v0?'':v0;SHIFTS.set(w,v);jrRender();if(ad.on)adRender();
   db.doc('meta/shift_'+w).set({v}).catch(()=>{SHIFTS.set(w,old);jrRender();if(ad.on)adRender();toast('근무시간을 저장하지 못했습니다')})}
-function attFlag(D,w,f){const cur=jrFl(D,w);let arr=cur.includes(f)?cur.filter(x=>x!==f):[...cur,f];
+function attFlag(D,w,f){if(LEAVES.includes(f))return;const cur=jrFlRaw(D,w);let arr=cur.includes(f)?cur.filter(x=>x!==f):[...cur,f];
   if(!cur.includes(f)&&LEAVES.includes(f))arr=arr.filter(x=>x===f||!LEAVES.includes(x));
   arr=[...FLAGS,...LEAVES].filter(x=>arr.includes(x));
   const c0=LOGS.get(D);const nd=Object.assign({},c0||{});nd['lf_'+w]=arr;LOGS.set(D,nd);jrRender();if(ad.on)adRender();
