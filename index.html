@@ -784,7 +784,7 @@ let db=null,userCap=null,dlCap=null,myId=null,canWrite=false;
 const M={books:new Map(),incoming:new Map(),memo:new Map(),hold:new Map(),meta:null};
 const loaded={books:false,incoming:false,memo:false,hold:false,meta:false};
 const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:true,onlyStale:false,edit:false,stages:new Set(),steps:new Set(),sort:{k:'date',dir:-1},sortTouched:false,myOrder:false};
-let curTab='list';
+let curTab='worker';
 const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
 const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','단계완료'].includes(v.stage);
@@ -890,7 +890,7 @@ function requestRender(force){
 document.addEventListener('focusout',()=>{if(pending)setTimeout(()=>{if(pending&&!typing())requestRender(true)},250)});
 
 /* ---------- 탭/컨트롤 ---------- */
-const TABS=[['list','도서 목록'],['worker','작업자별'],['memo','이번주 체크포인트'],['incoming','원고 입고예정'],['hold','보류·인쇄대기']];
+const TABS=[['worker','작업자별'],['list','도서 목록'],['memo','이번주 체크포인트'],['incoming','원고 입고예정'],['hold','보류·인쇄대기']];
 function drawTabs(){$('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab${k===curTab?' on':''}" data-t="${k}">${n}${k==='incoming'?' ('+M.incoming.size+')':''}</button>`).join('')}
 function showTab(k){curTab=k;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===k));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));
@@ -1868,7 +1868,7 @@ $('#bHome').onclick=()=>{
   const keep=st.worker;closeHist();resetFilters();
   if(keep){st.worker=keep;lsSet('jp-worker',keep);$('#fWorker').value=keep}
   st.sort={k:'date',dir:-1};if(st.edit)setEdit(false);
-  showTab('list');render();window.scrollTo({top:0,behavior:'smooth'})};
+  showTab('worker');render();window.scrollTo({top:0,behavior:'smooth'})};
 window.addEventListener('jp-me',()=>requestRender(true));
 function setEdit(on){st.edit=on&&canWrite;document.body.classList.toggle('edit',st.edit);
   $('#bEdit').classList.toggle('on',st.edit);$('#bEdit').textContent=st.edit?'편집 모드 끄기':'편집 모드';
@@ -1901,7 +1901,7 @@ body{padding:12px 16px}.printhead{display:block}.wrap{padding:0}.tbl-wrap{max-he
 
 /* ---------- 시작 ---------- */
 drawTabs();render();renderMisc();drawTitle();
-const h0=(location.hash||'#list').slice(1).replace(/[^a-z]/g,'');showTab(TABS.some(t=>t[0]===h0)?h0:'list');
+const h0=(location.hash||'#worker').slice(1).replace(/[^a-z]/g,'');showTab(TABS.some(t=>t[0]===h0)?h0:'worker');
 
 (async()=>{
   const cl=window.claude;
