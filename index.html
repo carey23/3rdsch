@@ -119,6 +119,21 @@ tr.r.dropa td{box-shadow:inset 0 -3px 0 var(--accent)}
 .banner.show{display:block}
 .banner.warn{border-color:var(--warn);color:var(--warn);background:var(--card)}
 .tbl-wrap{overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:72vh}
+#dock{position:sticky;top:0;z-index:50;background:var(--bg);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 10px;padding:0 max(16px,env(safe-area-inset-left,0px));box-shadow:0 6px 14px -8px rgba(0,0,0,.35);border-bottom:1px solid var(--line)}
+#dock>header,#dock>.dockin{max-width:1500px;margin-left:auto;margin-right:auto}
+#dock>header{padding:10px 0 4px}
+#dock .kpis{margin:6px 0}
+#dock .recent{margin:0 0 8px}
+#dock .tabs{margin:6px 0 8px}
+#dock.min .kpis,#dock.min .recent{display:none}
+:root{--dock-h:0px}
+.tbl-wrap{max-height:max(320px,calc(100vh - var(--dock-h) - 24px))}
+tr[id],tr[data-id]{scroll-margin-top:calc(var(--dock-h) + 8px)}
+@media (max-width:700px){#dock{display:contents}#dock>header{padding:8px 0 2px}#dock .dockin{display:contents}#bDockT{display:none}
+#dock .tabs{position:sticky;top:0;z-index:50;flex-wrap:nowrap;overflow-x:auto;margin:6px -4px 8px;padding:4px;border-radius:12px;box-shadow:0 6px 14px -8px rgba(0,0,0,.35);background:color-mix(in srgb,var(--accent) 8%,var(--bg))}
+#dock .tab{flex:0 0 auto;min-width:0;padding:9px 14px;font-size:14px;white-space:nowrap}
+#dock.min .kpis,#dock.min .recent{display:grid}#dock.min .recent{display:flex}}
+
 table{border-collapse:collapse;width:100%}
 th,td{padding:7px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
 th{position:sticky;top:0;background:var(--card);font-size:12px;color:var(--sub);cursor:pointer;white-space:nowrap;z-index:1;border-bottom:2px solid var(--line)}
@@ -176,7 +191,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
-  header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack{display:none!important}
+  #dock,header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{display:none!important}.panel.on{display:block!important}
   .printhead{display:block;margin-bottom:6px}
@@ -199,7 +214,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .admbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;font-weight:700;color:#fff;border:0;cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;background:linear-gradient(135deg,#0f2a3d,#14506a 60%,#1c8a7a);box-shadow:0 2px 10px rgba(15,42,61,.35);transition:transform .15s}
 .lvbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:14px;font-weight:700;color:var(--ink,inherit);background:var(--card);border:1px solid var(--line);cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;transition:transform .15s,border-color .15s}
 .lvbtn:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}.lvbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-body.lv-open>header,body.lv-open>.wrap,body.lv-open>#jr,body.lv-open>#ad{display:none!important}
+body.lv-open>#dock,body.lv-open>.wrap,body.lv-open>#jr,body.lv-open>#ad{display:none!important}
 #lv{max-width:1500px;margin:0 auto;padding:14px 0 40px}
 .lv-hero{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
 .lv-hero h2{margin:0 8px 0 0;font-size:22px}.lv-hero select,.lv-hero input,.lv-form select,.lv-form input{font:inherit;font-size:13.5px;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit}
@@ -232,7 +247,7 @@ body.lv-open>header,body.lv-open>.wrap,body.lv-open>#jr,body.lv-open>#ad{display
 }
 .admbtn:hover{transform:translateY(-1px)}
 .admbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr,body.ad-open>#lv{display:none!important}
+body.ad-open>#dock,body.ad-open>.wrap,body.ad-open>#jr,body.ad-open>#lv{display:none!important}
 #ad{max-width:1240px;margin:0 auto;padding:14px 0 40px}
 .ad-hero{border-radius:22px;color:#fff;padding:18px 26px 22px;background:radial-gradient(800px 260px at 100% -30%,rgba(120,220,190,.35),transparent 60%),linear-gradient(135deg,#0c2233,#134a63 60%,#1b7f73)}
 .ad-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -307,7 +322,7 @@ body.ad-open>header,body.ad-open>.wrap,body.ad-open>#jr,body.ad-open>#lv{display
 .jrbtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(39,56,154,.45)}
 .jrbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .jrbtn b{min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.22);font-size:12px;line-height:22px;text-align:center}
-body.jr-open>header,body.jr-open>.wrap{display:none!important}
+body.jr-open>#dock,body.jr-open>.wrap{display:none!important}
 #jr{max-width:1180px;margin:0 auto;padding:14px 0 40px;page:jr}
 @page jr{size:A4 portrait;margin:12mm}
 .jr-hero{position:relative;overflow:hidden;border-radius:22px;color:#fff;padding:20px 26px 22px;
@@ -453,12 +468,14 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <body>
 
 
+<div id="dock" class="no-print">
 <header class="no-print">
   <div class="hl">
     <h1><button type="button" id="bHome" class="home" title="홈으로 (처음 화면)" aria-label="홈으로 (처음 화면)"><span class="hico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5a.5.5 0 0 0 .5.5h4v-6h4v6h4a.5.5 0 0 0 .5-.5V10"/></svg></span><span id="ttl">주간계획서</span><span class="hlbl">홈</span></button></h1>
     <button type="button" class="admbtn" id="bAdm" hidden title="관리자 전용 대시보드"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span>관리자 대시보드</span></button>
   </div>
   <div class="tools">
+    <button type="button" class="btn" id="bDockT" title="요약 카드·최근 수정 줄 접기/펼치기" aria-expanded="true">요약 접기</button>
     <button type="button" class="lvbtn" id="bLv" title="연차관리표 열기"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>연차관리</span></button>
     <button type="button" class="jrbtn" id="bJr" title="오늘의 업무일지 열기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/></svg><span>오늘의 업무일지</span><b id="jrN">0</b></button>
     <div class="status"><span><i class="dot" id="dot"></i><span id="conn">연결 중…</span></span><span class="saved" id="saved"></span></div>
@@ -469,13 +486,16 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <button class="btn" id="bCsv">CSV 저장</button>
   </div>
 </header>
+<div class="dockin">
+  <div class="kpis" id="kpis"></div>
+  <div class="recent no-print" id="recent"></div>
+  <div class="tabs" id="tabs"></div>
+</div>
+</div>
 <div class="wrap">
   <div class="printhead"><h1 id="pTtl"></h1><div class="meta" id="pMeta"></div></div>
   <div class="banner" id="roBanner">보기 전용입니다. 수정하려면 소유자에게 수정 권한(Contributor 이상)을 요청하세요.</div>
   <div class="banner" id="editBanner">편집 모드입니다. 칸을 눌러 고치면 잠시 뒤 모든 접속자의 화면에 반영됩니다. 작업자는 "이름 / 이름" 형식으로 적습니다.</div>
-  <div class="kpis" id="kpis"></div>
-  <div class="recent no-print" id="recent"></div>
-  <div class="tabs" id="tabs"></div>
 
   <section class="panel" id="p-list">
     <div class="bar">
@@ -896,6 +916,15 @@ function showTab(k){curTab=k;document.querySelectorAll('.tab').forEach(b=>b.clas
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));
   if(k==='worker')renderWorkers();try{history.replaceState(null,'','#'+k)}catch(e){}}
 $('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(b)showTab(b.dataset.t)};
+/* ===== 상단 고정(dock) ===== */
+(function(){const d=$('#dock'),b=$('#bDockT');if(!d||!b)return;
+ let pref=lsGet('jp_dockmin');let min=pref===null?(innerHeight<760):pref==='1';
+ const set=m=>{min=m;d.classList.toggle('min',m);b.textContent=m?'요약 펼치기':'요약 접기';b.setAttribute('aria-expanded',String(!m));fit()};
+ const fit=()=>{const n=matchMedia('(max-width:700px)').matches;document.documentElement.style.setProperty('--dock-h',(n?$('#tabs').offsetHeight+8:d.offsetHeight)+'px')};
+ b.onclick=()=>{set(!min);try{localStorage.setItem('jp_dockmin',min?'1':'0')}catch(e){}};
+ if(window.ResizeObserver){const ro=new ResizeObserver(fit);ro.observe(d);ro.observe($('#tabs'))}addEventListener('resize',fit);
+ set(min)})();
+
 let wnames=[];
 function drawSelects(){
   const rs=recs();
