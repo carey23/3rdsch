@@ -8,11 +8,11 @@
 <style id="pagecss">
 /* layout: 상단 요약 카드 → 탭(도서 목록 / 작업자별 / 체크포인트 / 입고예정 / 보류) → 표. 편집 모드에서 칸을 직접 고치고 모든 접속자에게 실시간 반영 */
 :root{--on-accent:#fff;--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
---c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--ok:#2f855a;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
+--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--ok:#2f855a;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--on-accent:#0b1220;--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--gx:#a3acba;color-scheme:dark}}
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--c-in:#f07fae;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--gx:#a3acba;color-scheme:dark}}
 :root[data-theme="dark"]{--on-accent:#0b1220;--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--gx:#a3acba;color-scheme:dark}
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--c-in:#f07fae;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--gx:#a3acba;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
@@ -188,7 +188,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .card.idle .lbl{padding:2px 0}
 @page{size:A4 landscape;margin:10mm}
 @media print{
-  :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
+  :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
   #dock,header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack{display:none!important}
@@ -746,12 +746,12 @@ window.claude={use:async n=>{await start();return n==='db'?db:n==='user'?userCap
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
+const STAGE={'진행중':'--c-prog','대기':'--c-wait','재고대기':'--c-stock','원고입고':'--c-in','단계완료':'--c-step','보류':'--c-hold','인쇄완료':'--c-print'};
 const STEPS=['기획','원고 집필','원고 개발','원고 입고','내지 디자인','표지 디자인','조판','초교','재교','삼교','마감(발주)']; /* 작업 단계 — 도서당 여러 개 동시 체크 (상태 '진행중/대기…'와 별개) */
 const stepsOf=r=>Array.isArray(r.steps)?STEPS.filter(x=>r.steps.includes(x)):[];
 const stepTags=r=>stepsOf(r).map(x=>`<span class="sp">${esc(x)}</span>`).join('');
 const stepsLine=(r,eb)=>{const t=stepTags(r);if(!eb)return t?`<div class="stp">${t}</div>`:'';return `<div class="stp">${t}<button type="button" class="sp-add no-print" data-stepfor="${esc(r.id)}">${t?'✎ 단계':'+ 작업 단계'}</button></div>`};
-const ORDER=['진행중','대기','단계완료','재고대기','보류','인쇄완료'];
+const ORDER=['진행중','대기','원고입고','단계완료','재고대기','보류','인쇄완료'];
 const ORG=[
  ['출판1부',['차인태','신보용','권윤주','김지혜','김진영','박온누리','윤소연','백혜림','정지연','임한나','김예민'],'g1'],
  ['출판1부 한글편집팀',['유은아','김우진','이혜숙'],'g2'],
@@ -807,7 +807,7 @@ const st={q:'',sec:'',kind:'',worker:lsGet('jp-worker')||'',thr:14,hidePrint:tru
 let curTab='worker';
 const list=c=>[...M[c].values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9));
 const recs=()=>list('books');
-const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','단계완료'].includes(v.stage);
+const isStale=v=>v.age!=null&&v.age>=st.thr&&['진행중','대기','원고입고','단계완료'].includes(v.stage);
 /* 담당자별 진행 상황: 진행내용(pn_)·단계(ps_)·갱신일(pd_)·단계수동(pm_) 을 이름별로 따로 저장. 없으면 도서 공통값(note/stage/date)을 씀 */
 const isAdmin=()=>!!(window.JPX&&window.JPX.me&&window.JPX.me.is_admin);
 const SUPER_ID='차인태'; /* 다른 사람의 근태(잔업·야근·반차·연차·근무시간)를 고칠 수 있는 유일한 사람 — 서버(jp_patch)에서도 같은 규칙으로 막음 */
@@ -1392,7 +1392,7 @@ document.addEventListener('change',async e=>{
   }catch(x){toast('저장하지 못했습니다: '+((x&&x.message)||''));adRender()}});
 /* ---------- 관리자 대시보드 (관리자만): 이미 있는 자료로 팀 전체 현황 · 주의 대상 · 오늘 근태 ---------- */
 const ad={on:false,scroll:0,sort:'dept',dir:1,panel:null,busy:false,attD:iso(TODAY)};
-const AD_STG=['진행중','대기','단계완료','재고대기','보류'];
+const AD_STG=['진행중','대기','원고입고','단계완료','재고대기','보류'];
 function adCalc(){
   const D=iso(TODAY),rows=jrCalc(D).rows;
   const per=rows.map(x=>{const w=x.w;const mine=recs().filter(r=>(r.workers||[]).includes(w));
@@ -1432,7 +1432,7 @@ function adRender(){
   $('#adQuick').innerHTML=[['adq-acc','계정 관리 (비밀번호·관리자 권한)'],['adq-staff','직원 추가·수정·삭제 (직급·부서)'],...(isSuper()?[['adq-att','근태 수정 (잔업·야근·반차·연차)']]:[]),['adq-lv','연차관리표 열기'],['adq-sec','구분 관리'],['adq-hist','변경 이력 보기'],['adq-log','오늘의 업무일지 열기']].map(([i,l])=>`<button type="button" class="btn" id="${i}">${l}</button>`).join('');
   /* 주의 대상 */
   const li=(b,r)=>`<div class="ad-li"><b data-adgo="${esc(b.title)}">${esc(b.title)}${b.rev?' '+revT(b.rev):''}</b><span>${r}</span></div>`;
-  const oldest=c.act.map(r=>[r,AG(r)]).filter(([r,v])=>v.age!=null&&['진행중','대기','단계완료'].includes(v.stage)).sort((a,b)=>b[1].age-a[1].age).slice(0,8);
+  const oldest=c.act.map(r=>[r,AG(r)]).filter(([r,v])=>v.age!=null&&['진행중','대기','원고입고','단계완료'].includes(v.stage)).sort((a,b)=>b[1].age-a[1].age).slice(0,8);
   const heavy=per.filter(x=>x.stale>=1).sort((a,b)=>b.stale-a.stale||b.n-a.n).slice(0,8);
   const rgap=(arr,l)=>`<details><summary class="ad-none" style="cursor:pointer">${l} ${arr.length}건 보기</summary>${arr.slice(0,40).map(b=>li(b,esc((b.workers||[]).join(', ')))).join('')}</details>`;
   $('#adAlerts').innerHTML=`<h3>주의 대상 <small>제목을 누르면 도서 목록에서 해당 도서를 찾아 줍니다</small></h3><div class="ad-grid">
@@ -1504,7 +1504,7 @@ const byRank=(a,b)=>{const o=ORG.flatMap(g=>g[1]),oi=w=>{const i=o.indexOf(w);re
   return DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||rankNo(a)-rankNo(b)||oi(a)-oi(b)||a.localeCompare(b,'ko')};
 const deptOf=w=>{const g=ORG.find(o=>o[1].includes(w));return g?g[0]:'기타 · 외주'};
 const deptCls=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
-const GO_ACT=['진행중','대기','단계완료','재고대기'];
+const GO_ACT=['진행중','대기','원고입고','단계완료','재고대기'];
 const jrPeopleAll=()=>{const n=new Set();recs().forEach(r=>(r.workers||[]).forEach(w=>n.add(w)));
   return [...ORG.flatMap(g=>g[1]),...[...n].filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>a.localeCompare(b,'ko'))]};
 const jrFlRaw=(D,w)=>{const d=LOGS.get(D);const a=d&&d['lf_'+w];return Array.isArray(a)?a:[]};
@@ -1839,7 +1839,7 @@ document.addEventListener('focusout',e=>{const t=e.target.closest&&e.target.clos
 window.addEventListener('pagehide',()=>{Object.keys(jrTimers).forEach(k=>{const [D,w]=k.split('|');const t=document.querySelector(`.jr-op[data-jw="${CSS.escape(w)}"]`);if(t&&D===jr.date)jrSaveNow(D,w,t.value)})});
 
 /* ---------- 작업자별 / 체크포인트 / 입고예정 / 보류 ---------- */
-const WSTAGES=['진행중','대기','단계완료','재고대기','보류'];
+const WSTAGES=['진행중','대기','원고입고','단계완료','재고대기','보류'];
 const openSet=new Set();
 function htmlWorkers(all){
   const byW={};
