@@ -8,11 +8,11 @@
 <style id="pagecss">
 /* layout: 상단 요약 카드 → 탭(도서 목록 / 작업자별 / 체크포인트 / 입고예정 / 보류) → 표. 편집 모드에서 칸을 직접 고치고 모든 접속자에게 실시간 반영 */
 :root{--on-accent:#fff;--bg:#f6f7f9;--card:#fff;--ink:#1c2330;--sub:#5d6778;--line:#e1e5ec;--accent:#2457c5;--accent-bg:#e8effc;
---c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--ok:#2f855a;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
+--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--ok:#2f855a;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--g0:#6d28d9;--gx:#5b6472}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--on-accent:#0b1220;--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--c-in:#f07fae;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--gx:#a3acba;color-scheme:dark}}
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--c-in:#f07fae;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--g0:#8b7cf6;--gx:#a3acba;color-scheme:dark}}
 :root[data-theme="dark"]{--on-accent:#0b1220;--bg:#12151b;--card:#1a1f28;--ink:#e6e9ef;--sub:#99a3b3;--line:#2b323f;--accent:#7ea4f2;--accent-bg:#1f2b45;
---c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--c-in:#f07fae;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--gx:#a3acba;color-scheme:dark}
+--c-prog:#7ea4f2;--c-wait:#e0b050;--c-stock:#b79df0;--c-done:#6fcf97;--c-step:#58c6c6;--c-hold:#f08a7e;--c-print:#7d8696;--c-in:#f07fae;--warn:#f08a7e;--ok:#6fcf97;--g1:#7fd08a;--g2:#c3d86a;--g3:#fb923c;--g4:#f472b6;--g5:#22d3ee;--g0:#8b7cf6;--gx:#a3acba;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
@@ -188,7 +188,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .card.idle .lbl{padding:2px 0}
 @page{size:A4 landscape;margin:10mm}
 @media print{
-  :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--gx:#5b6472}
+  :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--g0:#6d28d9;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
   #dock,header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack{display:none!important}
@@ -753,6 +753,7 @@ const stepTags=r=>stepsOf(r).map(x=>`<span class="sp">${esc(x)}</span>`).join(''
 const stepsLine=(r,eb)=>{const t=stepTags(r);if(!eb)return t?`<div class="stp">${t}</div>`:'';return `<div class="stp">${t}<button type="button" class="sp-add no-print" data-stepfor="${esc(r.id)}">${t?'✎ 단계':'+ 작업 단계'}</button></div>`};
 const ORDER=['진행중','대기','원고입고','단계완료','재고대기','보류','인쇄완료'];
 const ORG=[
+ ['도서출판본부',['강선혜'],'g0'],
  ['출판1부',['차인태','신보용','권윤주','김지혜','김진영','박온누리','윤소연','백혜림','정지연','임한나','김예민'],'g1'],
  ['출판1부 한글편집팀',['유은아','김우진','이혜숙'],'g2'],
  ['출판2부',['이미향','김희현'],'g3'],
@@ -1295,7 +1296,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-addfor]');
 
 /* ---------- 직원 명부 (관리자가 대시보드에서 편집, meta/staff {list:[{n,d,r}]} — 없으면 기본 명단) ---------- */
 const DEPT_OTHER='기타 · 외주';
-const DEFAULT_STAFF=ORG.flatMap(([d,m])=>m.map(n=>({n,d,r:({'차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리','정경민':'차장','이은혜':'대리','이정현':'대리','김다인':'사원'})[n]||''})));
+const DEFAULT_STAFF=ORG.flatMap(([d,m])=>m.map(n=>({n,d,r:({'강선혜':'상무','차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리','정경민':'차장','이은혜':'대리','이정현':'대리','김다인':'사원'})[n]||''})));
 function applyStaff(list){
   ORG.forEach(g=>{g[1].length=0;list.filter(x=>x.d===g[0]).forEach(x=>{if(!g[1].includes(x.n))g[1].push(x.n)})});
   STAFF_RANK={};list.forEach(x=>{STAFF_RANK[x.n]=x.r||''});
@@ -1492,7 +1493,7 @@ const LOGS=new Map(); /* 날짜 → {lg_이름: 의견} */
 const WD=['일','월','화','수','목','금','토'];
 const jr={on:false,date:iso(TODAY),who:'',all:false,scroll:0,dept:'',mode:'day',month:iso(TODAY).slice(0,7),hc:{}};
 const DEPTS=[...ORG.map(g=>g[0]),'기타 · 외주'];
-const RANK_DEFAULT={'차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리','정경민':'차장','이은혜':'대리','이정현':'대리','김다인':'사원'};
+const RANK_DEFAULT={'강선혜':'상무','차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리','정경민':'차장','이은혜':'대리','이정현':'대리','김다인':'사원'};
 let RANK_SAVED=null; /* 관리자가 저장한 직급 (meta/ranks → {map:{이름:직급}}) */
 let STAFF=null,STAFF_RANK={};
 const rankOf=w=>{if(STAFF)return STAFF_RANK[w]||'';const m=RANK_SAVED&&Object.prototype.hasOwnProperty.call(RANK_SAVED,w)?RANK_SAVED[w]:RANK_DEFAULT[w];return m||''};
