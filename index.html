@@ -43,13 +43,13 @@ h1{margin:0;font-size:20px}
 tr.r.locked td{background:color-mix(in srgb,var(--sub) 6%,transparent)}
 .hist-link{cursor:pointer;text-decoration:underline dotted}
 .hist-link:hover{color:var(--accent)}
-#secBack,#rkBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
-#secBack.on,#rkBack.on{display:flex}
-#secBox,#rkBox{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
-#secBox .hh,#rkBox .hh{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
-#secBox .hh h2,#rkBox .hh h2{margin:0;font-size:16px;margin-right:auto}
-#secBox .hb,#rkBox .hb{overflow:auto;padding:10px 14px 14px;font-size:13px}
-#secBox .tip,#rkBox .tip{color:var(--sub);font-size:12px;line-height:1.5;margin:0 0 10px}
+#secBack,#rkBack,#prBack{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px}
+#secBack.on,#rkBack.on,#prBack.on{display:flex}
+#prBox,#secBox,#rkBox{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#prBox .hh,#secBox .hh,#rkBox .hh{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+#prBox .hh h2,#secBox .hh h2,#rkBox .hh h2{margin:0;font-size:16px;margin-right:auto}
+#prBox .hb,#secBox .hb,#rkBox .hb{overflow:auto;padding:10px 14px 14px;font-size:13px}
+#prBox .tip,#secBox .tip,#rkBox .tip{color:var(--sub);font-size:12px;line-height:1.5;margin:0 0 10px}
 #secBox table,#rkBox table{width:100%;border-collapse:collapse}
 #secBox td,#rkBox td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
 #secBox input[type=text],#rkBox input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
@@ -171,6 +171,16 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 #toast.show{opacity:1}
 
 .wgroup{margin-bottom:22px}
+#prBox{width:min(460px,100%)}
+#prBox label.pr{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer}
+#prBox label.pr i{width:10px;height:10px;border-radius:50%;background:var(--g,var(--accent));flex:none}
+#prBox label.pr b{margin-right:auto}#prBox label.pr span{color:var(--sub);font-size:12px}
+#prBox label.pr input{width:17px;height:17px}
+#prBox .prall{display:flex;gap:8px;margin:0 0 6px}
+.pdept{font-size:16px;margin:18px 0 8px;padding:7px 12px;border-left:6px solid var(--g);background:color-mix(in srgb,var(--g) 13%,var(--card));border-radius:6px}
+.pdept small{font-weight:500;color:var(--sub);margin-left:8px;font-size:12px}
+@media print{.pdept.pb,.wgroup.pbk{break-before:page}.pdept{margin-top:0}}
+
 .g1{--g:var(--g1)}.g2{--g:var(--g2)}.g3{--g:var(--g3)}.g4{--g:var(--g4)}.g5{--g:var(--g5)}.gx{--g:var(--gx)}
 .wgroup h2{font-size:16px;margin:20px 0 12px;padding:8px 12px;border-left:6px solid var(--g);background:color-mix(in srgb,var(--g) 13%,var(--card));border-radius:6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .wgroup .card{border-top:3px solid var(--g)}
@@ -191,7 +201,7 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
   :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--sub:#444;--line:#bbb;--accent:#1b3f94;--accent-bg:#fff;--c-prog:#2457c5;--c-wait:#b7791f;--c-stock:#7a5fb0;--c-done:#2f855a;--c-step:#0f8a8a;--c-hold:#c0392b;--c-print:#8a93a3;--c-in:#b83280;--warn:#c0392b;--g1:#2e7d32;--g2:#5f7312;--g3:#c2410c;--g4:#be185d;--g5:#0e7490;--g0:#6d28d9;--gx:#5b6472}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-size:10px;background:#fff;padding:0}
-  #dock,header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack{display:none!important}
+  #dock,header,.kpis,.tabs,.bar,.banner,.note,.no-print,.act,#toast,#histBack,#secBack,#rkBack,#prBack{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{display:none!important}.panel.on{display:block!important}
   .printhead{display:block;margin-bottom:6px}
@@ -482,6 +492,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <button class="btn primary" id="bAddTop" hidden>+ 도서 추가</button>
     <button class="btn" id="bEdit" hidden>편집 모드</button>
     <button class="btn primary" id="bPrint">인쇄용 파일 저장</button>
+    <button class="btn" id="bPrintDept" hidden title="부서를 골라 부서별로 나누어 인쇄용 파일 저장">부서별 출력</button>
     <button class="btn" id="bHist">변경 이력</button>
     <button class="btn" id="bCsv">CSV 저장</button>
   </div>
@@ -562,6 +573,9 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <div id="secBack" class="no-print"><div id="secBox" role="dialog" aria-label="구분 관리">
   <div class="hh"><h2>구분 관리</h2><button class="btn" id="secClose">닫기</button></div>
   <div class="hb" id="secBody"></div></div></div>
+<div id="prBack" class="no-print"><div id="prBox" role="dialog" aria-label="부서별 출력">
+  <div class="hh"><h2>부서별 출력</h2><button class="btn primary" id="prGo">출력</button><button class="btn" id="prClose">닫기</button></div>
+  <div class="hb" id="prBody"></div></div></div>
 <div id="rkBack" class="no-print"><div id="rkBox" role="dialog" aria-label="직급 설정">
   <div class="hh"><h2>직급 설정</h2><button class="btn primary" id="rkSave">저장</button><button class="btn" id="rkClose">닫기</button></div>
   <div class="hb" id="rkBody"></div></div></div>
@@ -915,7 +929,7 @@ const TABS=[['worker','작업자별'],['list','도서 목록'],['memo','이번�
 function drawTabs(){$('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab${k===curTab?' on':''}" data-t="${k}">${n}${k==='incoming'?' ('+M.incoming.size+')':''}</button>`).join('')}
 function showTab(k){curTab=k;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===k));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));
-  if(k==='worker')renderWorkers();try{history.replaceState(null,'','#'+k)}catch(e){}}
+  if(k==='worker')renderWorkers();if(typeof syncPD==='function')syncPD();try{history.replaceState(null,'','#'+k)}catch(e){}}
 $('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(b)showTab(b.dataset.t)};
 /* ===== 상단 고정(dock) ===== */
 (function(){const d=$('#dock'),b=$('#bDockT');if(!d||!b)return;
@@ -1019,7 +1033,7 @@ function render(){
   let f=[];if(st.q)f.push('검색 "'+st.q+'"');if(st.sec)f.push(st.sec);if(st.kind)f.push(st.kind);if(st.worker)f.push('작업자 '+st.worker);
   if(st.stages.size)f.push('단계 '+[...st.stages].join('·'));if(st.steps.size)f.push('작업 단계 '+[...st.steps].join('·'));if(st.hidePrint&&!st.stages.has('인쇄완료'))f.push('인쇄완료 제외');if(st.onlyStale)f.push('정체만');
   $('#pMeta').textContent='인쇄일 '+iso(new Date())+' · 표시 '+a.length+'건'+(f.length?' · 조건: '+f.join(', '):'');
-  renderKpis();renderRecent();drawTabs();fillBy();jrBadge();{const b=$('#bAdm');if(b)b.hidden=!isAdmin()}
+  renderKpis();renderRecent();drawTabs();if(typeof syncPD==='function')syncPD();fillBy();jrBadge();{const b=$('#bAdm');if(b)b.hidden=!isAdmin()}
 }
 
 /* ---------- 최근 수정 3건 ---------- */
@@ -1842,7 +1856,7 @@ window.addEventListener('pagehide',()=>{Object.keys(jrTimers).forEach(k=>{const 
 /* ---------- 작업자별 / 체크포인트 / 입고예정 / 보류 ---------- */
 const WSTAGES=['진행중','대기','원고입고','단계완료','재고대기','보류'];
 const openSet=new Set();
-function htmlWorkers(all){
+function htmlWorkers(all,only,brk){
   const byW={};
   recs().forEach(r=>{(r.workers||[]).forEach(w=>{if(eff(r,w).stage==='인쇄완료')return;(byW[w]=byW[w]||[]).push(r)})});
   const others=Object.keys(byW).filter(w=>!ORG_KNOWN.has(w)).sort((a,b)=>byW[b].length-byW[a].length||a.localeCompare(b,'ko'));
@@ -1857,10 +1871,10 @@ function htmlWorkers(all){
       <div class="mini">${stages.map(x=>`<button type="button" class="stbtn" style="--c:${col(x)}" data-tog="${esc(w+'|'+x)}" aria-expanded="${open(x)}">${x} ${by[x].length}</button>`).join('')}</div>
       ${stages.map(x=>`<div class="wstage${open(x)?' open':''}" data-k="${esc(w+'|'+x)}"><div class="shead">${x}</div>${by[x].sort((a,b)=>(eff(a,w).date||'')<(eff(b,w).date||'')?1:-1).map(r=>{const v=eff(r,w);return `<div class="item"><b class="golink" role="link" tabindex="0" data-goto="${esc(r.id)}" title="도서 목록에서 이 도서로 이동">${esc(r.title)}</b> ${revH(r.rev)}${stepsLine(r,false)}
         <div class="n">${esc(v.note)} · ${ageTxt(v)}</div></div>`}).join('')}</div>`).join('')}</div>`};
-  const html=groups.map(([n,members,gc])=>{
-    if(!members.length)return '';
+  let gi=0;const html=groups.map(([n,members,gc])=>{
+    if(!members.length||(only&&!only.has(n)))return '';
     const tot=members.reduce((t,w)=>t+(byW[w]||[]).length,0);
-    return `<section class="wgroup ${gc}"><h2>${esc(n)} <small>${members.length}명 · 작업 ${tot}건</small></h2><div class="cards">${members.map(card).join('')}</div></section>`}).join('');
+    return `<section class="wgroup ${gc}${brk&&gi++?' pbk':''}"><h2>${esc(n)} <small>${members.length}명 · 작업 ${tot}건</small></h2><div class="cards">${members.map(card).join('')}</div></section>`}).join('');
   return html||'<div class="empty">표시할 작업이 없습니다</div>'}
 function renderWorkers(){$('#wcards').innerHTML=htmlWorkers()}
 document.addEventListener('click',e=>{
@@ -1911,11 +1925,12 @@ $('#bCsv').onclick=async()=>{if(!dlCap){toast('이 화면에서는 파일 저장
   const rows=[['구분','도서명','차수','저자','담당자','내지 디자이너','표지 디자이너','단계','최종갱신','진행내용']];
   filtered().forEach(r=>{const v=V(r);const ro=rolesOf(r);rows.push([r.sec,r.title,revT(r.rev),r.author,ro.editors.join(' / '),ro.inner.join(' / '),ro.cover.join(' / '),v.stage,v.date,v.note])});
   try{await dlCap.save({filename:'주간계획서_'+iso(new Date()).replace(/-/g,'')+'.csv',data:'﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')})}catch(e){dlFail(e)}};
+const listTbl=a=>`<div class="tbl-wrap"><table class="list"><colgroup><col style="width:8%"><col style="width:13%"><col style="width:5%"><col style="width:6%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:12%"><col style="width:18%"></colgroup><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>담당자</th><th>내지 디자이너</th><th>표지 디자이너</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
 $('#bPrint').onclick=async()=>{
   if(!dlCap){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const was=st.edit;st.edit=false;
   let body='';const title=todayTitle();
-  if(curTab==='list'){const a=filtered();body=`<div class="tbl-wrap"><table class="list"><colgroup><col style="width:8%"><col style="width:13%"><col style="width:5%"><col style="width:6%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:12%"><col style="width:18%"></colgroup><thead><tr><th>구분</th><th>도서명</th><th>차수</th><th>저자</th><th>담당자</th><th>내지 디자이너</th><th>표지 디자이너</th><th>단계</th><th>최종 갱신</th><th>진행 내용</th></tr></thead><tbody>${a.map(r=>rowHtml(r,true).replace(/<td class="act">.*?<\/td>/,'')).join('')}</tbody></table></div>`;
+  if(curTab==='list'){const a=filtered();body=listTbl(a);
     $('#pMeta').textContent=$('#pMeta').textContent}
   else if(curTab==='worker')body=htmlWorkers(true);
   else if(curTab==='memo')body=`<div class="memo-grid">${htmlMemo()}</div>`;
@@ -1928,6 +1943,45 @@ body{padding:12px 16px}.printhead{display:block}.wrap{padding:0}.tbl-wrap{max-he
 @media print{body{padding:0}}</style></head><body><div class="wrap"><div class="printhead"><h1>${esc(title)}</h1><div class="meta">${esc($('#pMeta').textContent)}</div></div>${body}</div>
 <script>addEventListener('load',function(){setTimeout(function(){print()},400)})<\/script></body></html>`;
   try{await dlCap.save({filename:'주간계획서_인쇄용_'+iso(new Date()).replace(/-/g,'')+'.html',data:doc})}catch(e){dlFail(e)}};
+
+
+/* ===== 부서별 출력 ===== */
+const DP_OTHER='기타 (외주·미분류)';
+const dpOf=w=>{const g=ORG.find(o=>o[1].includes(w));return g?g[0]:DP_OTHER};
+function deptBooks(a){const m=new Map();[...ORG.map(g=>g[0]),DP_OTHER].forEach(d=>m.set(d,[]));
+  a.forEach(r=>{const ds=new Set((r.workers||[]).map(dpOf));if(!ds.size)ds.add(DP_OTHER);ds.forEach(d=>m.get(d).push(r))});return m}
+const dpClass=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
+const dpSrc=()=>curTab==='list'?filtered():recs().filter(r=>(r.workers||[]).some(w=>eff(r,w).stage!=='인쇄완료'));
+function syncPD(){const b=$('#bPrintDept');if(b)b.hidden=!(curTab==='list'||curTab==='worker')}
+function prOpen(){const m=deptBooks(dpSrc());
+  $('#prBody').innerHTML=`<p class="tip">${curTab==='list'?'도서 목록 화면에 지금 걸린 검색·필터 조건이 그대로 적용됩니다. ':'작업자별 화면(인쇄완료 제외)을 부서별로 나눕니다. '}여러 부서에 걸친 도서는 해당 부서마다 나옵니다. 수정 모드와 상관없이 읽기용으로 출력됩니다.</p>
+  <div class="prall"><button type="button" class="btn" id="prAll">전체 선택</button><button type="button" class="btn" id="prNone">전체 해제</button></div>
+  ${[...m].map(([d,l])=>`<label class="pr" style="--g:var(--${dpClass(d)})"><input type="checkbox" data-pd="${esc(d)}"${l.length?' checked':' disabled'}><i></i><b>${esc(d)}</b><span>${l.length}건</span></label>`).join('')}
+  <label class="pr"><input type="checkbox" id="prBrk" checked><b>부서마다 새 쪽에서 시작</b></label>`;
+  $('#prBack').classList.add('on')}
+const prClose=()=>$('#prBack').classList.remove('on');
+$('#bPrintDept').onclick=prOpen;$('#prClose').onclick=prClose;
+$('#prBack').addEventListener('click',e=>{if(e.target.id==='prBack')prClose();const t=e.target;
+  if(t.id==='prAll'||t.id==='prNone')document.querySelectorAll('#prBody [data-pd]:not(:disabled)').forEach(c=>c.checked=t.id==='prAll')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#prBack').classList.contains('on'))prClose()});
+$('#prGo').onclick=async()=>{
+  const sel=[...document.querySelectorAll('#prBody [data-pd]:checked')].map(c=>c.dataset.pd),brk=$('#prBrk').checked;
+  if(!sel.length){toast('출력할 부서를 하나 이상 선택하세요');return}
+  if(!dlCap&&!window.PD_DIRECT){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
+  const was=st.edit;st.edit=false;let body='';const title=todayTitle(),only=new Set(sel);
+  if(curTab==='list'){const m=deptBooks(filtered());let i=0;
+    body=[...m].filter(([d,l])=>only.has(d)&&l.length).map(([d,l])=>`<h2 class="pdept${brk&&i++?' pb':''}" style="--g:var(--${dpClass(d)})">${esc(d)}<small>${l.length}건</small></h2>${listTbl(l)}`).join('')}
+  else body=htmlWorkers(true,only,brk);
+  st.edit=was;if(!body){toast('선택한 부서에 출력할 내용이 없습니다');return}
+  const css=$('#pagecss').textContent.replace('.panel{display:none}.panel.on{display:block}','');
+  const meta='인쇄일 '+iso(new Date())+' · 부서 '+sel.join(', ')+($('#pMeta').textContent.includes('조건:')?' · 조건: '+$('#pMeta').textContent.split('조건: ')[1]:'');
+  const doc=`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><style>${css}
+body{padding:12px 16px}.printhead{display:block}.wrap{padding:0}.tbl-wrap{max-height:none}th{position:static}
+@media print{body{padding:0}}</style></head><body><div class="wrap"><div class="printhead"><h1>${esc(title)}</h1><div class="meta">${esc(meta)}</div></div>${body}</div>
+<script>addEventListener('load',function(){setTimeout(function(){print()},400)})<\/script></body></html>`;
+  if(window.PD_DIRECT){prClose();const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';f.srcdoc=doc;document.body.appendChild(f);setTimeout(()=>f.remove(),120000);return}
+  try{await dlCap.save({filename:'주간계획서_부서별_'+iso(new Date()).replace(/-/g,'')+'.html',data:doc});prClose()}catch(e){dlFail(e)}};
+syncPD();
 
 /* ---------- 시작 ---------- */
 drawTabs();render();renderMisc();drawTitle();
@@ -1950,6 +2004,7 @@ const h0=(location.hash||'#worker').slice(1).replace(/[^a-z]/g,'');showTab(TABS.
 </script>
 
 <script>
+window.PD_DIRECT=true;var bd=document.getElementById('bPrintDept');if(bd)bd.textContent='부서별 인쇄';
 (function(){var b=document.getElementById('bPrint');b.textContent='인쇄';b.onclick=function(){if(st.edit)setEdit(false);render();window.print()}})();
 </script>
 </body>
