@@ -559,7 +559,7 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <div id="lv" hidden></div>
 <div id="jr" hidden>
   <div class="jr-hero">
-    <div class="jr-top no-print"><button type="button" class="jr-hbtn" id="jrBack">← 현황판으로</button><div class="jr-seg" role="tablist" aria-label="보기 단위"><button type="button" id="jrMDay" role="tab">일간</button><button type="button" id="jrMMon" role="tab">월간</button></div><button type="button" class="jr-hbtn solid" id="jrPrint">인쇄</button></div>
+    <div class="jr-top no-print"><button type="button" class="jr-hbtn" id="jrBack">← 현황판으로</button><div class="jr-seg" role="tablist" aria-label="보기 단위"><button type="button" id="jrMDay" role="tab">일간</button><button type="button" id="jrMMon" role="tab">월간</button></div><button type="button" class="jr-hbtn solid" id="jrPrint">인쇄</button><button type="button" class="jr-hbtn" id="jrPrintDept" title="부서를 골라 부서별로 나누어 인쇄">부서별 인쇄</button></div>
     <div class="jr-date"><small id="jrKick">오늘의 업무일지 · DAILY LOG</small><h2 id="jrTitle"></h2>
       <div class="jr-nav no-print"><button type="button" class="jr-hbtn" id="jrPrev" aria-label="전날">‹</button><input type="date" id="jrDate" aria-label="날짜 선택"><input type="month" id="jrMonth" aria-label="월 선택" hidden><button type="button" class="jr-hbtn" id="jrNext" aria-label="다음날">›</button><button type="button" class="jr-hbtn" id="jrToday">오늘</button></div></div>
     <div class="jr-kpis" id="jrK"></div>
@@ -1505,7 +1505,9 @@ function leaveRebuild(){LEAVE.clear();LEAVEY.forEach(doc=>{Object.keys(doc).forE
   const d=k.slice(-10),w=k.slice(2,-11);if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!w)return;LEAVE.set(w+'|'+d,{w,d,t:v.t,r:v.r||'',p:!!v.p,b:v.b||''})})})}
 const LOGS=new Map(); /* 날짜 → {lg_이름: 의견} */
 const WD=['일','월','화','수','목','금','토'];
-const jr={on:false,date:iso(TODAY),who:'',all:false,scroll:0,dept:'',mode:'day',month:iso(TODAY).slice(0,7),hc:{}};
+const jr={on:false,date:iso(TODAY),who:'',all:false,scroll:0,dept:'',pset:null,mode:'day',month:iso(TODAY).slice(0,7),hc:{}};
+const jrIn=w=>jr.pset?jr.pset.has(deptOf(w)):(!jr.dept||deptOf(w)===jr.dept);
+const jrDeptLbl=()=>jr.pset?[...jr.pset].join('·'):jr.dept;
 const DEPTS=[...ORG.map(g=>g[0]),'기타 · 외주'];
 const RANK_DEFAULT={'강선혜':'상무','차인태':'부장','신보용':'차장','이미향':'부장','김희현':'사원','정지연':'대리','정경민':'차장','이은혜':'대리','이정현':'대리','김다인':'사원'};
 let RANK_SAVED=null; /* 관리자가 저장한 직급 (meta/ranks → {map:{이름:직급}}) */
@@ -1559,7 +1561,7 @@ function jrChrome(){
   const m=jr.mode==='month';
   $('#jrMDay').classList.toggle('on',!m);$('#jrMMon').classList.toggle('on',m);
   $('#jrDate').hidden=m;$('#jrMonth').hidden=!m;$('#jrAllL').hidden=true;$('#jrToday').textContent=m?'이번 달':'오늘';
-  $('#jrKick').textContent=(m?'월간 업무일지 · MONTHLY LOG':'오늘의 업무일지 · DAILY LOG')+(jr.dept?' · '+jr.dept:'');
+  $('#jrKick').textContent=(m?'월간 업무일지 · MONTHLY LOG':'오늘의 업무일지 · DAILY LOG')+(jrDeptLbl()?' · '+jrDeptLbl():'');
   $('#jrDept').innerHTML=['',...DEPTS].map(d=>`<button type="button" class="jr-chip${jr.dept===d?' on':''}" style="--gc:var(--${d?deptCls(d):'accent'})" data-d="${esc(d)}">${d||'전체'}</button>`).join('');
   $('#jrRk').hidden=true;
   $('#jr').classList.toggle('brk',$('#jrBrk').checked)}
@@ -1567,7 +1569,7 @@ function jrRender(){
   if(!jr.on)return;
   jrChrome();
   if(jr.mode==='month')return jrRenderMonth();
-  const D=jr.date,calc=jrCalc(D),isNow=calc.isNow,rows=calc.rows.filter(x=>!jr.dept||deptOf(x.w)===jr.dept);
+  const D=jr.date,calc=jrCalc(D),isNow=calc.isNow,rows=calc.rows.filter(x=>jrIn(x.w));
   $('#jrTitle').innerHTML=jrTitleOf(D);
   $('#jrDate').value=D;$('#jrDate').max=iso(TODAY);
   const ids=new Set();let stepN=0,prN=0,active=0,opN=0;
@@ -1746,7 +1748,7 @@ function jrAttTable(ym){
   const att={};LOGS.forEach((v,d)=>{if(d.slice(0,7)!==ym)return;Object.keys(v).forEach(k=>{if(k.startsWith('lf_')&&Array.isArray(v[k])){const w=k.slice(3);v[k].forEach(f=>{((att[w]=att[w]||{})[f]=att[w][f]||[]).push(d)})}})});
   LEAVE.forEach(e=>{if(e.d.slice(0,7)!==ym)return;const a=att[e.w]=att[e.w]||{};const l=a[e.t]=a[e.t]||[];if(!l.includes(e.d))l.push(e.d)});
   const order=ORG.flatMap(g=>g[1]);
-  let ppl=[...new Set([...jrPeopleAll(),...order.filter(n=>jrPeopleAll().includes(n)),...Object.keys(att)])].filter(w=>(!jr.dept||deptOf(w)===jr.dept)&&(!jr.who||w===jr.who));
+  let ppl=[...new Set([...jrPeopleAll(),...order.filter(n=>jrPeopleAll().includes(n)),...Object.keys(att)])].filter(w=>jrIn(w)&&(!jr.who||w===jr.who));
   ppl.sort(byRank);
   if(!ppl.length)return '';
   const cls={'잔업':'var(--c-wait)','야근':'var(--c-stock)','오전반차':'var(--c-step)','오후반차':'var(--c-step)','연차':'var(--c-done)'};
@@ -1773,7 +1775,7 @@ function jrRenderMonth(){
   if(!c||(!c.rows&&!c.err)){$('#jrK').innerHTML='';$('#jrGrid').innerHTML='<div class="jr-load">변경 이력을 불러오는 중…</div>';jrLoadHist(ym);return}
   if(c.err){$('#jrK').innerHTML='';$('#jrGrid').innerHTML=`<div class="jr-empty">변경 이력을 불러오지 못했습니다 (${esc(c.err)}). <button type="button" class="btn" id="jrRetry">다시 시도</button></div>`;return}
   const m=jrMonthCalc(ym);
-  const inD=w=>!jr.dept||deptOf(w)===jr.dept;
+  const inD=w=>jrIn(w);
   const list=m.people.filter(inD).sort((a,b)=>DEPTS.indexOf(deptOf(a))-DEPTS.indexOf(deptOf(b))||(ORG.flatMap(g=>g[1]).indexOf(a)+1||999)-(ORG.flatMap(g=>g[1]).indexOf(b)+1||999)||a.localeCompare(b,'ko'));
   const whoSel=$('#jrWho');whoSel.innerHTML='<option value="">전체</option>'+list.map(n=>`<option value="${esc(n)}">${esc(nm(n))}</option>`).join('');
   whoSel.value=list.includes(jr.who)?jr.who:'';jr.who=whoSel.value;
@@ -1799,7 +1801,7 @@ function jrRenderMonth(){
       <div class="jr-b">${body?`<table class="jr-mt"><thead><tr><th style="width:84px">날짜</th><th style="width:30%">도서</th><th style="width:76px">단계</th><th>진행 내용</th></tr></thead><tbody>${body}</tbody></table>`:'<div class="jr-none">이 달에 기록된 진행 내용이 없습니다.</div>'}</div></article>`}).join('')
     :'<div class="jr-empty">이 달에 표시할 기록이 없습니다.</div>';
   const now=new Date();
-  $('#jrFoot').textContent=`${Y}년 ${Mo}월 월간 업무일지${jr.dept?' · '+jr.dept:''} · 출력 ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${myId?' · 출력자 '+myId:''}`;
+  $('#jrFoot').textContent=`${Y}년 ${Mo}월 월간 업무일지${jrDeptLbl()?' · '+jrDeptLbl():''} · 출력 ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${myId?' · 출력자 '+myId:''}`;
 }
 document.addEventListener('click',e=>{
   const ch=e.target.closest&&e.target.closest('#jrDept .jr-chip');if(ch){jr.dept=ch.dataset.d;jr.who='';jrRender();return}
@@ -1953,20 +1955,29 @@ function deptBooks(a){const m=new Map();[...ORG.map(g=>g[0]),DP_OTHER].forEach(d
 const dpClass=d=>{const g=ORG.find(o=>o[0]===d);return g?g[2]:'gx'};
 const dpSrc=()=>curTab==='list'?filtered():recs().filter(r=>(r.workers||[]).some(w=>eff(r,w).stage!=='인쇄완료'));
 function syncPD(){const b=$('#bPrintDept');if(b)b.hidden=!(curTab==='list'||curTab==='worker')}
-function prOpen(){const m=deptBooks(dpSrc());
+let PR_MODE='book';
+function jrPrOpen(){PR_MODE='jr';const ppl=jrPeopleAll();const cnt=d=>ppl.filter(w=>deptOf(w)===d).length;
+  $('#prBody').innerHTML=`<p class="tip">업무일지(${jr.mode==='month'?'월간':'일간'})를 선택한 부서만 모아 출력합니다. 현재 보고 있는 날짜·월이 그대로 적용되며, 갱신 기록이 없는 직원도 포함됩니다.</p>
+  <div class="prall"><button type="button" class="btn" id="prAll">전체 선택</button><button type="button" class="btn" id="prNone">전체 해제</button></div>
+  ${DEPTS.map(d=>`<label class="pr" style="--g:var(--${deptCls(d)})"><input type="checkbox" data-pd="${esc(d)}"${jr.dept?(jr.dept===d?' checked':''):' checked'}><i></i><b>${esc(d)}</b><span>${cnt(d)}명</span></label>`).join('')}
+  <label class="pr"><input type="checkbox" id="prBrk"${$('#jrBrk').checked?' checked':''}><b>부서마다 새 쪽에서 시작</b></label>`;
+  $('#prBack').classList.add('on')}
+function prOpen(){PR_MODE='book';const m=deptBooks(dpSrc());
   $('#prBody').innerHTML=`<p class="tip">${curTab==='list'?'도서 목록 화면에 지금 걸린 검색·필터 조건이 그대로 적용됩니다. ':'작업자별 화면(인쇄완료 제외)을 부서별로 나눕니다. '}여러 부서에 걸친 도서는 해당 부서마다 나옵니다. 수정 모드와 상관없이 읽기용으로 출력됩니다.</p>
   <div class="prall"><button type="button" class="btn" id="prAll">전체 선택</button><button type="button" class="btn" id="prNone">전체 해제</button></div>
   ${[...m].map(([d,l])=>`<label class="pr" style="--g:var(--${dpClass(d)})"><input type="checkbox" data-pd="${esc(d)}"${l.length?' checked':' disabled'}><i></i><b>${esc(d)}</b><span>${l.length}건</span></label>`).join('')}
   <label class="pr"><input type="checkbox" id="prBrk" checked><b>부서마다 새 쪽에서 시작</b></label>`;
   $('#prBack').classList.add('on')}
 const prClose=()=>$('#prBack').classList.remove('on');
-$('#bPrintDept').onclick=prOpen;$('#prClose').onclick=prClose;
+$('#bPrintDept').onclick=prOpen;$('#jrPrintDept').onclick=jrPrOpen;$('#prClose').onclick=prClose;
 $('#prBack').addEventListener('click',e=>{if(e.target.id==='prBack')prClose();const t=e.target;
   if(t.id==='prAll'||t.id==='prNone')document.querySelectorAll('#prBody [data-pd]:not(:disabled)').forEach(c=>c.checked=t.id==='prAll')});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#prBack').classList.contains('on'))prClose()});
 $('#prGo').onclick=async()=>{
   const sel=[...document.querySelectorAll('#prBody [data-pd]:checked')].map(c=>c.dataset.pd),brk=$('#prBrk').checked;
   if(!sel.length){toast('출력할 부서를 하나 이상 선택하세요');return}
+  if(PR_MODE==='jr'){jr.pset=new Set(sel);jr.who='';$('#jrBrk').checked=brk;jrRender();prClose();
+    addEventListener('afterprint',()=>{jr.pset=null;if(jr.on)jrRender()},{once:true});setTimeout(()=>window.print(),150);return}
   if(!dlCap&&!window.PD_DIRECT){toast('이 화면에서는 파일 저장을 쓸 수 없습니다');return}
   const was=st.edit;st.edit=false;let body='';const title=todayTitle(),only=new Set(sel);
   if(curTab==='list'){const m=deptBooks(filtered());let i=0;
