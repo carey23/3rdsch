@@ -223,7 +223,8 @@ td select,td input[type=date]{font:inherit;font-size:12px;padding:2px 4px;border
 .hl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .admbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;font-weight:700;color:#fff;border:0;cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;background:linear-gradient(135deg,#0f2a3d,#14506a 60%,#1c8a7a);box-shadow:0 2px 10px rgba(15,42,61,.35);transition:transform .15s}
 .lvbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:14px;font-weight:700;color:var(--ink,inherit);background:var(--card);border:1px solid var(--line);cursor:pointer;padding:7px 14px 7px 11px;border-radius:99px;transition:transform .15s,border-color .15s}
-.lvbtn:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}.lvbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lvbtn{color:#fff;border:0;background:linear-gradient(135deg,#0b8f6e 0%,#16b36a 60%,#6cc24a 100%);box-shadow:0 3px 12px rgba(14,140,100,.38)}
+.lvbtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(14,140,100,.5);color:#fff}.lvbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 body.lv-open>#dock,body.lv-open>.wrap,body.lv-open>#jr,body.lv-open>#ad{display:none!important}
 #lv{max-width:1500px;margin:0 auto;padding:14px 0 40px}
 .lv-hero{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
@@ -360,6 +361,22 @@ body.jr-open>#dock,body.jr-open>.wrap{display:none!important}
 .jr-seg button:focus-visible{outline:2px solid #fff;outline-offset:1px}
 .jr-nav input[type=month]{font:inherit;font-size:13px;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:5px 12px;color-scheme:dark}
 .jr-chips{display:flex;gap:6px;flex-wrap:wrap}
+.jr-seg{border-width:2px;border-color:rgba(255,255,255,.6);padding:4px}
+.jr-seg button{font-size:16px;padding:8px 26px}
+.jr-seg button.on{box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#jrPrint,#jrPrintDept{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:800;padding:9px 20px 9px 16px;box-shadow:0 3px 12px rgba(0,0,0,.28)}
+#jrPrint{background:#fff;color:#1c2f86}
+#jrPrintDept{background:#ffd54a;color:#3b2a00;border-color:#ffd54a}
+#jrPrintDept:hover{background:#ffe27d}
+#jrPrint:hover,#jrPrintDept:hover{transform:translateY(-1px)}
+#jrPrint svg,#jrPrintDept svg{flex:none}
+.jr-pb{display:flex;gap:10px;flex-wrap:wrap}
+.jr-deptbox{flex:1 1 100%;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:var(--card);border:2px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.jr-deptbox .dl{display:flex;flex-direction:column;line-height:1.25;font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap}
+.jr-deptbox .dl small{font-size:11px;font-weight:600;color:var(--sub)}
+.jr-deptbox .jr-chip{font-size:14px;padding:7px 16px;border-width:2px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.jr-deptbox .jr-chip:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.14)}
+
 .jr-chip{--gc:var(--gx);font:inherit;font-size:13px;font-weight:700;padding:5px 13px;border-radius:99px;cursor:pointer;color:var(--gc);background:var(--card);border:1px solid color-mix(in srgb,var(--gc) 40%,var(--line))}
 .jr-chip:hover{background:color-mix(in srgb,var(--gc) 10%,var(--card))}
 .jr-chip.on{background:var(--gc);color:var(--on-accent);border-color:var(--gc)}
@@ -559,12 +576,12 @@ button.jr-tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <div id="lv" hidden></div>
 <div id="jr" hidden>
   <div class="jr-hero">
-    <div class="jr-top no-print"><button type="button" class="jr-hbtn" id="jrBack">← 현황판으로</button><div class="jr-seg" role="tablist" aria-label="보기 단위"><button type="button" id="jrMDay" role="tab">일간</button><button type="button" id="jrMMon" role="tab">월간</button></div><button type="button" class="jr-hbtn solid" id="jrPrint">인쇄</button><button type="button" class="jr-hbtn" id="jrPrintDept" title="부서를 골라 부서별로 나누어 인쇄">부서별 인쇄</button></div>
+    <div class="jr-top no-print"><button type="button" class="jr-hbtn" id="jrBack">← 현황판으로</button><div class="jr-seg" role="tablist" aria-label="보기 단위"><button type="button" id="jrMDay" role="tab">일간</button><button type="button" id="jrMMon" role="tab">월간</button></div><div class="jr-pb"><button type="button" class="jr-hbtn solid" id="jrPrint" title="지금 화면 그대로 인쇄"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z"/></svg>인쇄</button><button type="button" class="jr-hbtn" id="jrPrintDept" title="부서를 골라 부서별로 나누어 인쇄"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z"/></svg>부서별 인쇄</button></div></div>
     <div class="jr-date"><small id="jrKick">오늘의 업무일지 · DAILY LOG</small><h2 id="jrTitle"></h2>
       <div class="jr-nav no-print"><button type="button" class="jr-hbtn" id="jrPrev" aria-label="전날">‹</button><input type="date" id="jrDate" aria-label="날짜 선택"><input type="month" id="jrMonth" aria-label="월 선택" hidden><button type="button" class="jr-hbtn" id="jrNext" aria-label="다음날">›</button><button type="button" class="jr-hbtn" id="jrToday">오늘</button></div></div>
     <div class="jr-kpis" id="jrK"></div>
   </div>
-  <div class="jr-bar no-print"><span class="lbl">부서</span><div class="jr-chips" id="jrDept"></div><span class="lbl">작업자</span><select id="jrWho" aria-label="작업자"></select><label class="lbl" id="jrAllL"><input type="checkbox" id="jrAll"> 갱신 없는 사람도 보기</label><button type="button" class="chip" id="jrRk" hidden>직급 설정</button><label class="lbl"><input type="checkbox" id="jrBrk" checked> 인쇄 시 부서별로 쪽 나누기</label><span class="lbl" id="jrHint"></span></div>
+  <div class="jr-bar no-print"><div class="jr-deptbox"><span class="dl">부서별 보기<small>눌러서 선택하세요</small></span><div class="jr-chips" id="jrDept"></div></div><span class="lbl">작업자</span><select id="jrWho" aria-label="작업자"></select><label class="lbl" id="jrAllL"><input type="checkbox" id="jrAll"> 갱신 없는 사람도 보기</label><button type="button" class="chip" id="jrRk" hidden>직급 설정</button><label class="lbl"><input type="checkbox" id="jrBrk" checked> 인쇄 시 부서별로 쪽 나누기</label><span class="lbl" id="jrHint"></span></div>
   <div class="jr-asum" id="jrAtt"></div>
   <div class="jr-grid" id="jrGrid"></div>
   <div class="jr-foot" id="jrFoot"></div>
